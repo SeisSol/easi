@@ -81,6 +81,40 @@ private:
   std::unordered_map<std::string, unsigned> m_bindingPoint;
   double T::* m_parameter[BindingPoints];
 };
+
+class ArraysAdapter : public ResultAdapter {
+public:
+  ArraysAdapter(unsigned dim) : m_dim(dim), m_arrays(new double*[dim]) {}
+  virtual ~ArraysAdapter() { delete[] m_arrays; }
+
+  void setBindingPoint(std::string const& parameter, unsigned bindingPoint, double* array) {
+    assert(bindingPoint < m_dim);
+    m_bindingPoint[parameter] = bindingPoint;
+    m_arrays[bindingPoint] = array;
+  } 
+
+  virtual int bindingPoint(std::string const& parameter) const {
+    auto it = m_bindingPoint.find(parameter);
+    return (it != m_bindingPoint.end()) ? it->second : -1;
+  }
+  virtual unsigned numberOfBindingPoints() const { return m_dim; }
+  
+  virtual void set(Vector<unsigned> const& index, Matrix<double> const& value) {
+    assert(value.rows() == m_dim);
+    assert(value.cols() == index.size());
+
+    for (unsigned i = 0; i < index.size(); ++i) {
+      for (unsigned j = 0; j < m_dim; ++j) {
+        m_arrays[j][ index(i) ] = value(j,i);
+      }
+    }
+  }
+
+private:
+  std::unordered_map<std::string, unsigned> m_bindingPoint;
+  unsigned m_dim;
+  double** m_arrays;
+};
 }
 
 #endif
