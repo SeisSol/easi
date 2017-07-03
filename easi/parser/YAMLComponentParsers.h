@@ -48,6 +48,7 @@
 #include "easi/component/DomainFilter.h"
 #include "easi/component/GroupFilter.h"
 #include "easi/component/AffineMap.h"
+#include "easi/component/FunctionMap.h"
 #include "easi/component/LayeredModelBuilder.h"
 
 namespace easi {
@@ -187,6 +188,16 @@ void parse<AffineMap>(AffineMap* component, YAML::Node const& node, unsigned dim
   component->setMap(matrix, translation);
   checkDomain(node, component, dimDomain);
 
+  parse<Map>(component, node, dimDomain, parser);
+}
+
+template<>
+void parse<FunctionMap>(FunctionMap* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+  checkType(node, "map", {YAML::NodeType::Map});
+  
+  FunctionMap::Parameters parameters = node["map"].as<FunctionMap::Parameters>();
+  
+  component->setMap(parameters);
   parse<Map>(component, node, dimDomain, parser);
 }
 

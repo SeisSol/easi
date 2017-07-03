@@ -36,79 +36,63 @@
  *
  * @section DESCRIPTION
  **/
-#ifndef EASI_COMPONENT_FUNCTIONMODEL_H_
-#define EASI_COMPONENT_FUNCTIONMODEL_H_
+#ifndef EASI_COMPONENT_FUNCTIONMAP_H_
+#define EASI_COMPONENT_FUNCTIONMAP_H_
 
-#include <map>
-#include <string>
-#include <impalajit.hh>
-#include "easi/component/Model.h"
-#include "easi/util/FunctionWrapper.h"
+#include "easi/component/Map.h"
 
 namespace easi {
-class FunctionModel : public Model {
+class FunctionMap : public Map {
 public:
   typedef std::map<std::string, std::string> Parameters;
 
-  virtual ~FunctionModel() {}
+  virtual ~FunctionMap() {}
 
-  virtual void evaluate(Query& query, ResultAdapter& result);
-
-  void setParameters(Parameters const& functionMap);
+  void setMap(Parameters const& functionMap);
+  
+protected:
+  virtual Matrix<double> map(Matrix<double>& x);
 
 private:
-  std::unordered_map<std::string, dasm_gen_func> m_functions;
+  std::vector<dasm_gen_func> m_functions;
 };
 
-void FunctionModel::evaluate(Query& query, ResultAdapter& result) {
+Matrix<double> FunctionMap::map(Matrix<double>& x) {
+  assert(x.cols() == dimDomain());
+  assert(m_functions.size() == dimCodomain());
+  
   function_wrapper_t w = getFunctionWrapper(dimDomain());
 
-  dasm_gen_func* functions = new dasm_gen_func[result.numberOfBindingPoints()];
-  unsigned numberOfMatchedBPs = 0;
-  for (auto it = m_functions.cbegin(); it != m_functions.cend(); ++it) {
-    int bP = result.bindingPoint(it->first);
-    if (bP >= 0) {
-      functions[bP] = it->second;
-      ++numberOfMatchedBPs;
+  Matrix<double> y(x.rows(), dimCodomain());
+  for (unsigned i = 0; i < y.rows(); ++i) {
+    for (unsigned j = 0; j < y.cols(); ++j) {
+      y(i,j) = w(m_functions[j], x, i);
     }
   }
-  if (numberOfMatchedBPs != result.numberOfBindingPoints()) {
-    throw std::runtime_error("Parameter set required by simulation does not match model.");
-  }
-  Matrix<double> Y(result.numberOfBindingPoints(), query.numPoints());
-  for (unsigned j = 0; j < Y.cols(); ++j) {
-    for (unsigned i = 0; i < Y.rows(); ++i) {
-      Y(i,j) = (*w)(functions[i], query.x, j);
-    }
-  }
-  delete functions;
-
-  result.set(query.index, Y);
+  return y;
 }
 
-void FunctionModel::setParameters(Parameters const& functionMap) {
+void FunctionMap::setMap(Parameters const& functionMap) {
   setDimCodomain(functionMap.size());
 
   std::vector<std::string> functionDefinitions;
   for (auto it = functionMap.cbegin(); it != functionMap.cend(); ++it ) {
     functionDefinitions.push_back(it->first + it->second);
-    m_functions[it->first] = nullptr;
   }
   impalajit::Compiler compiler(functionDefinitions);
   compiler.compile();
   
   unsigned dimDomain = std::numeric_limits<unsigned>::max();
-  for (auto it = m_functions.begin(); it != m_functions.end(); ++it ) {
-    it->second = compiler.getFunction(it->first);
+  for (auto it = functionMap.begin(); it != functionMap.end(); ++it ) {
+    m_functions.push_back(compiler.getFunction(it->first));
     unsigned funDomain = compiler.getParameterCount(it->first);
     if (dimDomain != funDomain && dimDomain != std::numeric_limits<unsigned>::max()) {
-      throw std::invalid_argument("All functions in a FunctionModel must have the same domain.");
+      throw std::invalid_argument("All functions in a FunctionMap must have the same domain.");
     }
     dimDomain = funDomain;
   }
   setDimDomain(dimDomain);
 }
 }
-
 
 #endif

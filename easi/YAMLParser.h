@@ -72,6 +72,7 @@ YAMLParser::YAMLParser(unsigned dimDomain)
   registerType<SphericalDomainFilter>("!SphericalDomainFilter");
   registerType<IdentityMap>("!IdentityMap");
   registerType<AffineMap>("!AffineMap");
+  registerType<FunctionMap>("!FunctionMap");
   registerType<LayeredModelBuilder>("!LayeredModel");
 }
 
