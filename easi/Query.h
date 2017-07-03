@@ -53,6 +53,8 @@ struct Query {
   unsigned numPoints() const { return x.rows(); }
   unsigned dimDomain() const { return x.cols(); }
   
+  Query shallowCopy();
+  
   void clear();
 };
 
@@ -63,6 +65,11 @@ Query::Query(unsigned numPoints, unsigned dimDomain, bool initIndices)
       index(i) = i;
     }
   }
+}
+
+Query Query::shallowCopy() {
+  Query copy = *this;
+  return copy;
 }
 
 void Query::clear() {

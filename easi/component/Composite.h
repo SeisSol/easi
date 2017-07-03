@@ -75,7 +75,9 @@ Composite::~Composite() {
 
 void Composite::add(Component* component) {
   if (dimCodomain() != component->dimDomain()) {
-    throw std::invalid_argument("The domain of a component added to a composite has wrong dimension.");
+    std::stringstream ss;
+    ss << "The domain of a component (" << component->dimDomain() << ") added to a composite has wrong dimension (should be " << dimCodomain() << ").";
+    throw std::invalid_argument(ss.str());
   }
   
   m_components.push_back(component);

@@ -36,70 +36,59 @@
  *
  * @section DESCRIPTION
  **/
-#ifndef EASI_YAMLPARSER_H_
-#define EASI_YAMLPARSER_H_
+#ifndef EASI_COMPONENT_SWITCH_H_
+#define EASI_COMPONENT_SWITCH_H_
 
-#include <string>
-#include <unordered_map>
-#include <yaml-cpp/yaml.h>
-#include "easi/parser/YAMLAbstractParser.h"
-#include "easi/parser/YAMLComponentParsers.h"
+#include <set>
+#include "easi/component/Composite.h"
 
 namespace easi {
-class YAMLParser : YAMLAbstractParser {
+class Switch : public Composite {
 public:
-  YAMLParser(unsigned dimDomain);
+  virtual ~Switch() {}
   
-  template<typename T>
-  void registerType(std::string const& tag);
+  virtual void evaluate(Query& query, ResultAdapter& result);
+  virtual bool accept(int group, Slice<double> const&) const { return true; }
 
-  Component* parse(std::string const& fileName);
-  Component* parse(YAML::Node const& node, unsigned dimDomain);
+  virtual void add(Component* component, std::set<std::string> const& restrictions);
+
+  void setDimension(unsigned dimension) {
+    setDimDomain(dimension);
+    setDimCodomain(dimension);
+  }
+
+protected:
+  using Composite::add; // Make add protected
 
 private:
-  unsigned m_dimDomain;
-  std::unordered_map<std::string, Component* (*)(YAML::Node const&, unsigned, YAMLAbstractParser*)> creators;
+  std::vector<std::set<std::string>> m_restrictions;
 };
 
-YAMLParser::YAMLParser(unsigned dimDomain)
-  : m_dimDomain(dimDomain) {
-  registerType<Switch>("!Switch");
-  registerType<ConstantModel>("!ConstantModel");
-  registerType<FunctionModel>("!FunctionModel");
-  registerType<PolynomialModel>("!PolynomialModel");
-  registerType<Any>("!Any");
-  registerType<GroupFilter>("!GroupFilter");
-  registerType<AxisAlignedCuboidalDomainFilter>("!AxisAlignedCuboidalDomainFilter");
-  registerType<SphericalDomainFilter>("!SphericalDomainFilter");
-  registerType<IdentityMap>("!IdentityMap");
-  registerType<AffineMap>("!AffineMap");
-  registerType<FunctionMap>("!FunctionMap");
-  registerType<LayeredModelBuilder>("!LayeredModel");
+void Switch::add(Component* component, std::set<std::string> const& restrictions) {
+  Composite::add(component);
+  m_restrictions.push_back(restrictions);
 }
 
-template<typename T>
-void YAMLParser::registerType(std::string const& tag) {
-  creators[tag] = &create<T>;
-}
-
-Component* YAMLParser::parse(std::string const& fileName) {
-  Component* root;
-  YAML::Node config = YAML::LoadFile(fileName);
-  
-  root = parse(config, m_dimDomain);
-
-  return root;
-}
-
-
-Component* YAMLParser::parse(YAML::Node const& node, unsigned dimDomain) {
-  auto creator = creators.find(node.Tag());
-  
-  if (creator == creators.end()) {
-    throw std::invalid_argument("Unknown tag " + node.Tag());
+void Switch::evaluate(Query& query, ResultAdapter& result) {
+  std::set<unsigned> bps;
+  for (auto i = m_restrictions.cbegin(); i != m_restrictions.cend(); ++i) {
+    for (auto j = (*i).cbegin(); j != (*i).cend(); ++j) {
+      bps.insert(result.bindingPoint(*j));
+    }
+  }
+  if (bps.size() != result.numberOfBindingPoints()) {
+    throw std::invalid_argument("Switch is not complete with respect to request.");
   }
   
-  return (*creator->second)(node, dimDomain, this);
+  // Evaluate submodels
+  iterator c = begin();
+  auto r = m_restrictions.cbegin();
+  for (; c != end() && r != m_restrictions.cend(); ++c, ++r) {
+    Query subQuery = query.shallowCopy();
+    ResultAdapter* subResult = result.subsetAdapter(*r);
+    (*c)->evaluate(subQuery, *subResult);
+    delete subResult;
+  }
 }
 }
 

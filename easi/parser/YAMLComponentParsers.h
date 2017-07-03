@@ -40,6 +40,7 @@
 #define EASI_PARSER_YAMLCOMPONENTPARSERS_H_
 
 #include "easi/parser/YAMLHelpers.h"
+#include "easi/component/Switch.h"
 #include "easi/component/IdentityMap.h"
 #include "easi/component/ConstantModel.h"
 #include "easi/component/FunctionModel.h"
@@ -99,10 +100,33 @@ template<>
 void parse<Composite>(Composite* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
   checkType(node, "components", {YAML::NodeType::Sequence}, false);
 
-  for (YAML::const_iterator it = node["components"].begin(); it != node["components"].end(); ++it) {
-    Component* child = parser->parse(*it, component->dimCodomain());
-    component->add(child);
+  if (node["components"]) {
+    for (YAML::const_iterator it = node["components"].begin(); it != node["components"].end(); ++it) {
+      Component* child = parser->parse(*it, component->dimCodomain());
+      component->add(child);
+    }
   }
+  parse<Component>(component, node, dimDomain, parser);
+}
+
+template<>
+void parse<Switch>(Switch* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+  checkType(node, "components", {YAML::NodeType::Sequence}, false);
+
+  component->setDimension(dimDomain);
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
+    Component* child = parser->parse(it->second, component->dimCodomain());
+    std::set<std::string> restrictions;
+    if (it->first.IsSequence()) {
+      std::vector<std::string> restrictionSeq = it->first.as<std::vector<std::string>>();
+      restrictions.insert(restrictionSeq.begin(), restrictionSeq.end());
+    } else {
+      restrictions.insert(it->first.as<std::string>());
+    }
+    component->add(child, restrictions);
+  }
+
+  // Do not call Composite parser, as we don't want to inherit the "components" parameter
   parse<Component>(component, node, dimDomain, parser);
 }
 
