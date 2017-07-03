@@ -64,6 +64,7 @@ private:
 YAMLParser::YAMLParser(unsigned dimDomain)
   : m_dimDomain(dimDomain) {
   registerType<ConstantModel>("!ConstantModel");
+  registerType<FunctionModel>("!FunctionModel");
   registerType<PolynomialModel>("!PolynomialModel");
   registerType<Any>("!Any");
   registerType<GroupFilter>("!GroupFilter");

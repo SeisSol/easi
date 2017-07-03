@@ -42,6 +42,7 @@
 #include "easi/parser/YAMLHelpers.h"
 #include "easi/component/IdentityMap.h"
 #include "easi/component/ConstantModel.h"
+#include "easi/component/FunctionModel.h"
 #include "easi/component/PolynomialModel.h"
 #include "easi/component/Any.h"
 #include "easi/component/DomainFilter.h"
@@ -66,6 +67,16 @@ void parse<ConstantModel>(ConstantModel* component, YAML::Node const& node, unsi
   ConstantModel::Parameters parameters = node["parameters"].as<ConstantModel::Parameters>();
   
   component->setDimDomain(dimDomain);
+  component->setParameters(parameters);
+  parse<Model>(component, node, dimDomain, parser);
+}
+
+template<>
+void parse<FunctionModel>(FunctionModel* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+  checkType(node, "parameters", {YAML::NodeType::Map});
+  
+  FunctionModel::Parameters parameters = node["parameters"].as<FunctionModel::Parameters>();
+  
   component->setParameters(parameters);
   parse<Model>(component, node, dimDomain, parser);
 }
