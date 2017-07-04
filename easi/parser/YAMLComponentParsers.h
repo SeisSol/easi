@@ -254,6 +254,12 @@ Component* create<LayeredModelBuilder>(YAML::Node const& node, unsigned dimDomai
   
   return builder.getResult();
 }
+
+class Include {};
+template<>
+Component* create<Include>(YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+  return parser->parse(node.as<std::string>());
+}
 }
 
 #endif

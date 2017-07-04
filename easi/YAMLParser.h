@@ -46,15 +46,16 @@
 #include "easi/parser/YAMLComponentParsers.h"
 
 namespace easi {
-class YAMLParser : YAMLAbstractParser {
+class YAMLParser : public YAMLAbstractParser {
 public:
   YAMLParser(unsigned dimDomain);
+  virtual ~YAMLParser() {}
   
   template<typename T>
   void registerType(std::string const& tag);
 
-  Component* parse(std::string const& fileName);
-  Component* parse(YAML::Node const& node, unsigned dimDomain);
+  virtual Component* parse(std::string const& fileName);
+  virtual Component* parse(YAML::Node const& node, unsigned dimDomain);
 
 private:
   unsigned m_dimDomain;
@@ -75,6 +76,7 @@ YAMLParser::YAMLParser(unsigned dimDomain)
   registerType<AffineMap>("!AffineMap");
   registerType<FunctionMap>("!FunctionMap");
   registerType<LayeredModelBuilder>("!LayeredModel");
+  registerType<Include>("!Include");
 }
 
 template<typename T>

@@ -39,6 +39,7 @@
 #ifndef EASI_PARSER_YAMLABSTRACTPARSER_H_
 #define EASI_PARSER_YAMLABSTRACTPARSER_H_
 
+#include <string>
 #include <yaml-cpp/node/node.h>
 
 namespace easi {
@@ -46,6 +47,7 @@ class Component;
 class YAMLAbstractParser {
 public:
   virtual ~YAMLAbstractParser() {}
+  virtual Component* parse(std::string const& fileName) = 0;
   virtual Component* parse(YAML::Node const& node, unsigned dimDomain) = 0;
 };
 }
