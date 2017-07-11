@@ -98,11 +98,14 @@ void parse<PolynomialModel>(PolynomialModel* component, YAML::Node const& node, 
 
 template<>
 void parse<Composite>(Composite* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  checkType(node, "components", {YAML::NodeType::Sequence}, false);
-
   if (node["components"]) {
-    for (YAML::const_iterator it = node["components"].begin(); it != node["components"].end(); ++it) {
-      Component* child = parser->parse(*it, component->dimCodomain());
+    if (node["components"].IsSequence()) {
+      for (YAML::const_iterator it = node["components"].begin(); it != node["components"].end(); ++it) {
+        Component* child = parser->parse(*it, component->dimCodomain());
+        component->add(child);
+      }
+    } else {
+      Component* child = parser->parse(node["components"], component->dimCodomain());
       component->add(child);
     }
   }

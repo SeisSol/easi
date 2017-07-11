@@ -1,0 +1,5 @@
+!ConstantModel
+parameters:
+  lambda: 1
+  mu:     2
+  rho:    3

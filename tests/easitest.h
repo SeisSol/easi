@@ -24,6 +24,7 @@ easi::Query createQuery(std::vector<std::pair<int, std::array<double, DIM>>> con
   return query;
 }
 
+bool equal(double v1, double v2);
 std::vector<ElasticMaterial> elasticModel(std::string const& fileName, easi::Query& query);
 
 #endif
