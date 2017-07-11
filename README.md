@@ -15,7 +15,7 @@ of the following purposes:
 A model is always a leaf of the tree, whereas filter and map may have any number of children.
 
 ## Dependencies and build instructions
-easi itself is a header-only library. It depends on
+easi itself is a header-only library. (Only unit tests must be compiled with CMake.) It depends on
 
 * [ImpalaJIT](https://github.com/Manuel1605/ImpalaJIT)
 * [yaml-cpp](https://github.com/jbeder/yaml-cpp)

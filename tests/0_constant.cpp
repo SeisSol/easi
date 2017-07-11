@@ -36,47 +36,26 @@
  *
  * @section DESCRIPTION
  **/
-#ifndef EASI_QUERY_H_
-#define EASI_QUERY_H_
 
-#include "easi/util/Matrix.h"
+#include "easitest.h"
 
-namespace easi {
-struct Query {
-  Vector<int> group;
-  Matrix<double> x;
-  Vector<unsigned> index;
+int main(int argc, char** argv) {
+  assert(argc == 2);
+
+  easi::Query query = createQuery<3>({
+      {1, {1.0, 2.0, 3.0}},
+      {1, {-3.0, -2.0, -1.0}}
+    });
   
-  inline Query(unsigned numPoints, unsigned dimDomain, bool initIndices = true);
-  ~Query() { clear(); }
+  auto material = elasticModel(argv[1], query);
+
+  assert(material[0].lambda == 1.0);
+  assert(material[0].mu     == 2.0);
+  assert(material[0].rho    == 3.0);
   
-  unsigned numPoints() const { return x.rows(); }
-  unsigned dimDomain() const { return x.cols(); }
-  
-  inline Query shallowCopy();
-  
-  inline void clear();
-};
+  assert(material[1].lambda == 1.0);
+  assert(material[1].mu     == 2.0);
+  assert(material[1].rho    == 3.0);
 
-Query::Query(unsigned numPoints, unsigned dimDomain, bool initIndices)
-  : group(numPoints), x(numPoints, dimDomain), index(numPoints) {
-  if (initIndices) {
-    for (unsigned i = 0; i < numPoints; ++i) {
-      index(i) = i;
-    }
-  }
+  return 0;
 }
-
-Query Query::shallowCopy() {
-  Query copy = *this;
-  return copy;
-}
-
-void Query::clear() {
-  group.clear();
-  x.clear();
-  index.clear();
-}
-}
-
-#endif
