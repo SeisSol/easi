@@ -1,0 +1,131 @@
+# Preliminary reference Earth model
+# Adam M. Dziewonski and Don L. Anderson, Physics of the Earth and Planetary Interiors 25, pp. 297--356, 1981.
+!FunctionMap
+map:
+  r: return sqrt(x*x + y*y + z*z) / 6371000.0;
+components:
+  # Inner core 0--1221.5 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0, 0.19172814314864228536]
+    components: !PolynomialMap
+      map:
+        rho:  [-8.8381, 0, 13.0885]
+        vp:   [-6.3640, 0, 11.2622]
+        vs:   [-4.4475, 0,  3.6678]
+      components: &PREM2SeisSol !FunctionMap
+        map:
+          lambda: return 1000000000.0*rho*(vp*vp - 2.0*vs*vs);
+          mu:     return 1000000000.0*rho*vs*vs;
+          rho:    return 1000.0*rho;
+  # Outer core 1221.5--3480 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.19172814314864228536, 0.54622508240464605243]
+    components: !PolynomialMap
+      map:
+        rho:  [ -5.5281,  -3.6426,  -1.2638, 12.5815]
+        vp:   [-13.5732,   4.8023,  -4.0362, 11.0487]
+        vs:   [       0,        0,        0,       0]
+      components: *PREM2SeisSol
+  # Lower mantle (1) 3480--3630 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.54622508240464605243, 0.56976926699105320986]
+    components: !PolynomialMap
+      map:
+        rho:  [ -3.0807,   5.5283,  -6.4761,  7.9565]
+        vp:   [ -2.5514,   5.5242,  -5.3181, 15.3891]
+        vs:   [  0.9783,  -2.0834,   1.4672,  6.9254]
+      components: *PREM2SeisSol
+  # Lower mantle (2) 3630--5600 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.56976926699105320986, 0.8789828912258672108]
+    components: !PolynomialMap
+      map:
+        rho:  [ -3.0807,   5.5283,  -6.4761,  7.9565]
+        vp:   [-26.6419,  51.4832, -40.4673, 24.9520]
+        vs:   [ -9.2777,  17.4574, -13.7818, 11.1671]
+      components: *PREM2SeisSol
+  # Lower mantle (3) 5600--5701 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.8789828912258672108, 0.89483597551404803014]
+    components: !PolynomialMap
+      map:
+        rho:  [ -3.0807,   5.5283,  -6.4761,  7.9565]
+        vp:   [ -2.5515,   5.5242, -23.6027, 29.2766]
+        vs:   [  0.9783,  -2.0834, -17.2473, 22.3459]
+      components: *PREM2SeisSol
+  # Transition zone (1) 5701--5771 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.89483597551404803014, 0.90582326165437137027]
+    components: !PolynomialMap
+      map:
+        rho:  [ -1.4836,  5.3197]
+        vp:   [ -9.8672, 19.0957]
+        vs:   [ -4.9324,  9.9839]
+      components: *PREM2SeisSol
+  # Transition zone (2) 5771--5971 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.90582326165437137027, 0.93721550776958091351]
+    components: !PolynomialMap
+      map:
+        rho:  [ -8.0298, 11.2494]
+        vp:   [-32.6166, 39.7027]
+        vs:   [-18.5856, 22.3512]
+      components: *PREM2SeisSol
+  # Transition zone (3) 5971--6151 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.93721550776958091351, 0.96546852927326950243]
+    components: !PolynomialMap
+      map:
+        rho:  [ -3.8045,  7.1089]
+        vp:   [-12.2569, 20.3926]
+        vs:   [ -4.4597,  8.9496]
+      components: *PREM2SeisSol
+  # LVZ and LID (approximated) 6151--6346.6 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.96546852927326950243, 0.99617014597394443572]
+    components: !PolynomialMap
+      map:
+        rho:  [  0.6924,  2.6910]
+        vp:   [  3.9382,  4.1875]
+        vs:   [  2.3481,  2.1519]
+      components: *PREM2SeisSol
+  # Crust (1) 6346.6--6356 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.96546852927326950243, 0.99764558154135928426]
+    components: !ConstantMap
+      map:
+        rho:  2.900
+        vp:   6.800
+        vs:   3.900
+      components: *PREM2SeisSol
+  # Crust (2) 6356--6368 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.99764558154135928426, 0.99952911630827185685]
+    components: !ConstantMap
+      map:
+        rho:  2.600
+        vp:   5.800
+        vs:   3.200
+      components: *PREM2SeisSol
+  # Ocean 6368--6371 km
+  - !AxisAlignedCuboidalDomainFilter
+    limits:
+      r: [0.99952911630827185685, 1.0]
+    components: !ConstantMap
+      map:
+        rho:  1.020
+        vp:   1.450
+        vs:   0.000
+      components: *PREM2SeisSol
+      

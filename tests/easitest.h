@@ -4,6 +4,7 @@
 #include <cassert>
 #include <vector>
 #include <string>
+#include <limits>
 #include <easi/Query.h>
 
 struct ElasticMaterial {
@@ -24,7 +25,7 @@ easi::Query createQuery(std::vector<std::pair<int, std::array<double, DIM>>> con
   return query;
 }
 
-bool equal(double v1, double v2);
+bool equal(double v1, double v2, double eps = std::numeric_limits<double>::epsilon());
 std::vector<ElasticMaterial> elasticModel(std::string const& fileName, easi::Query& query);
 
 #endif

@@ -64,3 +64,4 @@ endfunction (easi_add_test)
 
 easi_add_test (0_constant)
 easi_add_test (1_groups)
+easi_add_test (2_prem)

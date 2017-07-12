@@ -41,11 +41,10 @@
 
 #include <set>
 #include <string>
-#include <sstream>
 
 namespace easi {
 template<typename T>
-void printWithSeparator(T const& vectorLike, std::ostringstream& os, std::string const& separator = ",") {
+void printWithSeparator(T const& vectorLike, std::ostream& os, std::string const& separator = ",") {
   auto it = vectorLike.cbegin();
   auto end = vectorLike.cend();
   if (it != end) {

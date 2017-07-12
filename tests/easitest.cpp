@@ -2,13 +2,14 @@
 
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <easi/YAMLParser.h>
 #include <easi/ResultAdapter.h>
 
-bool equal(double ref, double value) {
-  bool isEqual = fabs(ref-value) <= std::numeric_limits<double>::epsilon();
+bool equal(double value, double ref, double eps) {
+  bool isEqual = fabs(ref-value) <= eps;
   if (!isEqual) {
-    std::cerr << "Expected: " << ref << "; actual: " << value << "; error: " << fabs(ref-value) << std::endl;
+    std::cerr << std::setprecision(10) << "Expected: " << ref << "; actual: " << value << "; error: " << fabs(ref-value) << std::endl;
   }
   return isEqual;
 }
