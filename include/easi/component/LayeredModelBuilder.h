@@ -43,6 +43,7 @@
 #include <string>
 #include <sstream>
 #include "easi/component/Map.h"
+#include "easi/util/Print.h"
 
 namespace easi {
 class LayeredModelBuilder {
@@ -86,7 +87,7 @@ void LayeredModelBuilder::setInterpolationType(std::string const& interpolationT
     setInterpolationType(Linear);
   } else {
     std::stringstream ss;
-    ss << "LayeredModelBuilder: Invalid interpolation type " << interpolationType << ".";
+    ss << "Invalid interpolation type " << interpolationType << ".";
     throw std::invalid_argument(ss.str());
   }
 }
@@ -95,7 +96,7 @@ void LayeredModelBuilder::setNodes(Nodes const& nodes) {
   auto nParams = nodes.begin()->second.size();
   for (Nodes::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
     if (it->second.size() != nParams) {
-      throw std::invalid_argument("LayeredModelBuilder: The number of parameters must be equal for every node.");
+      throw std::invalid_argument("The number of parameters must be equal for every node.");
     }
   }
   m_nodes = nodes;
@@ -116,7 +117,11 @@ Component* LayeredModelBuilder::getResult() {
 
 Component* LayeredModelBuilder::createModel(Nodes::iterator& lower, Nodes::iterator& upper, std::set<std::string> const& in) {
   if (in.size() != 1) {
-    throw std::runtime_error("Layered model may have only one input parameter.");
+    std::ostringstream os;
+    os << "Layered model requires 1D input (got ";
+    printWithSeparator(in, os);
+    os << ").";
+    throw std::invalid_argument(os.str());
   }
   
   enum InterpolationType interpolationType;
@@ -132,7 +137,7 @@ Component* LayeredModelBuilder::createModel(Nodes::iterator& lower, Nodes::itera
   auto nParams = (lower != m_nodes.end()) ? lower->second.size() : upper->second.size();
   
   if (m_parameters.size() != nParams) {
-    throw std::runtime_error("Layered model nodes must match parameters.");
+    throw std::invalid_argument("Number of parameters must match number of node entries.");
   }
   
   unsigned nTerms = 1;

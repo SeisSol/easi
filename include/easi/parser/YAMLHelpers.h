@@ -79,8 +79,8 @@ T* upcast(YAML::Node const& node, Component* component) {
 
 namespace YAML {
 template<typename T>
-struct convert<Vector<T>> {
-  static bool decode(Node const& node, Vector<T>& rhs) {
+struct convert<easi::Vector<T>> {
+  static bool decode(Node const& node, easi::Vector<T>& rhs) {
     if(!node.IsSequence()) {
       return false;
     }
@@ -94,8 +94,8 @@ struct convert<Vector<T>> {
 };
 
 template<typename T>
-struct convert<Matrix<T>> {
-  static bool decode(Node const& node, Matrix<T>& rhs) {
+struct convert<easi::Matrix<T>> {
+  static bool decode(Node const& node, easi::Matrix<T>& rhs) {
     std::size_t rows = node.size();
     if(!node.IsSequence() || rows == 0) {
       return false;

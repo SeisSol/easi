@@ -102,7 +102,14 @@ Component* YAMLParser::parse(YAML::Node const& node, std::set<std::string> const
     throw std::invalid_argument("Unknown tag " + node.Tag());
   }
   
-  return (*creator->second)(node, in, this);
+  Component* component = nullptr;
+  try {
+    component = (*creator->second)(node, in, this);
+  } catch (std::invalid_argument const& e) {
+    std::cerr << "Error: " << e.what() << std::endl << node << std::endl;
+    throw std::runtime_error("Incorrect easi model file.");
+  }
+  return component;
 }
 }
 

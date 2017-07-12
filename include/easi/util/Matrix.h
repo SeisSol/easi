@@ -42,6 +42,7 @@
 #include <memory>
 #include <cassert>
 
+namespace easi {
 template<typename T>
 class Slice {
 public:
@@ -180,6 +181,7 @@ Matrix<T> operator*(Matrix<T> const& A, Matrix<T> const& B) {
   }
   
   return C;
+}
 }
 
 #endif

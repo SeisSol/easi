@@ -42,6 +42,7 @@
 #include <vector>
 #include <string>
 #include "easi/component/Map.h"
+#include "easi/util/Print.h"
 
 namespace easi {
 class PolynomialMap : public Map {
@@ -80,7 +81,11 @@ Matrix<double> PolynomialMap::map(Matrix<double>& x) {
 void PolynomialMap::setMap(std::set<std::string> const& in, OutMap const& outMap) {
   setIn(in);
   if (dimDomain() != 1) {
-    throw std::runtime_error("Polynomial map requires 1D input.");
+    std::ostringstream os;
+    os << "Polynomial map requires 1D input (got ";
+    printWithSeparator(in, os);
+    os << ").";
+    throw std::invalid_argument(os.str());
   }
 
   std::set<std::string> out;
@@ -88,7 +93,7 @@ void PolynomialMap::setMap(std::set<std::string> const& in, OutMap const& outMap
   for (auto const& kv : outMap) {
     out.insert(kv.first);
     if (nCoeffs != -1 && kv.second.size() != nCoeffs) {
-      throw std::runtime_error("All parameters in a polynomial map must have the same number of coefficients.");
+      throw std::invalid_argument("All parameters in a polynomial map must have the same number of coefficients.");
     }
     nCoeffs = kv.second.size();
   }

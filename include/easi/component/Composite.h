@@ -43,6 +43,7 @@
 #include <algorithm>
 #include <sstream>
 #include "easi/Component.h"
+#include "easi/util/Print.h"
 
 namespace easi {
 class Composite : public Component {
@@ -75,17 +76,13 @@ Composite::~Composite() {
 
 void Composite::add(Component* component) {
   if (out() != component->in()) {
-    std::stringstream ss;
-    ss << "The parameters of a component ( ";
-    for (std::string const& param : component->in()) {
-      ss << param << " ";
-    }
-    ss << ") added to a composite do not match (should be ";
-    for (std::string const& param : out()) {
-      ss << param << " ";
-    }
-    ss << ").";
-    throw std::invalid_argument(ss.str());
+    std::ostringstream os;
+    os << "The input parameters of a component (";
+    printWithSeparator(component->in(), os);
+    os << ") added to a composite are incompatible (should be ";
+    printWithSeparator(out(), os);
+    os << ").";
+    throw std::invalid_argument(os.str());
   }
   
   m_components.push_back(component);
@@ -99,7 +96,7 @@ void Composite::evaluate(Query& query, ResultAdapter& result) {
   unsigned nComponents = m_components.size();
   if (nComponents == 0) {
     if (!result.isSubset(out())) {
-      throw std::runtime_error("Component does not supply all required parameters.");
+      throw std::invalid_argument("Component does not supply all required parameters.");
     }
     unsigned col = 0;
     for (std::string const& param : out()) {
