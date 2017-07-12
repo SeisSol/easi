@@ -1,0 +1,12 @@
+!LayeredModel
+map: !AffineMap
+  matrix:
+    depth: [0.0, 0.0, -1.0]
+  translation:
+    depth: 0
+interpolation: linear
+parameters: [rho, mu, lambda]
+nodes:
+  1000: [2600, 1.04e10, 2.08e10]
+  2000: [2700, 3.24e10, 3.24e10]
+  3000: [3000, 4.80e10, 1.20e10]

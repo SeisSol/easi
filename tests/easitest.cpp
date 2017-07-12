@@ -29,3 +29,23 @@ std::vector<ElasticMaterial> elasticModel(std::string const& fileName, easi::Que
   
   return material;
 }
+
+std::vector<std::vector<double>> genericModel(std::string const& fileName, easi::Query& query, std::vector<std::string> const& parameters) {
+  easi::YAMLParser parser(query.dimDomain());
+  easi::Component* model = parser.parse(fileName);
+  
+  easi::ArraysAdapter adapter;
+  std::vector<std::vector<double>> material(parameters.size());
+  auto it = material.begin();
+  for (auto const& p : parameters) {
+    it->resize(query.numPoints());
+    adapter.addBindingPoint(p, it->data());
+    ++it;
+  }
+  
+  model->evaluate(query, adapter);  
+  delete model;
+  
+  return material;
+}
+

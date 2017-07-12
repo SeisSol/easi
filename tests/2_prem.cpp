@@ -39,7 +39,6 @@
 
 #include <cmath>
 #include "easitest.h"
-#include <iostream>
 
 /* Uses error propagation rules from http://lectureonline.cl.msu.edu/~mmp/labs/error/e2.htm
 * rho_SI = 1e3 * rho; drho_SI = 1e3 * drho

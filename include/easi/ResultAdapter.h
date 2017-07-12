@@ -125,7 +125,7 @@ public:
     assert(value.size() == index.size());
 
     int bp = bindingPoint(parameter);
-    if (bp > 0) {
+    if (bp >= 0) {
       for (unsigned i = 0; i < index.size(); ++i) {
         m_arrays[bp][ index(i) ] = value(i);
       }
