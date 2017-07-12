@@ -48,7 +48,7 @@ class YAMLAbstractParser {
 public:
   virtual ~YAMLAbstractParser() {}
   virtual Component* parse(std::string const& fileName) = 0;
-  virtual Component* parse(YAML::Node const& node, unsigned dimDomain) = 0;
+  virtual Component* parse(YAML::Node const& node, std::set<std::string> const& in) = 0;
 };
 }
 

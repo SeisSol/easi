@@ -40,10 +40,10 @@
 #define EASI_COMPONENT_SWITCH_H_
 
 #include <set>
-#include "easi/component/Composite.h"
+#include "easi/component/Filter.h"
 
 namespace easi {
-class Switch : public Composite {
+class Switch : public Filter {
 public:
   virtual ~Switch() {}
   
@@ -52,11 +52,7 @@ public:
 
   virtual void add(Component* component, std::set<std::string> const& restrictions);
 
-  void setDimension(unsigned dimension) {
-    setDimDomain(dimension);
-    setDimCodomain(dimension);
-  }
-
+  using Filter::setInOut;
 protected:
   using Composite::add; // Make add protected
 
@@ -70,13 +66,13 @@ void Switch::add(Component* component, std::set<std::string> const& restrictions
 }
 
 void Switch::evaluate(Query& query, ResultAdapter& result) {
-  std::set<unsigned> bps;
+  std::set<std::string> parameters;
   for (auto i = m_restrictions.cbegin(); i != m_restrictions.cend(); ++i) {
     for (auto j = (*i).cbegin(); j != (*i).cend(); ++j) {
-      bps.insert(result.bindingPoint(*j));
+      parameters.insert(*j);
     }
   }
-  if (bps.size() != result.numberOfBindingPoints()) {
+  if (!result.isSubset(parameters)) {
     throw std::invalid_argument("Switch is not complete with respect to request.");
   }
   

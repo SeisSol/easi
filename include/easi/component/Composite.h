@@ -63,7 +63,7 @@ public:
   virtual void evaluate(Query& query, ResultAdapter& result);
   
 protected:
-  virtual Matrix<double> map(Matrix<double>& x) { return x.block(x.rows(), dimCodomain()); }
+  virtual Matrix<double> map(Matrix<double>& x) = 0;
   
 private:
   std::vector<Component*> m_components;
@@ -74,9 +74,17 @@ Composite::~Composite() {
 }
 
 void Composite::add(Component* component) {
-  if (dimCodomain() != component->dimDomain()) {
+  if (out() != component->in()) {
     std::stringstream ss;
-    ss << "The domain of a component (" << component->dimDomain() << ") added to a composite has wrong dimension (should be " << dimCodomain() << ").";
+    ss << "The parameters of a component ( ";
+    for (std::string const& param : component->in()) {
+      ss << param << " ";
+    }
+    ss << ") added to a composite do not match (should be ";
+    for (std::string const& param : out()) {
+      ss << param << " ";
+    }
+    ss << ").";
     throw std::invalid_argument(ss.str());
   }
   
@@ -89,7 +97,17 @@ void Composite::evaluate(Query& query, ResultAdapter& result) {
   
   // Find model for each point
   unsigned nComponents = m_components.size();
-  if (nComponents == 1) {
+  if (nComponents == 0) {
+    if (!result.isSubset(out())) {
+      throw std::runtime_error("Component does not supply all required parameters.");
+    }
+    unsigned col = 0;
+    for (std::string const& param : out()) {
+      auto slice = y.colSlice(col);
+      result.set(param, query.index, y.colSlice(col));
+      ++col;
+    }
+  } else if (nComponents == 1) {
     query.x = y;
     m_components[0]->evaluate(query, result);
   } else {

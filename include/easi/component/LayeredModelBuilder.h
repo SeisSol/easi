@@ -53,25 +53,26 @@ public:
     Linear    
   };
   typedef std::map<double, std::vector<double>> Nodes;
+  typedef std::vector<std::string> Parameters;
 
   void setMap(Map* map) { m_map = map; }
   void setInterpolationType(std::string const& interpolationType);
   void setInterpolationType(enum InterpolationType interpolationType) { m_interpolationType = interpolationType; }
   void setNodes(Nodes const& nodes);
-  void setParameters(PolynomialModel::Parameters const& parameters) { m_parameters = parameters; }
+  void setParameters(Parameters const& parameters) { m_parameters = parameters; }
   
   
   Component* getResult();
 
 private:
-  Component* createModel(Nodes::iterator& lower, Nodes::iterator& upper, unsigned dimDomain);
+  Component* createModel(Nodes::iterator& lower, Nodes::iterator& upper, std::set<std::string> const& in);
 
   Component* m_root = nullptr;
   
   Map* m_map = nullptr;
   enum InterpolationType m_interpolationType;
   Nodes m_nodes;
-  PolynomialModel::Parameters m_parameters;
+  Parameters m_parameters;
 };
 
 void LayeredModelBuilder::setInterpolationType(std::string const& interpolationType) {
@@ -104,16 +105,20 @@ Component* LayeredModelBuilder::getResult() {
   Nodes::iterator lower = m_nodes.end();
   Nodes::iterator upper;
   for (upper = m_nodes.begin(); upper != m_nodes.end(); ++upper) {
-    m_map->add( createModel(lower, upper, m_map->dimCodomain()) );
+    m_map->add( createModel(lower, upper, m_map->out()) );
     lower = upper;
   }
   
-  m_map->add( createModel(lower, upper, m_map->dimCodomain()) );
+  m_map->add( createModel(lower, upper, m_map->out()) );
   
   return m_map;
 }
 
-Component* LayeredModelBuilder::createModel(Nodes::iterator& lower, Nodes::iterator& upper, unsigned dimDomain) {
+Component* LayeredModelBuilder::createModel(Nodes::iterator& lower, Nodes::iterator& upper, std::set<std::string> const& in) {
+  if (in.size() != 1) {
+    throw std::runtime_error("Layered model may have only one input parameter.");
+  }
+  
   enum InterpolationType interpolationType;
   if (lower == m_nodes.end()) {
     interpolationType = Upper;
@@ -126,33 +131,40 @@ Component* LayeredModelBuilder::createModel(Nodes::iterator& lower, Nodes::itera
   double upperLimit = (upper != m_nodes.end()) ? upper->first : std::numeric_limits<double>::infinity();
   auto nParams = (lower != m_nodes.end()) ? lower->second.size() : upper->second.size();
   
+  if (m_parameters.size() != nParams) {
+    throw std::runtime_error("Layered model nodes must match parameters.");
+  }
+  
   unsigned nTerms = 1;
   if (interpolationType == Linear) {
     nTerms = 2;
   }
-  Matrix<double> coeffs(nParams, nTerms);
+  PolynomialMap::OutMap coeffs;
+  for (auto const& param : m_parameters) {
+    coeffs[param].resize(nTerms);
+  }
   if (interpolationType == Linear) {
-    for (unsigned i = 0; i < coeffs.rows(); ++i) {
-      coeffs(i,0) = (lower->second[i] - upper->second[i]) / (lower->first - upper->first);
-      coeffs(i,1) = (-upper->first * lower->second[i] + lower->first * upper->second[i]) / (lower->first - upper->first);
+    for (unsigned i = 0; i < nParams; ++i) {
+      coeffs[ m_parameters[i] ][0] = (lower->second[i] - upper->second[i]) / (lower->first - upper->first);
+      coeffs[ m_parameters[i] ][1] = (-upper->first * lower->second[i] + lower->first * upper->second[i]) / (lower->first - upper->first);
     }
   } else if (interpolationType == Upper) {
-    for (unsigned i = 0; i < coeffs.rows(); ++i) {
-      coeffs(i,0) = upper->second[i];
+    for (unsigned i = 0; i < nParams; ++i) {
+      coeffs[ m_parameters[i] ][0] = upper->second[i];
     }
   } else {    
-    for (unsigned i = 0; i < coeffs.rows(); ++i) {
-      coeffs(i,0) = lower->second[i];
+    for (unsigned i = 0; i < nParams; ++i) {
+      coeffs[ m_parameters[i] ][0] = lower->second[i];
     }
   }
   
-  PolynomialModel* model = new PolynomialModel;
-  model->setCoefficients(coeffs);
-  model->setParameters(m_parameters);
+  PolynomialMap* model = new PolynomialMap;
+  model->setMap(in, coeffs);
   
+  AxisAlignedCuboidalDomainFilter::Limits limits;
+  limits[*in.cbegin()] = std::pair<double,double>(lowerLimit, upperLimit);
   AxisAlignedCuboidalDomainFilter* domainFilter = new AxisAlignedCuboidalDomainFilter;
-  domainFilter->setDomain({{lowerLimit, upperLimit}});
-  domainFilter->setDimension(dimDomain);
+  domainFilter->setDomain(limits);
   domainFilter->add(model);
   
   return domainFilter;

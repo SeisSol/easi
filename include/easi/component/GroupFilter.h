@@ -49,6 +49,7 @@ public:
 
   virtual bool accept(int group, Slice<double> const&) const;
   
+  using Filter::setInOut; // Make setInOut public
   void setGroups(std::set<int> const& groups) { m_groups = groups; }
   
 private:

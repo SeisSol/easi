@@ -44,9 +44,8 @@
 namespace easi {
 class ResultAdapter {
 public:
-  virtual int bindingPoint(std::string const& parameter) const = 0;
-  virtual unsigned numberOfBindingPoints() const = 0;
-  virtual void set(Vector<unsigned> const& index, Matrix<double> const& value) = 0;
+  virtual void set(std::string const& parameter, Vector<unsigned> const& index, Slice<double> const& value) = 0;
+  virtual bool isSubset(std::set<std::string> const& parameters) const = 0;
   virtual ResultAdapter* subsetAdapter(std::set<std::string> const& subset) = 0;
 };
 
@@ -58,21 +57,29 @@ public:
   void addBindingPoint(std::string const& parameter, double T::* pointerToMember) {
     m_bindingPoint[parameter] = m_parameter.size();
     m_parameter.push_back(pointerToMember);
-  } 
-
-  virtual int bindingPoint(std::string const& parameter) const {
+  }
+  
+  int bindingPoint(std::string const& parameter) const {
     auto it = m_bindingPoint.find(parameter);
     return (it != m_bindingPoint.end()) ? it->second : -1;
   }
-  virtual unsigned numberOfBindingPoints() const { return m_parameter.size(); }
   
-  virtual void set(Vector<unsigned> const& index, Matrix<double> const& value) {
-    assert(value.rows() == m_parameter.size());
-    assert(value.cols() == index.size());
+  virtual bool isSubset(std::set<std::string> const& parameters) const {
+    for(auto const& kv : m_bindingPoint) {
+      if (parameters.find(kv.first) == parameters.end()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  virtual void set(std::string const& parameter, Vector<unsigned> const& index, Slice<double> const& value) {
+    assert(value.size() == index.size());
 
-    for (unsigned i = 0; i < index.size(); ++i) {
-      for (unsigned j = 0; j < m_parameter.size(); ++j) {
-        m_arrayOfStructs[ index(i) ].*m_parameter[j] = value(j,i);
+    int bp = bindingPoint(parameter);
+    if (bp >= 0) {
+      for (unsigned i = 0; i < index.size(); ++i) {
+        m_arrayOfStructs[ index(i) ].*m_parameter[bp] = value(i);
       }
     }
   }
@@ -104,15 +111,23 @@ public:
     auto it = m_bindingPoint.find(parameter);
     return (it != m_bindingPoint.end()) ? it->second : -1;
   }
-  virtual unsigned numberOfBindingPoints() const { return m_arrays.size(); }
   
-  virtual void set(Vector<unsigned> const& index, Matrix<double> const& value) {
-    assert(value.rows() == m_arrays.size());
-    assert(value.cols() == index.size());
+  virtual bool isSubset(std::set<std::string> const& parameters) const {
+    for(auto const& kv : m_bindingPoint) {
+      if (parameters.find(kv.first) == parameters.end()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  virtual void set(std::string const& parameter, Vector<unsigned> const& index, Slice<double> const& value) {
+    assert(value.size() == index.size());
 
-    for (unsigned i = 0; i < index.size(); ++i) {
-      for (unsigned j = 0; j < m_arrays.size(); ++j) {
-        m_arrays[j][ index(i) ] = value(j,i);
+    int bp = bindingPoint(parameter);
+    if (bp > 0) {
+      for (unsigned i = 0; i < index.size(); ++i) {
+        m_arrays[bp][ index(i) ] = value(i);
       }
     }
   }

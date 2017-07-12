@@ -36,53 +36,52 @@
  *
  * @section DESCRIPTION
  **/
-#ifndef EASI_COMPONENT_CONSTANTMODEL_H_
-#define EASI_COMPONENT_CONSTANTMODEL_H_
+#ifndef EASI_COMPONENT_CONSTANTMAP_H_
+#define EASI_COMPONENT_CONSTANTMAP_H_
 
 #include <map>
 #include <string>
-#include "easi/component/Model.h"
+#include "easi/component/Map.h"
 
 namespace easi {
-class ConstantModel : public Model {
+class ConstantMap : public Map {
 public:
-  typedef std::map<std::string, double> Parameters;
+  typedef std::map<std::string, double> OutMap;
 
-  virtual ~ConstantModel() {}
+  virtual ~ConstantMap() {}
 
-  virtual void evaluate(Query& query, ResultAdapter& result);
+  virtual Matrix<double> map(Matrix<double>& x);
   
-  using Component::setDimDomain; // Make setDimDomain public
-  void setParameters(Parameters const& parameters);
+  using Component::setIn; // Make setIn public
+  void setMap(OutMap const& outMap);
 
 private:
-  Parameters m_params;
+  std::vector<double> m_values;
 };
 
-void ConstantModel::evaluate(Query& query, ResultAdapter& result) {
-  Vector<unsigned> index(1);
-  Matrix<double> value(result.numberOfBindingPoints(), 1);
-  unsigned numberOfMatchedBPs = 0;
-  for (Parameters::const_iterator it = m_params.begin(); it != m_params.end(); ++it) {
-    int bP = result.bindingPoint(it->first);
-    if (bP >= 0) {
-      value(bP,0) = it->second;
-      ++numberOfMatchedBPs;
+Matrix<double> ConstantMap::map(Matrix<double>& x) {
+  Matrix<double> y(x.rows(), dimCodomain());
+  auto j = 0;
+  for (auto const& value : m_values) {
+    for (unsigned i = 0; i < x.rows(); ++i) {
+      y(i,j) = value;
     }
-  }
-  if (numberOfMatchedBPs != result.numberOfBindingPoints()) {
-    throw std::runtime_error("Parameter set required by simulation does not match model.");
+    ++j;
   }
   
-  for (unsigned j = 0; j < query.numPoints(); ++j) {
-    index(0) = query.index(j);
-    result.set(index, value);
-  }
+  return y;
 }
 
-void ConstantModel::setParameters(Parameters const& parameters) {
-  m_params = parameters;
-  setDimCodomain(parameters.size());
+void ConstantMap::setMap(OutMap const& outMap) {
+  m_values.clear();
+  std::set<std::string> out;
+  for (auto const& kv : outMap) {
+    out.insert(kv.first);
+    m_values.push_back(kv.second);
+  }
+  setOut(out);
+
+  assert(dimCodomain() == m_values.size());
 }
 }
 

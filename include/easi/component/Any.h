@@ -46,6 +46,7 @@ class Any : public Filter {
 public:
   virtual ~Any() {}
 
+  using Filter::setInOut; // Make setInOut public
   virtual bool accept(int, Slice<double> const&) const { return true; }
 };
 }

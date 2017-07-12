@@ -44,9 +44,12 @@
 namespace easi {
 class AffineMap : public Map {
 public:
+  typedef std::map<std::string, std::vector<double>> Transformation;
+  typedef std::map<std::string, double> Translation;
+
   virtual ~AffineMap() {}
   
-  void setMap(Matrix<double> const& matrix, Vector<double> const& translation);
+  void setMap(std::set<std::string> const& in, Transformation const& matrix, Translation const& translation);
   
 protected:
   virtual Matrix<double> map(Matrix<double>& x);
@@ -66,15 +69,47 @@ Matrix<double> AffineMap::map(Matrix<double>& x) {
   return y;
 }
 
-void AffineMap::setMap(Matrix<double> const& matrix, Vector<double> const& translation) {
-  m_matrix = matrix.transposed();
-  m_translation = translation;
+void AffineMap::setMap(std::set<std::string> const& in, Transformation const& matrix, Translation const& translation) {
+  if (matrix.size() != translation.size()) {
+    throw std::runtime_error("Matrix and translation must have the same size in an affine map.");
+  }
+    
+  setIn(in);
   
-  assert(m_matrix.cols() == m_translation.size());
+  std::set<std::string> out;
+  int nCoeffs = -1;
+  for (auto const& kv : matrix) {
+    out.insert(kv.first);
+    if (nCoeffs != -1 && kv.second.size() != nCoeffs) {
+      throw std::runtime_error("The matrix in a affine map must have the same number of coefficients for each entry.");
+    }
+    nCoeffs = kv.second.size();
+  }
+  setOut(out);
   
-  setDimDomain(m_matrix.rows());
-  setDimCodomain(m_matrix.cols());
+  if (nCoeffs != dimDomain()) {
+    throw std::runtime_error("Number of matrix entries does not match number of input parameters.");
+  }
+  
+  m_matrix.reallocate(dimDomain(), dimCodomain());
+  m_translation.reallocate(dimCodomain());
+  
+  unsigned col = 0;
+  for (auto const& kv : matrix) {
+    unsigned row = 0;
+    for (auto const& v : kv.second) {
+      m_matrix(row, col) = v;
+      ++row;
+    }
+    ++col;
+  }
+  
+  unsigned row = 0;
+  for (auto const& kv : translation) {
+    m_translation(row++) = kv.second;
+  }
 }
+
 }
 
 #endif

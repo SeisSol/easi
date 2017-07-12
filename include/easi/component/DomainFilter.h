@@ -44,13 +44,13 @@
 namespace easi {
 class AxisAlignedCuboidalDomainFilter : public Filter {
 public:
-  typedef std::vector<std::pair<double, double>> Limits;
+  typedef std::map<std::string, std::pair<double, double>> Limits;
 
   virtual bool accept(int, Slice<double> const& x) const;
   void setDomain(Limits const& limits);
 
 private:
-  Limits m_limits;
+  std::vector<std::pair<double,double>> m_limits;
 };
 
 bool AxisAlignedCuboidalDomainFilter::accept(int, Slice<double> const& x) const {
@@ -62,14 +62,21 @@ bool AxisAlignedCuboidalDomainFilter::accept(int, Slice<double> const& x) const 
 }
 
 void AxisAlignedCuboidalDomainFilter::setDomain(Limits const& limits) {
-  m_limits = limits;
-  setDimension(limits.size());
+  m_limits.clear();
+  std::set<std::string> inout;
+  for (auto const& kv : limits) {
+    inout.insert(kv.first);
+    m_limits.push_back(kv.second);
+  }
+  setInOut(inout);
 }
 
 class SphericalDomainFilter : public Filter {
 public:
+  typedef std::map<std::string, double> Centre;
+  
   virtual bool accept(int, Slice<double> const& x) const;
-  void setDomain(double radius, Vector<double> const& centre);
+  void setDomain(double radius, Centre const& centre);
 
 private:
   double m_radius2;
@@ -85,10 +92,16 @@ bool SphericalDomainFilter::accept(int, Slice<double> const& x) const {
   return distance2 <= m_radius2;
 }
 
-void SphericalDomainFilter::setDomain(double radius, Vector<double> const& centre) {
+void SphericalDomainFilter::setDomain(double radius, Centre const& centre) {
   m_radius2 = radius*radius;
-  m_centre = centre;
-  setDimension(centre.size());
+  m_centre.reallocate(centre.size());
+  std::set<std::string> inout;
+  unsigned d = 0;
+  for (auto const& kv : centre) {
+    inout.insert(kv.first);
+    m_centre(d++) = kv.second;
+  }
+  setInOut(inout);
 }
 }
 

@@ -41,10 +41,8 @@
 
 #include "easi/parser/YAMLHelpers.h"
 #include "easi/component/Switch.h"
-#include "easi/component/IdentityMap.h"
-#include "easi/component/ConstantModel.h"
-#include "easi/component/FunctionModel.h"
-#include "easi/component/PolynomialModel.h"
+#include "easi/component/ConstantMap.h"
+#include "easi/component/PolynomialMap.h"
 #include "easi/component/Any.h"
 #include "easi/component/DomainFilter.h"
 #include "easi/component/GroupFilter.h"
@@ -54,71 +52,30 @@
 
 namespace easi {
 template<typename T>
-void parse(T* component, YAML::Node const&, unsigned, YAMLAbstractParser*) {
+void parse(T* component, YAML::Node const&, std::set<std::string> const&, YAMLAbstractParser*) {
 }
 
 template<>
-void parse<Model>(Model* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  parse<Component>(component, node, dimDomain, parser);
-}
-
-template<>
-void parse<ConstantModel>(ConstantModel* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  checkType(node, "parameters", {YAML::NodeType::Map});
-  
-  ConstantModel::Parameters parameters = node["parameters"].as<ConstantModel::Parameters>();
-  
-  component->setDimDomain(dimDomain);
-  component->setParameters(parameters);
-  parse<Model>(component, node, dimDomain, parser);
-}
-
-template<>
-void parse<FunctionModel>(FunctionModel* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  checkType(node, "parameters", {YAML::NodeType::Map});
-  
-  FunctionModel::Parameters parameters = node["parameters"].as<FunctionModel::Parameters>();
-  
-  component->setParameters(parameters);
-  parse<Model>(component, node, dimDomain, parser);
-}
-
-template<>
-void parse<PolynomialModel>(PolynomialModel* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  checkType(node, "coefficients", {YAML::NodeType::Sequence});
-  checkType(node, "parameters", {YAML::NodeType::Sequence});
-  
-  Matrix<double> coeffs = node["coefficients"].as<Matrix<double>>();
-  component->setCoefficients(coeffs);
-  PolynomialModel::Parameters parameters = node["parameters"].as<PolynomialModel::Parameters>();
-  component->setParameters(parameters);
-
-  parse<Model>(component, node, dimDomain, parser);
-}
-
-template<>
-void parse<Composite>(Composite* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+void parse<Composite>(Composite* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   if (node["components"]) {
     if (node["components"].IsSequence()) {
       for (YAML::const_iterator it = node["components"].begin(); it != node["components"].end(); ++it) {
-        Component* child = parser->parse(*it, component->dimCodomain());
+        Component* child = parser->parse(*it, component->out());
         component->add(child);
       }
     } else {
-      Component* child = parser->parse(node["components"], component->dimCodomain());
+      Component* child = parser->parse(node["components"], component->out());
       component->add(child);
     }
   }
-  parse<Component>(component, node, dimDomain, parser);
+  parse<Component>(component, node, in, parser);
 }
 
 template<>
-void parse<Switch>(Switch* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  checkType(node, "components", {YAML::NodeType::Sequence}, false);
-
-  component->setDimension(dimDomain);
+void parse<Switch>(Switch* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  component->setInOut(in);
   for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
-    Component* child = parser->parse(it->second, component->dimCodomain());
+    Component* child = parser->parse(it->second, component->out());
     std::set<std::string> restrictions;
     if (it->first.IsSequence()) {
       std::vector<std::string> restrictionSeq = it->first.as<std::vector<std::string>>();
@@ -130,22 +87,22 @@ void parse<Switch>(Switch* component, YAML::Node const& node, unsigned dimDomain
   }
 
   // Do not call Composite parser, as we don't want to inherit the "components" parameter
-  parse<Component>(component, node, dimDomain, parser);
+  parse<Component>(component, node, in, parser);
 }
 
 template<>
-void parse<Filter>(Filter* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  component->setDimension(dimDomain);
-  parse<Composite>(component, node, dimDomain, parser);
+void parse<Filter>(Filter* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  parse<Composite>(component, node, in, parser);
 }
 
 template<>
-void parse<Any>(Any* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  parse<Filter>(component, node, dimDomain, parser);
+void parse<Any>(Any* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  component->setInOut(in);
+  parse<Filter>(component, node, in, parser);
 }
 
 template<>
-void parse<GroupFilter>(GroupFilter* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+void parse<GroupFilter>(GroupFilter* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   checkType(node, "groups", {YAML::NodeType::Scalar, YAML::NodeType::Sequence});
   
   std::set<int> groups;
@@ -155,88 +112,94 @@ void parse<GroupFilter>(GroupFilter* component, YAML::Node const& node, unsigned
     std::vector<int> groupSeq = node["groups"].as<std::vector<int>>();
     groups.insert(groupSeq.begin(), groupSeq.end());
   }
-  
-  component->setDimension(dimDomain);
+
+  component->setInOut(in);
   component->setGroups(groups);
-  parse<Filter>(component, node, dimDomain, parser);
+  parse<Filter>(component, node, in, parser);
 }
 
 template<>
-void parse<AxisAlignedCuboidalDomainFilter>(AxisAlignedCuboidalDomainFilter* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+void parse<AxisAlignedCuboidalDomainFilter>(AxisAlignedCuboidalDomainFilter* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   checkType(node, "limits", {YAML::NodeType::Map});
   
-  auto limitMap = node["limits"].as< std::map<std::string, std::pair<double, double>> >();
-  
-  std::vector<std::pair<double, double>> limits;
-  for (auto it = limitMap.cbegin(); it != limitMap.cend(); ++it) {
-    limits.push_back(it->second);
-  }
-  
+  AxisAlignedCuboidalDomainFilter::Limits limits = node["limits"].as<AxisAlignedCuboidalDomainFilter::Limits>();  
   component->setDomain(limits);
-  checkDomain(node, component, dimDomain);
   
-  parse<Filter>(component, node, dimDomain, parser);
+  parse<Filter>(component, node, in, parser);
 }
 
 template<>
-void parse<SphericalDomainFilter>(SphericalDomainFilter* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+void parse<SphericalDomainFilter>(SphericalDomainFilter* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   checkType(node, "radius", {YAML::NodeType::Scalar});
-  checkType(node, "centre", {YAML::NodeType::Sequence});
+  checkType(node, "centre", {YAML::NodeType::Map});
   
   double radius = node["radius"].as<double>();
-  Vector<double> centre = node["centre"].as<Vector<double>>();
+  SphericalDomainFilter::Centre centre = node["centre"].as<SphericalDomainFilter::Centre>();
   
   component->setDomain(radius, centre);
-  checkDomain(node, component, dimDomain);
 
-  parse<Filter>(component, node, dimDomain, parser);
+  parse<Filter>(component, node, in, parser);
 }
 
 
 template<>
-void parse<Map>(Map* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  parse<Composite>(component, node, dimDomain, parser);
+void parse<Map>(Map* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  parse<Composite>(component, node, in, parser);
 }
 
 template<>
-void parse<IdentityMap>(IdentityMap* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  component->setDimension(dimDomain);
-  parse<Map>(component, node, dimDomain, parser);
-}
-
-template<>
-void parse<AffineMap>(AffineMap* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
-  checkType(node, "matrix", {YAML::NodeType::Sequence});
-  checkType(node, "translation", {YAML::NodeType::Sequence});
-  
-  Matrix<double> matrix = node["matrix"].as<Matrix<double>>();
-  Vector<double> translation = node["translation"].as<Vector<double>>();
-
-  component->setMap(matrix, translation);
-  checkDomain(node, component, dimDomain);
-
-  parse<Map>(component, node, dimDomain, parser);
-}
-
-template<>
-void parse<FunctionMap>(FunctionMap* component, YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+void parse<ConstantMap>(ConstantMap* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   checkType(node, "map", {YAML::NodeType::Map});
   
-  FunctionMap::Parameters parameters = node["map"].as<FunctionMap::Parameters>();
+  ConstantMap::OutMap outMap = node["map"].as<ConstantMap::OutMap>();
   
-  component->setMap(parameters);
-  parse<Map>(component, node, dimDomain, parser);
+  component->setIn(in);
+  component->setMap(outMap);
+  parse<Map>(component, node, in, parser);
+}
+
+template<>
+void parse<AffineMap>(AffineMap* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  checkType(node, "matrix", {YAML::NodeType::Map});
+  checkType(node, "translation", {YAML::NodeType::Map});
+  
+  AffineMap::Transformation matrix = node["matrix"].as<AffineMap::Transformation>();
+  AffineMap::Translation translation = node["translation"].as<AffineMap::Translation>();
+
+  component->setMap(in, matrix, translation);
+
+  parse<Map>(component, node, in, parser);
+}
+
+template<>
+void parse<FunctionMap>(FunctionMap* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  checkType(node, "map", {YAML::NodeType::Map});
+  
+  FunctionMap::OutMap out = node["map"].as<FunctionMap::OutMap>();
+  
+  component->setMap(in, out);
+  parse<Map>(component, node, in, parser);
+}
+
+template<>
+void parse<PolynomialMap>(PolynomialMap* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  checkType(node, "map", {YAML::NodeType::Map});
+  
+  PolynomialMap::OutMap coeffs = node["map"].as<PolynomialMap::OutMap>();
+  component->setMap(in, coeffs);
+
+  parse<Map>(component, node, in, parser);
 }
 
 template<typename T>
-Component* create(YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+Component* create(YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   T* component = new T;
-  parse<T>(component, node, dimDomain, parser);
+  parse<T>(component, node, in, parser);
   return component;
 }
 
 template<>
-Component* create<LayeredModelBuilder>(YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+Component* create<LayeredModelBuilder>(YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   LayeredModelBuilder builder;
   
   checkExistence(node, "map");
@@ -244,11 +207,11 @@ Component* create<LayeredModelBuilder>(YAML::Node const& node, unsigned dimDomai
   checkType(node, "nodes", {YAML::NodeType::Map});
   checkType(node, "parameters", {YAML::NodeType::Sequence});
   
-  Component* rawMap = parser->parse(node["map"], dimDomain);
+  Component* rawMap = parser->parse(node["map"], in);
   Map* map = upcast<Map>(node, rawMap);
   std::string interpolation = node["interpolation"].as<std::string>();
   LayeredModelBuilder::Nodes nodes = node["nodes"].as<LayeredModelBuilder::Nodes>();
-  PolynomialModel::Parameters parameters = node["parameters"].as<PolynomialModel::Parameters>();
+  LayeredModelBuilder::Parameters parameters = node["parameters"].as<LayeredModelBuilder::Parameters>();
   
   builder.setMap(map);
   builder.setInterpolationType(interpolation);
@@ -260,7 +223,7 @@ Component* create<LayeredModelBuilder>(YAML::Node const& node, unsigned dimDomai
 
 class Include {};
 template<>
-Component* create<Include>(YAML::Node const& node, unsigned dimDomain, YAMLAbstractParser* parser) {
+Component* create<Include>(YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   return parser->parse(node.as<std::string>());
 }
 }

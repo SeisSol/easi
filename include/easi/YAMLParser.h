@@ -48,31 +48,32 @@
 namespace easi {
 class YAMLParser : public YAMLAbstractParser {
 public:
-  YAMLParser(unsigned dimDomain);
+  YAMLParser(unsigned dimDomain, char firstVariable = 'x');
   virtual ~YAMLParser() {}
   
   template<typename T>
   void registerType(std::string const& tag);
 
   virtual Component* parse(std::string const& fileName);
-  virtual Component* parse(YAML::Node const& node, unsigned dimDomain);
+  virtual Component* parse(YAML::Node const& node, std::set<std::string> const& in);
 
 private:
-  unsigned m_dimDomain;
-  std::unordered_map<std::string, Component* (*)(YAML::Node const&, unsigned, YAMLAbstractParser*)> creators;
+  std::set<std::string> m_in;
+  std::unordered_map<std::string, Component* (*)(YAML::Node const&, std::set<std::string> const&, YAMLAbstractParser*)> m_creators;
 };
 
-YAMLParser::YAMLParser(unsigned dimDomain)
-  : m_dimDomain(dimDomain) {
+YAMLParser::YAMLParser(unsigned dimDomain, char firstVariable) {
+  for (unsigned i = 0; i < dimDomain; ++i) {
+    m_in.insert(std::string(1, firstVariable + i));
+  }
   registerType<Switch>("!Switch");
-  registerType<ConstantModel>("!ConstantModel");
-  registerType<FunctionModel>("!FunctionModel");
-  registerType<PolynomialModel>("!PolynomialModel");
+  registerType<ConstantMap>("!ConstantMap");
+  registerType<PolynomialMap>("!PolynomialMap");
   registerType<Any>("!Any");
+  registerType<Any>("!IdentityMap");
   registerType<GroupFilter>("!GroupFilter");
   registerType<AxisAlignedCuboidalDomainFilter>("!AxisAlignedCuboidalDomainFilter");
   registerType<SphericalDomainFilter>("!SphericalDomainFilter");
-  registerType<IdentityMap>("!IdentityMap");
   registerType<AffineMap>("!AffineMap");
   registerType<FunctionMap>("!FunctionMap");
   registerType<LayeredModelBuilder>("!LayeredModel");
@@ -81,27 +82,27 @@ YAMLParser::YAMLParser(unsigned dimDomain)
 
 template<typename T>
 void YAMLParser::registerType(std::string const& tag) {
-  creators[tag] = &create<T>;
+  m_creators[tag] = &create<T>;
 }
 
 Component* YAMLParser::parse(std::string const& fileName) {
   Component* root;
   YAML::Node config = YAML::LoadFile(fileName);
   
-  root = parse(config, m_dimDomain);
+  root = parse(config, m_in);
 
   return root;
 }
 
 
-Component* YAMLParser::parse(YAML::Node const& node, unsigned dimDomain) {
-  auto creator = creators.find(node.Tag());
+Component* YAMLParser::parse(YAML::Node const& node, std::set<std::string> const& in) {
+  auto creator = m_creators.find(node.Tag());
   
-  if (creator == creators.end()) {
+  if (creator == m_creators.end()) {
     throw std::invalid_argument("Unknown tag " + node.Tag());
   }
   
-  return (*creator->second)(node, dimDomain, this);
+  return (*creator->second)(node, in, this);
 }
 }
 

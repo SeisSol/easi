@@ -45,21 +45,23 @@
 namespace easi {
 class Component {
 public:
-  Component() : m_dimDomain(0), m_dimCodomain(0) {}
   virtual ~Component() {}
 
   virtual void evaluate(Query& query, ResultAdapter& result) = 0;
   virtual bool accept(int group, Slice<double> const& x) const = 0;
   
-  unsigned dimDomain() const { return m_dimDomain; }
-  unsigned dimCodomain() const { return m_dimCodomain; }
+  std::set<std::string> const& in() const { return m_in; }
+  std::set<std::string> const& out() const { return m_out; }
+  unsigned dimDomain() const { return m_in.size(); }
+  unsigned dimCodomain() const { return m_out.size(); }
 
 protected:
-  void setDimDomain(unsigned dimDomain) { m_dimDomain = dimDomain; }
-  void setDimCodomain(unsigned dimCodomain) { m_dimCodomain = dimCodomain; }
+  void setIn(std::set<std::string> const& parameters) { m_in = parameters; }
+  void setOut(std::set<std::string> const&  parameters) { m_out = parameters; }
 
 private:
-  unsigned m_dimDomain, m_dimCodomain;
+  std::set<std::string> m_in;
+  std::set<std::string> m_out;
 };
 }
 

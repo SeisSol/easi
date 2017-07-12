@@ -1,5 +1,6 @@
 #include "easitest.h"
 
+#include <cmath>
 #include <iostream>
 #include <easi/YAMLParser.h>
 #include <easi/ResultAdapter.h>

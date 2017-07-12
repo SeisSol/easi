@@ -39,16 +39,18 @@
 #ifndef EASI_COMPONENT_FUNCTIONMAP_H_
 #define EASI_COMPONENT_FUNCTIONMAP_H_
 
+#include <impalajit.hh>
 #include "easi/component/Map.h"
+#include "easi/util/FunctionWrapper.h"
 
 namespace easi {
 class FunctionMap : public Map {
 public:
-  typedef std::map<std::string, std::string> Parameters;
+  typedef std::map<std::string, std::string> OutMap;
 
   virtual ~FunctionMap() {}
 
-  void setMap(Parameters const& functionMap);
+  void setMap(std::set<std::string> const& in, OutMap const& functionMap);
   
 protected:
   virtual Matrix<double> map(Matrix<double>& x);
@@ -72,12 +74,19 @@ Matrix<double> FunctionMap::map(Matrix<double>& x) {
   return y;
 }
 
-void FunctionMap::setMap(Parameters const& functionMap) {
-  setDimCodomain(functionMap.size());
-
+void FunctionMap::setMap(std::set<std::string> const& in, OutMap const& functionMap) {
+  m_functions.clear();
   std::vector<std::string> functionDefinitions;
+  
+  auto inIt = in.cbegin();
+  std::ostringstream ss;
+  ss << '(' << *inIt++;
+  while (inIt != in.cend()) {
+    ss << ',' << *inIt++;
+  }
+  ss << ") {";
   for (auto it = functionMap.cbegin(); it != functionMap.cend(); ++it ) {
-    functionDefinitions.push_back(it->first + it->second);
+    functionDefinitions.push_back(it->first + ss.str() + it->second + "}");
   }
   impalajit::Compiler compiler(functionDefinitions);
   compiler.compile();
@@ -91,7 +100,14 @@ void FunctionMap::setMap(Parameters const& functionMap) {
     }
     dimDomain = funDomain;
   }
-  setDimDomain(dimDomain);
+
+  std::set<std::string> out;
+  for (auto const& kv : functionMap) {
+    out.insert(kv.first);
+  }
+  
+  setIn(in);
+  setOut(out);
 }
 }
 

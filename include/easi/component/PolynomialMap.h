@@ -36,70 +36,74 @@
  *
  * @section DESCRIPTION
  **/
-#ifndef EASI_COMPONENT_POLYNOMIALMODEL_H_
-#define EASI_COMPONENT_POLYNOMIALMODEL_H_
+#ifndef EASI_COMPONENT_POLYNOMIALMAP_H_
+#define EASI_COMPONENT_POLYNOMIALMAP_H_
 
 #include <vector>
 #include <string>
-#include "easi/component/Model.h"
+#include "easi/component/Map.h"
 
 namespace easi {
-class PolynomialModel : public Model {
+class PolynomialMap : public Map {
 public:
-  typedef std::vector<std::string> Parameters;
+  typedef std::map<std::string, std::vector<double>> OutMap;
 
-  // Currently limited to 1D domain
-  PolynomialModel() { setDimDomain(1); }
-  virtual ~PolynomialModel() {}
+  virtual ~PolynomialMap() {}
 
-  virtual void evaluate(Query& query, ResultAdapter& result);
-  
-  void setCoefficients(Matrix<double> const& coeffs);
-  void setParameters(Parameters const& parameters) { m_params = parameters; }
+  void setMap(std::set<std::string> const& in, OutMap const& outMap);
+
+protected:
+  virtual Matrix<double> map(Matrix<double>& x);
 
 private:
   Matrix<double> m_coeffs;
-  Parameters m_params;
 };
 
 // Implements Horner's method
-void PolynomialModel::evaluate(Query& query, ResultAdapter& result) {
-  assert(m_params.size() == dimCodomain());
-  
-  unsigned numberOfMatchedBPs = 0;
-  Matrix<double> coeffs(result.numberOfBindingPoints(), m_coeffs.cols());
-  for (unsigned i = 0; i < m_params.size(); ++i) {
-    int bP = result.bindingPoint(m_params[i]);
-    if (bP >= 0) {
-      ++numberOfMatchedBPs;
-      for (unsigned j = 0; j < m_coeffs.cols(); ++j) {
-        coeffs(bP,j) = m_coeffs(i,j);
-      }
+Matrix<double> PolynomialMap::map(Matrix<double>& x) {
+  Matrix<double> y(x.rows(), m_coeffs.cols());
+  for (unsigned j = 0; j < m_coeffs.cols(); ++j) {
+    for (unsigned i = 0; i < x.rows(); ++i) {
+      y(i,j) = m_coeffs(0,j);
     }
-  }
-  if (numberOfMatchedBPs != result.numberOfBindingPoints()) {
-    throw std::runtime_error("Parameter set required by simulation does not match model.");
-  }
-
-  Matrix<double> Y(coeffs.rows(), query.numPoints());
-  for (unsigned j = 0; j < query.numPoints(); ++j) {
-    for (unsigned i = 0; i < coeffs.rows(); ++i) {
-      Y(i,j) = coeffs(i,0);
-    }
-    for (unsigned k = 1; k < coeffs.cols(); ++k) {
-      for (unsigned i = 0; i < coeffs.rows(); ++i) {
-        Y(i,j) = coeffs(i,k) + Y(i,j) * query.x(j,0);
+    for (unsigned k = 1; k < m_coeffs.rows(); ++k) {
+      for (unsigned i = 0; i < x.rows(); ++i) {
+        y(i,j) = m_coeffs(k,j) + y(i,j) * x(i,0);
       }
     }
   }
 
-  result.set(query.index, Y);
+  return y;
 }
 
 
-void PolynomialModel::setCoefficients(Matrix<double> const& coeffs) {
-  m_coeffs = coeffs;
-  setDimCodomain(m_coeffs.rows());
+void PolynomialMap::setMap(std::set<std::string> const& in, OutMap const& outMap) {
+  setIn(in);
+  if (dimDomain() != 1) {
+    throw std::runtime_error("Polynomial map requires 1D input.");
+  }
+
+  std::set<std::string> out;
+  int nCoeffs = -1;
+  for (auto const& kv : outMap) {
+    out.insert(kv.first);
+    if (nCoeffs != -1 && kv.second.size() != nCoeffs) {
+      throw std::runtime_error("All parameters in a polynomial map must have the same number of coefficients.");
+    }
+    nCoeffs = kv.second.size();
+  }
+  setOut(out);
+  
+  m_coeffs.reallocate(nCoeffs, outMap.size());
+  unsigned col = 0;
+  for (auto const& kv : outMap) {
+    unsigned row = 0;
+    for (auto const& v : kv.second) {
+      m_coeffs(row, col) = v;
+      ++row;
+    }
+    ++col;
+  }
 }
 }
 

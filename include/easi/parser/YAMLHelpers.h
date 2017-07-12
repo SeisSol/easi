@@ -65,14 +65,6 @@ void checkType(YAML::Node const& node, std::string const& name, std::set<YAML::N
   }
 }
 
-void checkDomain(YAML::Node const& node, Component* component, unsigned dimDomain) {
-  std::stringstream ss;
-  if (component->dimDomain() != dimDomain) {
-    ss << node.Tag() << ": Inferred domain dimension does not match parent's codomain dimension.";
-    throw std::invalid_argument(ss.str());
-  }
-}
-
 template<typename T>
 T* upcast(YAML::Node const& node, Component* component) {
   T* up = dynamic_cast<T*>(component);

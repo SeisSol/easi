@@ -45,11 +45,14 @@ namespace easi {
 class Filter : public Composite {
 public:
   virtual ~Filter() {}
-  
-  void setDimension(unsigned dimension) {
-    setDimDomain(dimension);
-    setDimCodomain(dimension);
+
+protected:
+  void setInOut(std::set<std::string> const& inout) {
+    setIn(inout);
+    setOut(inout);
   }
+  
+  virtual Matrix<double> map(Matrix<double>& x) { return x; }
 };
 }
 
