@@ -10,9 +10,9 @@ of the following purposes:
 | ------------- | ------- |
 | filter        | Accept only points with certain properties. |
 | map           | Map m-dimensional points to n-dimensional points. |
-| model         | A model which maps points to parameters. |
 
-A model is always a leaf of the tree, whereas filter and map may have any number of children.
+Each node has labeled input dimensions and labeled output dimensions. E.g. a map might take x,y,z as input and return &rho;, &mu;, and &lambda;. When arriving at the leaf of the tree, the requested dimensions are set according to the provided dimensions. E.g. if an application ask for &rho; and &mu;, these values are set according to the map.
+A map might also be just used for intermediate computation. E.g. assume a map computes &rho;, &mu;, and &lambda; from the spatial dimensions x, y, and z. This map may have children which compute Qp and Qs but depending on &rho;, &mu;, and &lambda;.
 
 ## Dependencies and build instructions
 easi itself is a header-only library. (Only unit tests must be compiled with CMake.) It depends on
@@ -39,16 +39,17 @@ components:
       y: [-5000, 5000]
       z: [-100000, 10000]
     components:
-      - !ConstantModel
-        parameters:
+      - !ConstantMap
+        map:
           lambda: 1e10
           mu: 2e10
           rho: 5000
   - !LayeredModel
     map: !AffineMap
       matrix:
-        - [0.0, 0.0, 1.0]
-      translation: [0.0]
+        z: [0, 0, 1]
+      translation:
+        z: 0
     interpolation: linear
     parameters: [rho, mu, lambda]
     nodes:
