@@ -1,0 +1,42 @@
+!Switch
+[rho, mu, lambda, plast_co]: !LayeredModel
+  map: !AffineMap
+    matrix:
+      z: [0.0, 0.0, 1.0]
+    translation:
+      z: 0
+  interpolation: lower
+  parameters: [rho, mu, lambda, plast_co]
+  nodes:
+    -300.0:   [2349.3, 0.5868e10, 1.1728e10, 0.5868e6]
+    -1000.0:  [2592.9, 1.3885e10, 1.8817e10, 1.3885e6]
+    -3000.0:  [2700.0, 2.1168e10, 2.7891e10, 2.1168e6]
+    -5000.0:  [2750.0, 2.9948e10, 3.9105e10, 2.9948e6]
+    -6000.0:  [2800.0, 3.3327e10, 3.7534e10, 3.3327e6]
+    -11000.0: [2825.0, 3.6612e10, 3.3625e10, 3.6612e6]
+    -16000.0: [2850.0, 3.7969e10, 3.7898e10, 3.7969e6]
+    -21000.0: [2900.0, 3.9701e10, 4.5015e10, 3.9701e6]
+    -31000.0: [2950.0, 4.2598e10, 5.1212e10, 4.2598e6]
+    -.inf:    [3200.0, 6.4800e10, 6.5088e10, 6.4800e6]
+[s_xx, s_yy, s_zz, s_xy, s_yz, s_xz]: !AffineMap
+  map:
+    matrix:
+      z: [0.0, 0.0, 1.0]
+    translation:
+      z: 0
+  components:
+    - !FunctionMap
+      map:
+        zhat: |
+          if (z <= 1500.0) {
+            return abs(z-2000.0) / 1000.0;
+          }
+          return 0.5;
+      components: !PolynomialMap
+        map:
+          s_xx: [   -74.7e6, 0]
+          s_yy: [  -205.3e6, 0]
+          s_zz: [  -140.0e6, 0]
+          s_xy: [-26.3809e6, 0]
+          s_yz: [         0, 0]
+          s_xz: [         0, 0]

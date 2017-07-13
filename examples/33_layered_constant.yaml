@@ -1,0 +1,12 @@
+!LayeredModel
+map: !AffineMap
+  matrix:
+    y: [0.0, 1.0, 0.0]
+  translation:
+    y: 0
+interpolation: lower
+parameters: [rho, mu, lambda]
+nodes:
+  800:    [2670, 3.203812032E+10, 3.204375936E+10]
+  -800:   [2670, 1.251489075E+10, 1.251709350E+10]
+  -.inf:  [2670, 2.816717568E+10, 2.817615756E+10]
