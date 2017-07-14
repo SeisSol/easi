@@ -47,6 +47,7 @@ public:
   virtual void set(std::string const& parameter, Vector<unsigned> const& index, Slice<double> const& value) = 0;
   virtual bool isSubset(std::set<std::string> const& parameters) const = 0;
   virtual ResultAdapter* subsetAdapter(std::set<std::string> const& subset) = 0;
+  virtual unsigned numberOfParameters() const = 0;
 };
 
 template<typename T>
@@ -87,10 +88,15 @@ public:
   virtual ResultAdapter* subsetAdapter(std::set<std::string> const& subset) {
     ArrayOfStructsAdapter<T>* result = new ArrayOfStructsAdapter<T>(m_arrayOfStructs);
     for (auto it = subset.cbegin(); it != subset.cend(); ++it) {
-      result->addBindingPoint(*it, m_parameter[bindingPoint(*it)]);
+      int bp = bindingPoint(*it);
+      if (bp >= 0) {
+        result->addBindingPoint(*it, m_parameter[bp]);
+      }
     }
     return result;
   }
+  
+  virtual unsigned numberOfParameters() const { return m_parameter.size(); }
 
 private:
   T* m_arrayOfStructs;
@@ -137,10 +143,15 @@ public:
   virtual ResultAdapter* subsetAdapter(std::set<std::string> const& subset) {
     ArraysAdapter* result = new ArraysAdapter;
     for (auto it = subset.cbegin(); it != subset.cend(); ++it) {
-      result->addBindingPoint(*it, m_arrays[bindingPoint(*it)]);
-    }    
+      int bp = bindingPoint(*it);
+      if (bp >= 0) {
+        result->addBindingPoint(*it, m_arrays[bp]);
+      }
+    }
     return result;
   }
+  
+  virtual unsigned numberOfParameters() const { return m_arrays.size(); }
 
 private:
   std::unordered_map<std::string, unsigned> m_bindingPoint;

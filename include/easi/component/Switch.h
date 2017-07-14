@@ -82,7 +82,9 @@ void Switch::evaluate(Query& query, ResultAdapter& result) {
   for (; c != end() && r != m_restrictions.cend(); ++c, ++r) {
     Query subQuery = query.shallowCopy();
     ResultAdapter* subResult = result.subsetAdapter(*r);
-    (*c)->evaluate(subQuery, *subResult);
+    if (subResult->numberOfParameters() > 0) {
+      (*c)->evaluate(subQuery, *subResult);
+    }
     delete subResult;
   }
 }
