@@ -102,9 +102,10 @@ class ArraysAdapter : public ResultAdapter {
 public:
   virtual ~ArraysAdapter() { }
 
-  void addBindingPoint(std::string const& parameter, double* array) {
+  void addBindingPoint(std::string const& parameter, double* array, unsigned stride = 1) {
     m_bindingPoint[parameter] = m_arrays.size();
     m_arrays.push_back(array);
+    m_strides.push_back(stride);
   } 
 
   virtual int bindingPoint(std::string const& parameter) const {
@@ -126,8 +127,9 @@ public:
 
     int bp = bindingPoint(parameter);
     if (bp >= 0) {
+      unsigned stride = m_strides[bp];
       for (unsigned i = 0; i < index.size(); ++i) {
-        m_arrays[bp][ index(i) ] = value(i);
+        m_arrays[bp][ index(i) * stride ] = value(i);
       }
     }
   }
@@ -143,6 +145,7 @@ public:
 private:
   std::unordered_map<std::string, unsigned> m_bindingPoint;
   std::vector<double*> m_arrays;
+  std::vector<unsigned> m_strides;
 };
 }
 
