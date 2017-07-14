@@ -145,7 +145,7 @@ public:
     for (auto it = subset.cbegin(); it != subset.cend(); ++it) {
       int bp = bindingPoint(*it);
       if (bp >= 0) {
-        result->addBindingPoint(*it, m_arrays[bp]);
+        result->addBindingPoint(*it, m_arrays[bp], m_strides[bp]);
       }
     }
     return result;
