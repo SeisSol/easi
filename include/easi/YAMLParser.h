@@ -39,6 +39,7 @@
 #ifndef EASI_YAMLPARSER_H_
 #define EASI_YAMLPARSER_H_
 
+#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <yaml-cpp/yaml.h>
