@@ -77,6 +77,7 @@ YAMLParser::YAMLParser(unsigned dimDomain, char firstVariable) {
   registerType<SphericalDomainFilter>("!SphericalDomainFilter");
   registerType<AffineMap>("!AffineMap");
   registerType<FunctionMap>("!FunctionMap");
+  registerType<SCECFile>("!SCECFile");
   registerType<LayeredModelBuilder>("!LayeredModel");
   registerType<Include>("!Include");
 }

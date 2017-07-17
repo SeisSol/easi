@@ -48,6 +48,7 @@
 #include "easi/component/GroupFilter.h"
 #include "easi/component/AffineMap.h"
 #include "easi/component/FunctionMap.h"
+#include "easi/component/SCECFile.h"
 #include "easi/component/LayeredModelBuilder.h"
 
 namespace easi {
@@ -187,6 +188,16 @@ void parse<PolynomialMap>(PolynomialMap* component, YAML::Node const& node, std:
   
   PolynomialMap::OutMap coeffs = node["map"].as<PolynomialMap::OutMap>();
   component->setMap(in, coeffs);
+
+  parse<Map>(component, node, in, parser);
+}
+
+template<>
+void parse<SCECFile>(SCECFile* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  checkType(node, "file", {YAML::NodeType::Scalar});
+  
+  std::string fileName = node["file"].as<std::string>();
+  component->setMap(in, fileName);
 
   parse<Map>(component, node, in, parser);
 }
