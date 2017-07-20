@@ -51,6 +51,11 @@
 #include "easi/component/SCECFile.h"
 #include "easi/component/LayeredModelBuilder.h"
 
+#ifdef USE_ASAGI
+#include "easi/component/ASAGI.h"
+#include "easi/util/AsagiReader.h"
+#endif
+
 namespace easi {
 template<typename T>
 void parse(T* component, YAML::Node const&, std::set<std::string> const&, YAMLAbstractParser*) {
@@ -201,6 +206,28 @@ void parse<SCECFile>(SCECFile* component, YAML::Node const& node, std::set<std::
 
   parse<Map>(component, node, in, parser);
 }
+
+#ifdef USE_ASAGI
+template<>
+void parse<ASAGI>(ASAGI* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  checkType(node, "file", {YAML::NodeType::Scalar});
+  checkType(node, "parameters", {YAML::NodeType::Sequence});
+  
+  auto parameters = node["parameters"].as<std::vector<std::string>>();
+  
+  std::string varName = "data";
+  if (node["var"]) {
+    varName = node["var"].as<std::string>();
+  }
+
+  std::string fileName = node["file"].as<std::string>();
+  asagi::Grid* grid = parser->asagiReader()->open(fileName.c_str(), varName.c_str());
+
+  component->setGrid(in, parameters, grid, parser->asagiReader()->numberOfThreads());
+
+  parse<Map>(component, node, in, parser);
+}
+#endif
 
 template<typename T>
 Component* create(YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {

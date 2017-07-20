@@ -42,43 +42,56 @@
 #include "easi/component/Map.h"
 
 namespace easi {
-template<typename Derived>
+template<typename Derived, typename ValueType>
 class Grid : public Map {
 public:
   virtual ~Grid() {}
 
   virtual Matrix<double> map(Matrix<double>& x);
 
-  void getNeighbours(Slice<double> const& x, double* weights, double* buffer) {
+  void getNeighbours(Slice<double> const& x, double* weights, ValueType* buffer) {
     static_cast<Derived*>(this)->getNeighbours(x, weights, buffer);
   }
+  unsigned permutation(unsigned index) const {
+    return static_cast<Derived const*>(this)->permutation(index);
+  }
+
+protected:
+  virtual unsigned numberOfThreads() const = 0;
 };
 
-template<typename GridImpl>
-Matrix<double> Grid<GridImpl>::map(Matrix<double>& x) {
-  double* neighbours = new double[(1 << dimDomain()) * dimCodomain()];
-  double* weights = new double[dimDomain()];
-  
+template<typename GridImpl, typename ValueType>
+Matrix<double> Grid<GridImpl, ValueType>::map(Matrix<double>& x) {  
   Matrix<double> y(x.rows(), dimCodomain());
-  for (unsigned i = 0; i < x.rows(); ++i) {
-    getNeighbours(x.rowSlice(i), weights, neighbours);
-    
-    // linear interpolation
-    for (int d = dimDomain()-1; d >= 0; --d) {
-      for (int p = 0; p < (1 << d); ++p) {
-        for (int v = 0; v < dimCodomain(); ++v) {
-          neighbours[p*dimCodomain() + v] = neighbours[p*dimCodomain() + v] * (1.0-weights[d]) + neighbours[((1 << d) + p)*dimCodomain() + v] * weights[d];
+#ifdef _OPENMP
+  #pragma omp parallel num_threads(numberOfThreads()) shared(x,y)
+#endif
+  {
+    ValueType* neighbours = new ValueType[(1 << dimDomain()) * dimCodomain()];
+    double* weights = new double[dimDomain()];
+#ifdef _OPENMP
+    #pragma omp for
+#endif
+    for (unsigned i = 0; i < x.rows(); ++i) {
+      getNeighbours(x.rowSlice(i), weights, neighbours);
+      
+      // linear interpolation
+      for (int d = dimDomain()-1; d >= 0; --d) {
+        for (int p = 0; p < (1 << d); ++p) {
+          for (int v = 0; v < dimCodomain(); ++v) {
+            neighbours[p*dimCodomain() + v] = neighbours[p*dimCodomain() + v] * (1.0-weights[d]) + neighbours[((1 << d) + p)*dimCodomain() + v] * weights[d];
+          }
         }
       }
+      
+      for (int v = 0; v < dimCodomain(); ++v) {
+        y(i,permutation(v)) = neighbours[v];
+      }
     }
-    
-    for (int v = 0; v < dimCodomain(); ++v) {
-      y(i,v) = neighbours[v];
-    }
-  }
   
-  delete[] weights;
-  delete[] neighbours;
+    delete[] weights;
+    delete[] neighbours;
+  }
   
   return y;
 }

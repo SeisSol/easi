@@ -36,26 +36,33 @@
  *
  * @section DESCRIPTION
  **/
-#ifndef EASI_COMPONENT_FILTER_H_
-#define EASI_COMPONENT_FILTER_H_
+#ifndef EASI_UTIL_ASAGIREADER_H_
+#define EASI_UTIL_ASAGIREADER_H_
 
-#include "easi/component/Composite.h"
+#include <sstream>
+#include <asagi.h>
 
 namespace easi {
-class Filter : public Composite {
+class AsagiReader {
 public:
-  virtual ~Filter() {}
-  
-  virtual bool acceptAlways() const { return false; }
+  virtual asagi::Grid* open(char const* file, char const* varname);
+  virtual unsigned numberOfThreads() const { return 1; }
+};
 
-protected:
-  void setInOut(std::set<std::string> const& inout) {
-    setIn(inout);
-    setOut(inout);
+asagi::Grid* AsagiReader::open(char const* file, char const* varname) {
+  asagi::Grid* grid = asagi::Grid::createArray();
+  grid->setParam("VALUE_POSITION", "VERTEX_CENTERED");
+  grid->setParam("VARIABLE", varname);
+  
+  asagi::Grid::Error err = grid->open(file);
+  if (err != ::asagi::Grid::SUCCESS) {
+    std::ostringstream os;
+    os << "Could not open " << file << " with ASAGI.";
+    throw std::runtime_error(os.str());
   }
   
-  virtual Matrix<double> map(Matrix<double>& x) { return x; }
-};
+  return grid;
+}
 }
 
 #endif

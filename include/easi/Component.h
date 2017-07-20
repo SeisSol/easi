@@ -49,6 +49,7 @@ public:
 
   virtual void evaluate(Query& query, ResultAdapter& result) = 0;
   virtual bool accept(int group, Slice<double> const& x) const = 0;
+  virtual bool acceptAlways() const = 0;
   
   std::set<std::string> const& in() const { return m_in; }
   std::set<std::string> const& out() const { return m_out; }

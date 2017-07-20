@@ -47,6 +47,7 @@ public:
   virtual ~Map() {}
   
   virtual bool accept(int, Slice<double> const&) const { return true; }
+  virtual bool acceptAlways() const { return true; }
 };
 }
 

@@ -43,12 +43,14 @@
 #include <yaml-cpp/node/node.h>
 
 namespace easi {
+class AsagiReader;
 class Component;
 class YAMLAbstractParser {
 public:
   virtual ~YAMLAbstractParser() {}
   virtual Component* parse(std::string const& fileName) = 0;
   virtual Component* parse(YAML::Node const& node, std::set<std::string> const& in) = 0;
+  virtual AsagiReader* asagiReader() = 0;
 };
 }
 

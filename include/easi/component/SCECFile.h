@@ -44,7 +44,7 @@
 #include "easi/util/RegularGrid.h"
 
 namespace easi {
-class SCECFile : public Grid<SCECFile> {
+class SCECFile : public Grid<SCECFile, double> {
 public:
   SCECFile();
   virtual ~SCECFile() {
@@ -56,6 +56,10 @@ public:
   void getNeighbours(Slice<double> const& x, double* weights, double* buffer) {
     m_grid->getNeighbours(x, weights, buffer);
   }
+  unsigned permutation(unsigned index) const { return index; }
+
+protected:
+  virtual unsigned numberOfThreads() const { return 1; }
 
 private:
   void readSCECFile(std::string const& fileName);

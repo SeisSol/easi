@@ -46,24 +46,42 @@
 #include "easi/parser/YAMLAbstractParser.h"
 #include "easi/parser/YAMLComponentParsers.h"
 
+#ifdef USE_ASAGI
+#include "easi/util/AsagiReader.h"
+#else
+namespace easi {
+  struct AsagiReader {
+  };
+}
+#endif
+
 namespace easi {
 class YAMLParser : public YAMLAbstractParser {
 public:
-  YAMLParser(unsigned dimDomain, char firstVariable = 'x');
-  virtual ~YAMLParser() {}
+  YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader = nullptr, char firstVariable = 'x');
+  virtual ~YAMLParser() {
+    if (!m_externalAsagiReader) {
+      delete m_asagiReader;
+    }
+  }
   
   template<typename T>
   void registerType(std::string const& tag);
 
   virtual Component* parse(std::string const& fileName);
   virtual Component* parse(YAML::Node const& node, std::set<std::string> const& in);
+  virtual AsagiReader* asagiReader() { return m_asagiReader; }
 
 private:
   std::set<std::string> m_in;
   std::unordered_map<std::string, Component* (*)(YAML::Node const&, std::set<std::string> const&, YAMLAbstractParser*)> m_creators;
+  AsagiReader* m_asagiReader;
+  bool m_externalAsagiReader;
 };
 
-YAMLParser::YAMLParser(unsigned dimDomain, char firstVariable) {
+YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, char firstVariable)
+  : m_asagiReader(externalAsagiReader), m_externalAsagiReader(externalAsagiReader != nullptr)
+{
   for (unsigned i = 0; i < dimDomain; ++i) {
     m_in.insert(std::string(1, firstVariable + i));
   }
@@ -78,8 +96,15 @@ YAMLParser::YAMLParser(unsigned dimDomain, char firstVariable) {
   registerType<AffineMap>("!AffineMap");
   registerType<FunctionMap>("!FunctionMap");
   registerType<SCECFile>("!SCECFile");
+#ifdef USE_ASAGI
+  registerType<ASAGI>("!ASAGI");
+#endif
   registerType<LayeredModelBuilder>("!LayeredModel");
   registerType<Include>("!Include");
+  
+  if (!m_externalAsagiReader) {
+    m_asagiReader = new AsagiReader;
+  }
 }
 
 template<typename T>

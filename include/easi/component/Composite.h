@@ -67,6 +67,7 @@ protected:
   virtual Matrix<double> map(Matrix<double>& x) = 0;
   
 private:
+  void couldNotFindModelError(int group, Slice<double> const& y);
   std::vector<Component*> m_components;
 };
 
@@ -105,8 +106,17 @@ void Composite::evaluate(Query& query, ResultAdapter& result) {
       ++col;
     }
   } else if (nComponents == 1) {
-    query.x = y;
-    m_components[0]->evaluate(query, result);
+    if (query.numPoints() > 0) {
+      if (!m_components[0]->acceptAlways()) {
+        for (unsigned i = 0; i < query.numPoints(); ++i) {
+          if (!m_components[0]->accept(query.group(i), y.rowSlice(i))) {
+            couldNotFindModelError(query.group(i), y.rowSlice(i));
+          }
+        }
+      }
+      query.x = y;
+      m_components[0]->evaluate(query, result);
+    }
   } else {
     unsigned* model = new unsigned[query.numPoints() + nComponents];
     unsigned* modelCount = model + query.numPoints();
@@ -121,13 +131,7 @@ void Composite::evaluate(Query& query, ResultAdapter& result) {
         }
       }
       if (c == nComponents) {
-        std::stringstream ss;
-        ss << "Could not find model for point [ ";
-        for (unsigned d = 0; d < dimCodomain(); ++d) {
-          ss << y(i,d) << " ";
-        }
-        ss << "] in group " << query.group(i) << ".";
-        throw std::runtime_error(ss.str());
+        couldNotFindModelError(query.group(i), y.rowSlice(i));
       }
     }
     
@@ -170,6 +174,16 @@ void Composite::evaluate(Query& query, ResultAdapter& result) {
     }
     operator delete[](queriesMemory);
   }
+}
+
+void Composite::couldNotFindModelError(int group, Slice<double> const& y) {
+  std::stringstream ss;
+  ss << "Could not find model for point [ ";
+  for (unsigned d = 0; d < y.size(); ++d) {
+    ss << y(d) << " ";
+  }
+  ss << "] in group " << group << ".";
+  throw std::runtime_error(ss.str());
 }
 }
 

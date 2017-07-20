@@ -44,7 +44,7 @@
 namespace easi {
 class RegularGrid {
 public:
-  static unsigned const MaxDimensions = 3;
+  static unsigned const MaxDimensions = 6;
 
   ~RegularGrid() {
     delete[] m_values;
@@ -67,6 +67,9 @@ private:
 };
 
 void RegularGrid::allocate(unsigned const* numGridPoints, unsigned dimensions, unsigned numValues) {
+  if (dimensions > MaxDimensions) {
+    throw std::runtime_error("Unsupported number of dimensions for RegularGrid.");
+  }
   m_dimensions = dimensions;
   m_numValues = numValues;
   unsigned size = m_numValues;
