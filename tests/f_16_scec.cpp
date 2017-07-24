@@ -51,6 +51,8 @@ void model(double x, double z, double params[9]) {
   params[8]  = 4.000000E-01; // d_c
   params[10] = 1.000000E+09; // forced_rupture_time
   
+  z *= -1.0;
+  
   if (x <= 0.0 && z <= 0.0) {
     params[3]  = 2.509795E+07; // s_xy
     params[9]  = 4.000000E+06; // cohesion
@@ -84,18 +86,18 @@ int main(int argc, char** argv) {
   assert(argc == 2);
 
   easi::Query query = createQuery<3>({
-      {1, {  -5.0, 0.0,   -5.0}},
-      {1, {  25.0, 0.0,   -5.0}},
-      {1, { 100.0, 0.0,  200.0}},
-      {1, {1000.0, 0.0, 1000.0}}
+      {1, {  -5.0, 0.0,     5.0}},
+      {1, {  25.0, 0.0,     5.0}},
+      {1, { 100.0, 0.0, -200.0}},
+      {1, {1000.0, 0.0, -1000.0}}
     });
-  std::vector<std::string> parameters{{"s_xx", "s_yy", "s_zz", "s_xy", "s_yz", "s_xz", "mu_s", "mu_d", "d_c", "cohesion", "forced_rupture_time"}};
+  std::vector<std::string> parameters{"s_xx", "s_yy", "s_zz", "s_xy", "s_yz", "s_xz", "mu_s", "mu_d", "d_c", "cohesion", "forced_rupture_time"};
   auto material = genericModel(argv[1], query, parameters);
 
-  assertEqual(  -5.0,   -5.0, 0, material);
-  assertEqual(  25.0,   -5.0, 1, material);
-  assertEqual( 100.0,  200.0, 2, material);
-  assertEqual(1000.0, 1000.0, 3, material);
+  assertEqual(  -5.0,     5.0, 0, material);
+  assertEqual(  25.0,     5.0, 1, material);
+  assertEqual( 100.0,  -200.0, 2, material);
+  assertEqual(1000.0, -1000.0, 3, material);
 
   return 0;
 }

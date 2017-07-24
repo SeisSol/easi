@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
       {1, { 9.0,  -1000.0, -100000.0}}
     });
   
-  std::vector<std::string> parameters{{"rho", "mu", "lambda", "s_xx", "s_yy", "s_zz", "s_xy", "s_yz", "s_xz"}};
+  std::vector<std::string> parameters{"rho", "mu", "lambda", "s_xx", "s_yy", "s_zz", "s_xy", "s_yz", "s_xz"};
   auto material = genericModel(argv[1], query, parameters);
 
   assertEqual(-20000.0, 0, material);
