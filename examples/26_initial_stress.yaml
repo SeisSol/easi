@@ -1,0 +1,21 @@
+!FunctionMap
+map:
+  z:    return z;
+  Pf:   return 9800.0 * abs(z);
+  s_zz: return -2670.0 * 9.8 * abs(z);
+  omega: |
+    if (z >= -15000.0) {
+      return 1.0;
+    }
+    if (z <= -15000.0 && z >= -20000.0) {
+      return (20000.0-abs(z))/5000.0;
+    }
+    return 0.0;
+components: !FunctionMap
+  map:
+    s_xx: return Pf + omega*( 0.926793*(s_zz+Pf)-Pf) + (1-omega)*s_zz;
+    s_yy: return Pf + omega*( 1.073206*(s_zz+Pf)-Pf) + (1-omega)*s_zz;
+    s_zz: return Pf + s_zz;
+    s_xy: return omega*(-0.169029*(s_zz+Pf));
+    s_yz: return 0.0;
+    s_xz: return 0.0;
