@@ -76,15 +76,15 @@ Matrix<double> Grid<GridImpl, ValueType>::map(Matrix<double>& x) {
       getNeighbours(x.rowSlice(i), weights, neighbours);
       
       // linear interpolation
-      for (int d = dimDomain()-1; d >= 0; --d) {
+      for (int d = static_cast<int>(dimDomain())-1; d >= 0; --d) {
         for (int p = 0; p < (1 << d); ++p) {
-          for (int v = 0; v < dimCodomain(); ++v) {
+          for (int v = 0; v < static_cast<int>(dimCodomain()); ++v) {
             neighbours[p*dimCodomain() + v] = neighbours[p*dimCodomain() + v] * (1.0-weights[d]) + neighbours[((1 << d) + p)*dimCodomain() + v] * weights[d];
           }
         }
       }
       
-      for (int v = 0; v < dimCodomain(); ++v) {
+      for (int v = 0; v < static_cast<int>(dimCodomain()); ++v) {
         y(i,permutation(v)) = neighbours[v];
       }
     }
