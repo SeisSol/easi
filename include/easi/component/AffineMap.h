@@ -77,10 +77,10 @@ void AffineMap::setMap(std::set<std::string> const& in, Transformation const& ma
   setIn(in);
   
   std::set<std::string> out;
-  int nCoeffs = -1;
+  unsigned nCoeffs = std::numeric_limits<unsigned>::max();
   for (auto const& kv : matrix) {
     out.insert(kv.first);
-    if (nCoeffs != -1 && kv.second.size() != nCoeffs) {
+    if (nCoeffs != std::numeric_limits<unsigned>::max() && kv.second.size() != nCoeffs) {
       throw std::invalid_argument("The matrix in a affine map must have the same number of coefficients for each entry.");
     }
     nCoeffs = kv.second.size();

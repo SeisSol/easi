@@ -44,6 +44,7 @@
 namespace easi {
 class ResultAdapter {
 public:
+  virtual ~ResultAdapter() {}
   virtual void set(std::string const& parameter, Vector<unsigned> const& index, Slice<double> const& value) = 0;
   virtual bool isSubset(std::set<std::string> const& parameters) const = 0;
   virtual ResultAdapter* subsetAdapter(std::set<std::string> const& subset) = 0;
@@ -54,6 +55,7 @@ template<typename T>
 class ArrayOfStructsAdapter : public ResultAdapter {
 public:
   ArrayOfStructsAdapter(T* arrayOfStructs) : m_arrayOfStructs(arrayOfStructs) {}
+  virtual ~ArrayOfStructsAdapter() {}
 
   void addBindingPoint(std::string const& parameter, double T::* pointerToMember) {
     m_bindingPoint[parameter] = m_parameter.size();

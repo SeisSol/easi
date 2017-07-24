@@ -42,7 +42,7 @@ project (easi)
 cmake_minimum_required (VERSION 2.6)
 
 # Compiler settings
-add_compile_options (-std=c++11)
+add_compile_options (-std=c++11 -Wall -Werror)
 
 # easi library
 include_directories (include)

@@ -101,7 +101,6 @@ void Composite::evaluate(Query& query, ResultAdapter& result) {
     }
     unsigned col = 0;
     for (std::string const& param : out()) {
-      auto slice = y.colSlice(col);
       result.set(param, query.index, y.colSlice(col));
       ++col;
     }

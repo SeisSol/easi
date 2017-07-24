@@ -117,7 +117,7 @@ void RegularGrid::getNeighbours(Slice<double> const& x, double* weights, double*
   }
 
   unsigned idx[MaxDimensions];
-  for (unsigned i = 0; i < (1 << m_dimensions); ++i) {
+  for (unsigned i = 0; i < (1u << m_dimensions); ++i) {
     for (unsigned d = 0; d < m_dimensions; ++d) {
       idx[d] = std::min(idxBase[d] + ((i & (1 << d)) >> d), m_num[d]-1);
     }

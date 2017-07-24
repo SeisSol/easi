@@ -89,10 +89,10 @@ void PolynomialMap::setMap(std::set<std::string> const& in, OutMap const& outMap
   }
 
   std::set<std::string> out;
-  int nCoeffs = -1;
+  unsigned nCoeffs = std::numeric_limits<unsigned>::max();
   for (auto const& kv : outMap) {
     out.insert(kv.first);
-    if (nCoeffs != -1 && kv.second.size() != nCoeffs) {
+    if (nCoeffs != std::numeric_limits<unsigned>::max() && kv.second.size() != nCoeffs) {
       throw std::invalid_argument("All parameters in a polynomial map must have the same number of coefficients.");
     }
     nCoeffs = kv.second.size();

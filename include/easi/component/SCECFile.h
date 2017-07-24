@@ -114,7 +114,6 @@ void SCECFile::readSCECFile(std::string const& fileName) {
   m_grid->setVolume(min, max);
   
   unsigned nGridPoints = numGridPoints[0] * numGridPoints[1];
-  unsigned codomain = dimCodomain();
   
   for (unsigned line = 0; line < nGridPoints; ++line) {
     unsigned idx[2];

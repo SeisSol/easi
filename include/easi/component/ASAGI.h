@@ -143,7 +143,7 @@ void ASAGI::getNeighbours(Slice<double> const& x, double* weights, float_t* buff
   }
 
   double pos[MaxDimensions];
-  for (unsigned i = 0; i < (1 << m_grid->getDimensions()); ++i) {
+  for (unsigned i = 0; i < (1u << m_grid->getDimensions()); ++i) {
     for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
       pos[d] = std::min(lowPos[d] + ((i & (1 << d)) >> d) * m_delta[d], m_max[d]);
     }

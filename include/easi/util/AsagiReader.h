@@ -45,6 +45,7 @@
 namespace easi {
 class AsagiReader {
 public:
+  virtual ~AsagiReader() {}
   virtual asagi::Grid* open(char const* file, char const* varname);
   virtual unsigned numberOfThreads() const { return 1; }
 };
