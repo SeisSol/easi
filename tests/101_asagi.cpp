@@ -49,7 +49,8 @@ int main(int argc, char** argv) {
       {1, {  2.0,  -1.0, 0.0}},
       {1, {  3.0,   0.0, 0.0}},
       {1, {  2.5,  -0.5, 0.0}},
-      {1, { 2.75, -0.25, 0.0}}
+      {1, { 2.75, -0.25, 0.0}},
+      {1, {  2.6, -0.25, 0.0}}
     });
   auto material = elasticModel(argv[1], query);
 
@@ -68,6 +69,10 @@ int main(int argc, char** argv) {
   assert(equal(material[3].rho,     4.75));
   assert(equal(material[3].mu,     -4.75));
   assert(equal(material[3].lambda, 13.75));
+
+  assert(equal(material[4].rho,     4.45));
+  assert(equal(material[4].mu,     -4.45));
+  assert(equal(material[4].lambda, 13.45));
 
   MPI_Finalize();
 

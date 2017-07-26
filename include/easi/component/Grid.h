@@ -42,14 +42,14 @@
 #include "easi/component/Map.h"
 
 namespace easi {
-template<typename Derived, typename ValueType>
+template<typename Derived>
 class Grid : public Map {
 public:
   virtual ~Grid() {}
 
   virtual Matrix<double> map(Matrix<double>& x);
 
-  void getNeighbours(Slice<double> const& x, double* weights, ValueType* buffer) {
+  void getNeighbours(Slice<double> const& x, double* weights, double* buffer) {
     static_cast<Derived*>(this)->getNeighbours(x, weights, buffer);
   }
   unsigned permutation(unsigned index) const {
@@ -60,14 +60,14 @@ protected:
   virtual unsigned numberOfThreads() const = 0;
 };
 
-template<typename GridImpl, typename ValueType>
-Matrix<double> Grid<GridImpl, ValueType>::map(Matrix<double>& x) {  
+template<typename GridImpl>
+Matrix<double> Grid<GridImpl>::map(Matrix<double>& x) {  
   Matrix<double> y(x.rows(), dimCodomain());
 #ifdef _OPENMP
   #pragma omp parallel num_threads(numberOfThreads()) shared(x,y)
 #endif
   {
-    ValueType* neighbours = new ValueType[(1 << dimDomain()) * dimCodomain()];
+    double* neighbours = new double[(1 << dimDomain()) * dimCodomain()];
     double* weights = new double[dimDomain()];
 #ifdef _OPENMP
     #pragma omp for

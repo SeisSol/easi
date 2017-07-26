@@ -44,7 +44,7 @@
 #include "easi/util/RegularGrid.h"
 
 namespace easi {
-class SCECFile : public Grid<SCECFile, double> {
+class SCECFile : public Grid<SCECFile> {
 public:
   SCECFile();
   virtual ~SCECFile() {

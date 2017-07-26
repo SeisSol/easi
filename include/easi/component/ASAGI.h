@@ -50,7 +50,7 @@ namespace asagi {
 #endif
 
 namespace easi {
-class ASAGI : public Grid<ASAGI, float> {
+class ASAGI : public Grid<ASAGI> {
 public:
   static unsigned const MaxDimensions = 6;
 
@@ -64,7 +64,7 @@ public:
 
   void setGrid(std::set<std::string> const& in, std::vector<std::string> const& parameters, asagi::Grid* grid, unsigned numberOfThreads);
 
-  void getNeighbours(Slice<double> const& x, double* weights, float* buffer);
+  void getNeighbours(Slice<double> const& x, double* weights, double* buffer);
   unsigned permutation(unsigned index) const { return m_permutation[index]; }
 
 protected:
@@ -135,7 +135,7 @@ void ASAGI::setGrid(std::set<std::string> const& in, std::vector<std::string> co
   }
 }
 
-void ASAGI::getNeighbours(Slice<double> const& x, double* weights, float_t* buffer) {
+void ASAGI::getNeighbours(Slice<double> const& x, double* weights, double* buffer) {
   double lowPos[MaxDimensions];
   for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
     lowPos[d] = m_min[d] + std::floor((x(d) - m_min[d]) * m_deltaInv[d]) * m_delta[d];
@@ -144,10 +144,14 @@ void ASAGI::getNeighbours(Slice<double> const& x, double* weights, float_t* buff
 
   double pos[MaxDimensions];
   for (unsigned i = 0; i < (1u << m_grid->getDimensions()); ++i) {
+    float* bufferSP = reinterpret_cast<float*>(buffer + i*m_numValues);
     for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
       pos[d] = std::min(lowPos[d] + ((i & (1 << d)) >> d) * m_delta[d], m_max[d]);
     }
-    m_grid->getBuf(buffer + i*m_numValues, pos);
+    m_grid->getBuf(bufferSP, pos);
+    for (int j = m_numValues-1; j >= 0; --j) {
+      buffer[i*m_numValues + j] = static_cast<double>(bufferSP[j]);
+    }
   }
 }
 
