@@ -68,6 +68,9 @@ public:
   template<typename T>
   void registerType(std::string const& tag);
 
+  template<typename Special>
+  void registerSpecial(std::string const& tag);
+
   virtual Component* parse(std::string const& fileName);
   virtual Component* parse(YAML::Node const& node, std::set<std::string> const& in);
   virtual AsagiReader* asagiReader() { return m_asagiReader; }
@@ -101,15 +104,24 @@ YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, cha
 #endif
   registerType<LayeredModelBuilder>("!LayeredModel");
   registerType<Include>("!Include");
+  registerType<EvalModel>("!EvalModel");
   
   if (!m_externalAsagiReader) {
     m_asagiReader = new AsagiReader;
   }
+  
+  // Specials
+  registerSpecial<STRESS_STR_DIP_SLIP_AM>("!STRESS_STR_DIP_SLIP_AM");
 }
 
 template<typename T>
 void YAMLParser::registerType(std::string const& tag) {
   m_creators[tag] = &create<T>;
+}
+
+template<typename Special>
+void YAMLParser::registerSpecial(std::string const& tag) {
+  m_creators[tag] = &createSpecial<Special>;
 }
 
 Component* YAMLParser::parse(std::string const& fileName) {

@@ -9,7 +9,7 @@
 bool equal(double value, double ref, double eps) {
   bool isEqual = fabs(ref-value) <= eps;
   if (!isEqual) {
-    std::cerr << std::setprecision(10) << "Expected: " << ref << "; actual: " << value << "; error: " << fabs(ref-value) << std::endl;
+    std::cerr << std::setprecision(16) << "Expected: " << ref << "; actual: " << value << "; error: " << fabs(ref-value) << std::endl;
   }
   return isEqual;
 }

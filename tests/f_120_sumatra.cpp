@@ -36,59 +36,67 @@
  *
  * @section DESCRIPTION
  **/
-#ifndef EASI_COMPONENT_SWITCH_H_
-#define EASI_COMPONENT_SWITCH_H_
 
-#include <set>
-#include "easi/component/Filter.h"
+#include <cmath>
+#include "easitest.h"
 
-namespace easi {
-class Switch : public Filter {
-public:
-  virtual ~Switch() {}
-  
-  virtual void evaluate(Query& query, ResultAdapter& result);
-  virtual bool accept(int group, Slice<double> const&) const { return true; }
-  virtual bool acceptAlways() const { return true; }
-
-  virtual void add(Component* component, std::set<std::string> const& restrictions);
-
-  using Filter::setInOut;
-protected:
-  using Composite::add; // Make add protected
-
-private:
-  std::vector<std::set<std::string>> m_restrictions;
-};
-
-void Switch::add(Component* component, std::set<std::string> const& restrictions) {
-  Composite::add(component);
-  m_restrictions.push_back(restrictions);
-}
-
-void Switch::evaluate(Query& query, ResultAdapter& result) {
-  std::set<std::string> parameters;
-  for (auto i = m_restrictions.cbegin(); i != m_restrictions.cend(); ++i) {
-    for (auto j = (*i).cbegin(); j != (*i).cend(); ++j) {
-      parameters.insert(*j);
+void model(double z, double params[1]) {
+  double const g = 9.8;
+  double layers[] = {0.0,   -2000.0, -6000.0, -12000.0, -23000.0, -600.0e6};
+  double rho[] = {1000.0, 2720.0, 2860.0, 3050.0, 3300.0, 3375.0};
+  double sigzz = 0.0;
+  for (unsigned i = 1; i < sizeof(layers)/sizeof(double); ++i) {
+    if (z > layers[i]) {
+      sigzz += rho[i-1]*(z-layers[i-1])*g;
+      break;
+    } else {
+      sigzz += rho[i-1]*(layers[i]-layers[i-1])*g;
     }
   }
-  if (!result.isSubset(parameters)) {
-    throw std::invalid_argument("Switch is not complete with respect to request.");
-  }
-  
-  // Evaluate submodels
-  iterator c = begin();
-  auto r = m_restrictions.cbegin();
-  for (; c != end() && r != m_restrictions.cend(); ++c, ++r) {
-    Query subQuery = query.shallowCopy();
-    ResultAdapter* subResult = result.subsetAdapter(*r);
-    if (subResult->numberOfParameters() > 0) {
-      (*c)->evaluate(subQuery, *subResult);
+  double alpha = 0.0;
+  if (z >= -5000.0) {
+    alpha = 0.0;
+  } else {
+    if (-z >= -10000.0) {
+      alpha = -1.0-z/5000.0;
+    } else {
+      alpha = 1.0;
     }
-    delete subResult;
   }
-}
+  double Pf = -1000.0 * 9.8 * z * (1.0 + alpha);
+  params[0] = Pf + sigzz;
 }
 
-#endif
+void assertEqual(double z, unsigned index, std::vector<std::vector<double>> const& material) {
+  double params[1];
+  model(z, params);
+  
+  for (unsigned i = 0; i < 1; ++i) {
+    assert(equal(material[i][index], params[i], 10.0 * fabs(std::numeric_limits<double>::epsilon() * params[i])));
+  }
+}
+
+int main(int argc, char** argv) {
+  assert(argc == 2);
+
+  easi::Query query = createQuery<3>({
+      {1, { 0.0, 0.0, -1400.0}},
+      {1, { 0.0, 0.0, -50000.0}},
+      {1, { 0.0, 0.0, -49000.0}},
+      {1, { 0.0, 0.0, -3000.0}},
+      {1, { 0.0, 0.0, -22000.0}},
+      {1, { 0.0, 0.0,  0.0}}
+    });
+  std::vector<std::string> parameters{"s_zz"};
+  auto material = genericModel(argv[1], query, parameters);
+
+  unsigned i = 0;
+  assertEqual( -1400.0, i++, material);
+  assertEqual(-50000.0, i++, material);
+  assertEqual(-49000.0, i++, material);
+  assertEqual( -3000.0, i++, material);
+  assertEqual(-22000.0, i++, material);
+  assertEqual(     0.0, i++, material);
+
+  return 0;
+}

@@ -36,59 +36,45 @@
  *
  * @section DESCRIPTION
  **/
-#ifndef EASI_COMPONENT_SWITCH_H_
-#define EASI_COMPONENT_SWITCH_H_
+#ifndef EASI_COMPONENT_EVALMODEL_H_
+#define EASI_COMPONENT_EVALMODEL_H_
 
-#include <set>
-#include "easi/component/Filter.h"
+#include "easi/component/Map.h"
 
 namespace easi {
-class Switch : public Filter {
+class EvalModel : public Map {
 public:
-  virtual ~Switch() {}
-  
-  virtual void evaluate(Query& query, ResultAdapter& result);
-  virtual bool accept(int group, Slice<double> const&) const { return true; }
-  virtual bool acceptAlways() const { return true; }
+  virtual ~EvalModel() { delete m_model; }
 
-  virtual void add(Component* component, std::set<std::string> const& restrictions);
+  virtual void evaluate(Query& query, ResultAdapter& result);  
+  void setModel(std::set<std::string> const& in, std::set<std::string> const& out, Component* model) {
+    setIn(in);
+    setOut(out);
+    m_model = model;
+  }
 
-  using Filter::setInOut;
 protected:
-  using Composite::add; // Make add protected
+  virtual Matrix<double> map(Matrix<double>& x) { return x; }
 
 private:
-  std::vector<std::set<std::string>> m_restrictions;
+  Component* m_model;
 };
 
-void Switch::add(Component* component, std::set<std::string> const& restrictions) {
-  Composite::add(component);
-  m_restrictions.push_back(restrictions);
+void EvalModel::evaluate(Query& query, ResultAdapter& result) {
+  Query subQuery = query.shallowCopy();
+  
+  Matrix<double> y(subQuery.x.rows(), dimCodomain());
+  ArraysAdapter adapter;
+  unsigned col = 0;
+  for (auto const& o : out()) {
+    adapter.addBindingPoint(o, &y(0, col++));
+  }
+  m_model->evaluate(subQuery, adapter);
+  query.x = y;
+  
+  Composite::evaluate(query, result);
+}
 }
 
-void Switch::evaluate(Query& query, ResultAdapter& result) {
-  std::set<std::string> parameters;
-  for (auto i = m_restrictions.cbegin(); i != m_restrictions.cend(); ++i) {
-    for (auto j = (*i).cbegin(); j != (*i).cend(); ++j) {
-      parameters.insert(*j);
-    }
-  }
-  if (!result.isSubset(parameters)) {
-    throw std::invalid_argument("Switch is not complete with respect to request.");
-  }
-  
-  // Evaluate submodels
-  iterator c = begin();
-  auto r = m_restrictions.cbegin();
-  for (; c != end() && r != m_restrictions.cend(); ++c, ++r) {
-    Query subQuery = query.shallowCopy();
-    ResultAdapter* subResult = result.subsetAdapter(*r);
-    if (subResult->numberOfParameters() > 0) {
-      (*c)->evaluate(subQuery, *subResult);
-    }
-    delete subResult;
-  }
-}
-}
 
 #endif

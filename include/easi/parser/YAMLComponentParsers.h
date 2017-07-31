@@ -49,7 +49,10 @@
 #include "easi/component/AffineMap.h"
 #include "easi/component/FunctionMap.h"
 #include "easi/component/SCECFile.h"
+#include "easi/component/EvalModel.h"
 #include "easi/component/LayeredModelBuilder.h"
+#include "easi/component/SpecialMap.h"
+#include "easi/component/Special.h"
 
 #ifdef USE_ASAGI
 #include "easi/component/ASAGI.h"
@@ -229,6 +232,24 @@ void parse<ASAGI>(ASAGI* component, YAML::Node const& node, std::set<std::string
 }
 #endif
 
+template<>
+void parse<EvalModel>(EvalModel* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  checkExistence(node, "model");
+  checkType(node, "parameters", {YAML::NodeType::Sequence});
+  
+  Component* model = parser->parse(node["model"], in);
+  auto parameters = node["parameters"].as<std::vector<std::string>>();
+  std::set<std::string> out;
+  for (auto const& p : parameters) {
+    out.insert(p);
+  }
+  
+  component->setModel(in, out, model);
+  
+  parse<Map>(component, node, in, parser);
+}
+
+
 template<typename T>
 Component* create(YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   T* component = new T;
@@ -263,6 +284,21 @@ class Include {};
 template<>
 Component* create<Include>(YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   return parser->parse(node.as<std::string>());
+}
+
+
+template<typename Special>
+Component* createSpecial(YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  checkType(node, "constants", {YAML::NodeType::Map}, false);
+  
+  std::map<std::string, double> constants;
+  if (node["constants"]) {
+    constants = node["constants"].as<std::map<std::string, double>>();
+  }
+  
+  SpecialMap<Special>* component = new SpecialMap<Special>;
+  component->setMap(constants);
+  return component;
 }
 }
 
