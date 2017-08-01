@@ -26,6 +26,13 @@
           mu:     50027625000
           lambda: 53695250000
     - !GroupFilter
+      groups: 6
+      components: !ConstantMap
+        map:
+          rho:    3330
+          mu:     65942325000
+          lambda: 81235350000
+    - !GroupFilter
       groups: [1,5]
       components: !LayeredModel
         map: !AffineMap

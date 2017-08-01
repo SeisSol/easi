@@ -32,11 +32,11 @@ model: !Switch
               strike: 309
         - !AxisAlignedCuboidalDomainFilter
           limits:
-            yx: [-.inf, -163340.86754] # yS2 - xS2 = 4.4461626476e+05 - 6.0795713230e+05
+            yx: [-.inf, 163340.86754] # yS2 - xS2 = 6.0795713230e+05 - 4.4461626476e+05
           components: !FunctionMap
-            map:
+            map:      # alpha = ((y-x)-(yS1-xS1)) / ((yS2-xS2)-(yS1-xS1))
               strike: |
-                alpha = (yx+57872.60975)/-105468.25779;
+                alpha = (yx+57872.60975)/221213.47729;
                 return (1.0-alpha)*309.0+alpha*330.0;
         - !ConstantMap
           map:
@@ -78,4 +78,3 @@ components: !FunctionMap
     s_yz:     return Omega*(b_yz*(s_zz+Pf));
     s_xz:     return Omega*(b_xz*(s_zz+Pf));
     plastCo:  return 0.001*(Pf + s_zz);
-      

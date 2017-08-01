@@ -54,7 +54,7 @@ namespace easi {
     };
     out o;
     
-    void evaluate();
+    inline void evaluate();
   };
 }
 

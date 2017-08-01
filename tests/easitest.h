@@ -29,4 +29,15 @@ bool equal(double v1, double v2, double eps = std::numeric_limits<double>::epsil
 std::vector<ElasticMaterial> elasticModel(std::string const& fileName, easi::Query& query);
 std::vector<std::vector<double>> genericModel(std::string const& fileName, easi::Query& query, std::vector<std::string> const& parameters);
 
+extern "C" {
+  extern void STRESS_STR_DIP_SLIP_AM( double  mu_dy,
+                                      double  mu_st,
+                                      double  strike,
+                                      double  dip,
+                                      double  sigmazz,
+                                      double  cohesion,
+                                      double  R,
+                                      double* bii );
+}
+
 #endif

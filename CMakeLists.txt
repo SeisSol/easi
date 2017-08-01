@@ -40,6 +40,7 @@
 
 project (easi)
 cmake_minimum_required (VERSION 2.6)
+enable_language (Fortran)
 
 # Compiler settings
 add_compile_options (-std=c++11 -Wall -Werror)
@@ -60,7 +61,7 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-add_library (easitest tests/easitest.cpp)
+add_library (easitest tests/easitest.cpp tests/special.f90)
 add_definitions (-DUSE_ASAGI)
 
 enable_testing ()
