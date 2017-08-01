@@ -90,12 +90,10 @@ void model(double x, double y, double z, double params[6]) {
   double alpha = 0.0;
   if (z >= -5000.0) {
     alpha = 0.0;
+  } else if (z >= -10000.0) {
+    alpha = -1.0-z/5000.0;
   } else {
-    if (-z >= -10000.0) {
-      alpha = -1.0-z/5000.0;
-    } else {
-      alpha = 1.0;
-    }
+    alpha = 1.0;
   }
   double Pf = -1000.0 * 9.8 * z * (1.0 + alpha);
   
