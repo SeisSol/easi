@@ -49,6 +49,8 @@ model: !Switch
         s_zz:     555562000
         cohesion: 0.4e6
         R:        0.7
+        DipSlipFaulting:  1.0
+        s2ratio:  0.5
   [Pf, Omega]: !FunctionMap
     map:
       Pf: |

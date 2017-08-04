@@ -37,6 +37,8 @@ extern "C" {
                                       double  sigmazz,
                                       double  cohesion,
                                       double  R,
+                                      double  DipSlipFaulting,
+                                      double  s2ratio,
                                       double* bii );
 }
 

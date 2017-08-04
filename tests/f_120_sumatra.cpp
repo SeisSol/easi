@@ -57,7 +57,7 @@ void model(double x, double y, double z, double params[6]) {
   }
   
   double bii[6];
-  STRESS_STR_DIP_SLIP_AM(0.25, 0.3, strike, 8.0, 555562000.0, 0.4e6, 0.7, bii);
+  STRESS_STR_DIP_SLIP_AM(0.25, 0.3, strike, 8.0, 555562000.0, 0.4e6, 0.7, 1.0, 0.5, bii);
   
   easi::STRESS_STR_DIP_SLIP_AM test;
   test.i.mu_d = 0.25;
@@ -67,6 +67,8 @@ void model(double x, double y, double z, double params[6]) {
   test.i.s_zz = 555562000.0;
   test.i.cohesion = 0.4e6;
   test.i.R = 0.7;
+  test.i.DipSlipFaulting = 1.0;
+  test.i.s2ratio = 0.5;
   test.evaluate();
   assert(equal(test.o.b_xx, bii[0]));
   assert(equal(test.o.b_yy, bii[1]));
