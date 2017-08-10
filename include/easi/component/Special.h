@@ -76,7 +76,7 @@ void easi::STRESS_STR_DIP_SLIP_AM::evaluate() {
   double szzInv = 1.0 / i.s_zz;
 
   
-  if (i.DipSlipFaulting==0.0) {
+  if (fabs(i.DipSlipFaulting) <= std::numeric_limits<double>::epsilon()) {
      double ds = (i.mu_d * i.s_zz + i.R*(i.cohesion + (i.mu_s-i.mu_d)*i.s_zz)) / (s2 + i.mu_d*c2 + i.R*(i.mu_s-i.mu_d)*c2);
      double sm = i.s_zz;
      double s11 = sm + ds;
