@@ -57,18 +57,17 @@ protected:
 
 private:
   std::vector<dasm_gen_func> m_functions;
+  function_wrapper_t m_functionWrapper;
 };
 
 Matrix<double> FunctionMap::map(Matrix<double>& x) {
   assert(x.cols() == dimDomain());
   assert(m_functions.size() == dimCodomain());
-  
-  function_wrapper_t w = getFunctionWrapper(dimDomain());
 
   Matrix<double> y(x.rows(), dimCodomain());
   for (unsigned i = 0; i < y.rows(); ++i) {
     for (unsigned j = 0; j < y.cols(); ++j) {
-      y(i,j) = w(m_functions[j], x, i);
+      y(i,j) = m_functionWrapper(m_functions[j], x, i);
     }
   }
   return y;
@@ -108,6 +107,8 @@ void FunctionMap::setMap(std::set<std::string> const& in, OutMap const& function
   
   setIn(in);
   setOut(out);
+  
+  m_functionWrapper = getFunctionWrapper(this->dimDomain());
 }
 }
 

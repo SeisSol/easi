@@ -48,9 +48,9 @@
 namespace easi {
 void checkExistence(YAML::Node const& node, std::string const& name) {
   std::stringstream ss;
-  if (!node[name]) {
+  if (node.IsScalar() || !node[name]) {
     ss << node.Tag() << ": Parameter '" << name << "' is missing." << std::endl << node;
-    throw std::invalid_argument(ss.str());
+    throw YAML::Exception(node.Mark(), ss.str());
   }
 }
 
@@ -61,7 +61,7 @@ void checkType(YAML::Node const& node, std::string const& name, std::set<YAML::N
   }
   if (node[name] && types.find(node[name].Type()) == types.end()) {
     ss << node.Tag() << ": Parameter '" << name << "' has wrong type." << std::endl << node;    
-    throw std::invalid_argument(ss.str());
+    throw YAML::Exception(node.Mark(), ss.str());
   }
 }
 
@@ -71,7 +71,7 @@ T* upcast(YAML::Node const& node, Component* component) {
   if (up == nullptr) {
     std::stringstream ss;
     ss << node.Tag() << ": Failed upcast.";
-    throw std::invalid_argument(ss.str());
+    throw YAML::Exception(node.Mark(), ss.str());
   }
   return up;
 }

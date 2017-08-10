@@ -126,9 +126,13 @@ void YAMLParser::registerSpecial(std::string const& tag) {
 
 Component* YAMLParser::parse(std::string const& fileName) {
   Component* root;
-  YAML::Node config = YAML::LoadFile(fileName);
-  
-  root = parse(config, m_in);
+  try {
+    YAML::Node config = YAML::LoadFile(fileName);
+    root = parse(config, m_in);
+  } catch (YAML::Exception const& e) {
+    std::cerr << fileName << ": " << e.what() << std::endl;
+    throw std::runtime_error("Error while parsing easi model file.");
+  }
 
   return root;
 }
@@ -145,8 +149,9 @@ Component* YAMLParser::parse(YAML::Node const& node, std::set<std::string> const
   try {
     component = (*creator->second)(node, in, this);
   } catch (std::invalid_argument const& e) {
-    std::cerr << "Error: " << e.what() << std::endl << node << std::endl;
-    throw std::runtime_error("Incorrect easi model file.");
+    std::stringstream ss;
+    ss << e.what() << std::endl << node;
+    throw YAML::Exception(node.Mark(), ss.str());
   }
   return component;
 }
