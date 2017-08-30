@@ -65,7 +65,7 @@ namespace easi {
 
 #define SAS_TOSTRING(STRUCT, X) #X
 #define SAS_TOPOINTERTOMEMBER(STRUCT, X) &STRUCT::X
-#define SELF_AWARE_STRUCT(STRUCT, ...) namespace easi { \  
+#define SELF_AWARE_STRUCT(STRUCT, ...) namespace easi { \
                                           template<> std::string const* get_member_names<STRUCT>() { \
                                             static std::string const names[] = { \
                                               MAGIC_FOR_EACH_COMMA_SEPARATED(SAS_TOSTRING, STRUCT, __VA_ARGS__) \

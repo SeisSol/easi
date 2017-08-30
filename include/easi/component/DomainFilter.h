@@ -84,7 +84,7 @@ private:
 };
 
 bool SphericalDomainFilter::accept(int, Slice<double> const& x) const {
-  double distance2;
+  double distance2 = 0.0;
   for (unsigned d = 0; d < dimDomain(); ++d) {
     double diff = x(d)-m_centre(d);
     distance2 += diff*diff;

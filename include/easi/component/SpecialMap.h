@@ -54,8 +54,8 @@ protected:
   virtual Matrix<double> map(Matrix<double>& x);
 
 private:
-  int m_inBPs[get_number_of_members<Special::in>()];
-  int m_outBPs[get_number_of_members<Special::out>()];
+  int m_inBPs[get_number_of_members<typename Special::in>()];
+  int m_outBPs[get_number_of_members<typename Special::out>()];
   
   Special m_prototype;
 };
@@ -65,13 +65,13 @@ Matrix<double> SpecialMap<Special>::map(Matrix<double>& x) {
   assert(x.cols() == dimDomain());
   
   Special special = m_prototype;
-  double* input[get_number_of_members<Special::in>()];
-  double* output[get_number_of_members<Special::out>()];
+  double* input[get_number_of_members<typename Special::in>()];
+  double* output[get_number_of_members<typename Special::out>()];
   for (unsigned j = 0; j < dimDomain(); ++j) {
-    input[j] = &(special.i.*get_pointer_to_member<Special::in>(m_inBPs[j]));
+    input[j] = &(special.i.*get_pointer_to_member<typename Special::in>(m_inBPs[j]));
   }
   for (unsigned j = 0; j < dimCodomain(); ++j) {
-    output[j] = &(special.o.*get_pointer_to_member<Special::out>(m_outBPs[j]));
+    output[j] = &(special.o.*get_pointer_to_member<typename Special::out>(m_outBPs[j]));
   }
 
   Matrix<double> y(x.rows(), dimCodomain());
@@ -90,17 +90,17 @@ Matrix<double> SpecialMap<Special>::map(Matrix<double>& x) {
 
 template<typename Special>
 void SpecialMap<Special>::setMap(std::map<std::string, double> const& constants) {
-  setOut(memberNamesToSet<Special::out>());
+  setOut(memberNamesToSet<typename Special::out>());
   
-  std::set<std::string> in = memberNamesToSet<Special::in>();
+  std::set<std::string> in = memberNamesToSet<typename Special::in>();
   for (auto const& kv : constants) {
-    int bp = get_binding_point<Special::in>(kv.first);
+    int bp = get_binding_point<typename Special::in>(kv.first);
     if (bp < 0) {
       std::stringstream ss;
       ss << "Unknown constant " << kv.first << ".";
       throw std::invalid_argument(ss.str());
     }
-    m_prototype.i.*get_pointer_to_member<Special::in>(bp) = kv.second;
+    m_prototype.i.*get_pointer_to_member<typename Special::in>(bp) = kv.second;
     in.erase(kv.first);
   }
   
@@ -108,13 +108,13 @@ void SpecialMap<Special>::setMap(std::map<std::string, double> const& constants)
   
   unsigned d = 0;
   for (auto const& i : in) {
-    int bp = get_binding_point<Special::in>(i);
+    int bp = get_binding_point<typename Special::in>(i);
     m_inBPs[d++] = bp;
   }
   
   d = 0;
   for (auto const& o : out()) {
-    int bp = get_binding_point<Special::out>(o);
+    int bp = get_binding_point<typename Special::out>(o);
     m_outBPs[d++] = bp;
   }
 }
