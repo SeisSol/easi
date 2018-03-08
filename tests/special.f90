@@ -6,7 +6,7 @@ contains
   subroutine STRESS_STR_DIP_SLIP_AM(mu_dy, mu_st, strike, dip, sigmazz, cohesion, R, DipSlipFaulting, s2ratio, bii) bind (c, name='STRESS_STR_DIP_SLIP_AM')
     use iso_c_binding, only: c_double
     implicit none
-    real(kind=c_double), intent(in), value          :: mu_dy, mu_st, strike, dip, sigmazz, cohesion, R, DipSlipFaulting, s2ratio
+    real(kind=c_double), intent(in), value          :: mu_dy, mu_st, strike, dip, sigmazz, cohesion, R, DipSlipFaulting, s2ratio, alpha
     real(kind=c_double), intent(out), dimension(6)  :: bii
     real(kind=c_double)                             :: strike_rad, dip_rad, c2, s2, Phi, c2bis, ds, sm, phi_xyz, c, s
     real(kind=c_double)                             :: sii(3), Stress(3,3), R1(3,3), R2(3,3), R3(3,3),Stress_cartesian_norm(3,3)
@@ -17,11 +17,10 @@ contains
     c2=cos(2d0*Phi)
     strike_rad = strike*pi/180d0
     dip_rad = dip*pi/180d0
-
+    alpha = (2d0*s2ratio-1d0)/3d0
     IF (DipSlipFaulting.EQ.0d0) THEN
-
-      !ds (delta_sigma) is computed assuming that P=sigzz (A6, Aochi and Madariaga 2003)
-      ds =  (mu_dy * sigmazz + R*(cohesion + (mu_st-mu_dy)*sigmazz)) / (s2 + mu_dy*c2 + R*(mu_st-mu_dy)*c2)
+      !in case of Strike Slip faulting s_zz in actually the effective confining stress = sum(sii)/3 -Pf
+      ds =  (mu_dy * sigmazz + R*(cohesion + (mu_st-mu_dy)*sigmazz)) / (s2 + mu_dy*(alpha+c2) + R*(mu_st-mu_dy)*(alpha+c2))
       sm=sigmazz
       sii(1)= sm + ds
       sii(2)= sm - ds + 2d0*ds*s2ratio

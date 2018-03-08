@@ -74,10 +74,11 @@ void easi::STRESS_STR_DIP_SLIP_AM::evaluate() {
   double c2xyz = cos(2.0*phi_xyz);
   double c2bis = c2 - c2xyz;  
   double szzInv = 1.0 / i.s_zz;
-
+  double alpha = (2.0*s2ratio-1.0)/3.0;
   
   if (fabs(i.DipSlipFaulting) <= std::numeric_limits<double>::epsilon()) {
-     double ds = (i.mu_d * i.s_zz + i.R*(i.cohesion + (i.mu_s-i.mu_d)*i.s_zz)) / (s2 + i.mu_d*c2 + i.R*(i.mu_s-i.mu_d)*c2);
+     //in case of Strike Slip faulting s_zz in actually the effective confining stress = sum(sii)/3 -Pf
+     double ds = (i.mu_d * i.s_zz + i.R*(i.cohesion + (i.mu_s-i.mu_d)*i.s_zz)) / (s2 + i.mu_d*(alpha + c2) + i.R*(i.mu_s-i.mu_d)*(alpha + c2));
      double sm = i.s_zz;
      double s11 = sm + ds;
      double s22= sm - ds + 2.0*ds*i.s2ratio;
