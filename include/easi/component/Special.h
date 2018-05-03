@@ -5,7 +5,7 @@
  * @author Carsten Uphoff (c.uphoff AT tum.de, http://www5.in.tum.de/wiki/index.php/Carsten_Uphoff,_M.Sc.)
  *
  * @section LICENSE
- * Copyright (c) 2017, SeisSol Group
+ * Copyright (c) 2018, SeisSol Group
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,8 @@ SELF_AWARE_STRUCT(easi::STRESS_STR_DIP_SLIP_AM::in, mu_d, mu_s, strike, dip, s_z
 SELF_AWARE_STRUCT(easi::STRESS_STR_DIP_SLIP_AM::out, b_xx, b_yy, b_zz, b_xy, b_yz, b_xz)
 
 // COMPUTE NORMALIZED STRESS FOLLOWING THE METHOD  OF Aochi and Madariaga 2004 extended to dip slip fault
+// This module is deprecated: use OptimalStress instead
+// We nevertheless keep it to be able to run the exact Sumatra SC simulation with the lastest SeisSol
 void easi::STRESS_STR_DIP_SLIP_AM::evaluate() {
   double const pi = 3.141592653589793;
   // most favorable direction (A4, AM2003)

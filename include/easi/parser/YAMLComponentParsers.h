@@ -53,6 +53,7 @@
 #include "easi/component/LayeredModelBuilder.h"
 #include "easi/component/SpecialMap.h"
 #include "easi/component/Special.h"
+#include "easi/component/OptimalStress.h"
 
 #ifdef USE_ASAGI
 #include "easi/component/ASAGI.h"
