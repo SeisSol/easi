@@ -76,14 +76,11 @@ void easi::STRESS_STR_DIP_SLIP_AM::evaluate() {
   double c2xyz = cos(2.0*phi_xyz);
   double c2bis = c2 - c2xyz;  
   double szzInv = 1.0 / i.s_zz;
-  double alpha = (2.0*i.s2ratio-1.0)/3.0;
-  double effectiveConfiningStress = abs(i.s_zz);
 
+  
   if (fabs(i.DipSlipFaulting) <= std::numeric_limits<double>::epsilon()) {
-     //in case of Strike Slip faulting s_zz in actually the effective confining stress = sum(sii)/3 -Pf
-     double ds = (i.mu_d * effectiveConfiningStress + i.R*(i.cohesion + (i.mu_s-i.mu_d)*effectiveConfiningStress)) / (s2 + i.mu_d*(alpha + c2) + i.R*(i.mu_s-i.mu_d)*(alpha + c2));
-     double sm = effectiveConfiningStress - alpha*ds;
-     //sii are all positive
+     double ds = (i.mu_d * i.s_zz + i.R*(i.cohesion + (i.mu_s-i.mu_d)*i.s_zz)) / (s2 + i.mu_d*c2 + i.R*(i.mu_s-i.mu_d)*c2);
+     double sm = i.s_zz;
      double s11 = sm + ds;
      double s22= sm - ds + 2.0*ds*i.s2ratio;
      double s33 = sm - ds;
@@ -97,13 +94,12 @@ void easi::STRESS_STR_DIP_SLIP_AM::evaluate() {
      double cs = cos(strike_rad);
      double ss = sin(strike_rad);
 
-     //minus signs added to fall back to SeisSol convention (compressive stress<0)
-     o.b_xx =  -(cd * cd * cs * cs * s33 * si * si + cs * cs * s11 * sd * sd * si * si + 2 * cd * cs * s11 * sd * si * ss - 2 * cd * cs * s33 * sd * si * ss + cd * cd * s11 * ss * ss + ci * ci * cs * cs * s22 + s33 * sd * sd * ss * ss);
-     o.b_xy = -(-cd * cd * cs * s33 * si * si * ss - cs * s11 * sd * sd * si * si * ss + cd * cs * cs * s11 * sd * si - cd * cs * cs * s33 * sd * si - cd * s11 * sd * si * ss * ss + cd * s33 * sd * si * ss * ss + cd * cd * cs * s11 * ss - ci * ci * cs * s22 * ss + cs * s33 * sd * sd * ss);
-     o.b_xz = -(cd * cd * ci * cs * s33 * si + ci * cs * s11 * sd * sd * si + cd * ci * s11 * sd * ss - cd * ci * s33 * sd * ss - cs * ci * s22 * si);
-     o.b_yy = -(cd * cd * s33 * si * si * ss * ss + s11 * sd * sd * si * si * ss * ss - 2 * cd * cs * s11 * sd * si * ss + 2 * cd * cs * s33 * sd * si * ss + cd * cd * cs * cs * s11 + ci * ci * s22 * ss * ss + cs * cs * s33 * sd * sd);
-     o.b_yz = -(-cd * cd * ci * s33 * si * ss - ci * s11 * sd * sd * si * ss + cd * ci * cs * s11 * sd - cd * ci * cs * s33 * sd + ss * ci * s22 * si);
-     o.b_zz =  -(cd * cd * ci * ci * s33 + ci * ci * s11 * sd * sd + si * si * s22);
+     o.b_xx = szzInv * ( cd * cd * cs * cs * s33 * si * si + cs * cs * s11 * sd * sd * si * si + 2 * cd * cs * s11 * sd * si * ss - 2 * cd * cs * s33 * sd * si * ss + cd * cd * s11 * ss * ss + ci * ci * cs * cs * s22 + s33 * sd * sd * ss * ss);
+     o.b_xy = szzInv * ( -cd * cd * cs * s33 * si * si * ss - cs * s11 * sd * sd * si * si * ss + cd * cs * cs * s11 * sd * si - cd * cs * cs * s33 * sd * si - cd * s11 * sd * si * ss * ss + cd * s33 * sd * si * ss * ss + cd * cd * cs * s11 * ss - ci * ci * cs * s22 * ss + cs * s33 * sd * sd * ss);
+     o.b_xz = szzInv * ( cd * cd * ci * cs * s33 * si + ci * cs * s11 * sd * sd * si + cd * ci * s11 * sd * ss - cd * ci * s33 * sd * ss - cs * ci * s22 * si);
+     o.b_yy = szzInv * ( cd * cd * s33 * si * si * ss * ss + s11 * sd * sd * si * si * ss * ss - 2 * cd * cs * s11 * sd * si * ss + 2 * cd * cs * s33 * sd * si * ss + cd * cd * cs * cs * s11 + ci * ci * s22 * ss * ss + cs * cs * s33 * sd * sd);
+     o.b_yz = szzInv * ( -cd * cd * ci * s33 * si * ss - ci * s11 * sd * sd * si * ss + cd * ci * cs * s11 * sd - cd * ci * cs * s33 * sd + ss * ci * s22 * si);
+     o.b_zz = szzInv * ( cd * cd * ci * ci * s33 + ci * ci * s11 * sd * sd + si * si * s22);
 
   } else {
 
@@ -123,8 +119,7 @@ void easi::STRESS_STR_DIP_SLIP_AM::evaluate() {
      double sd = sin(phi_xyz);
      double cs = cos(strike_rad);
      double ss = sin(strike_rad);
- 
-     /* return a normalized stress tensor*/
+
      o.b_xx = szzInv * (cd * cd * cs * cs * s11 + cs * cs * s33 * sd * sd + ss * ss * s22);
      o.b_yy = szzInv * (cd * cd * s11 * ss * ss + s33 * sd * sd * ss * ss + cs * cs * s22);
      o.b_zz = szzInv * (cd * cd * s33 + sd * sd * s11);
