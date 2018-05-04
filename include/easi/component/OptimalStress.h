@@ -93,13 +93,13 @@ void easi::OptimalStress::evaluate() {
   double cs = cos(strike_rad);
   double ss = sin(strike_rad);
 
-  o.b_xx = -(cd * cd * s33 * si * si + s11 * sd * sd * si * si + ci * ci * s22) * cs * cs - 2 * cd * cs * sd * si * (s11 - s33) * ss - ss * ss * (cd * cd * s11 + s33 * sd * sd);
-  o.b_xy = -cd * sd * si * (s11 - s33) * cs * cs + ss * ((s33 * si * si - s11) * cd * cd + (s11 * si * si - s33) * sd * sd + ci * ci * s22) * cs + cd * sd * si * ss * ss * (s11 - s33);
-  o.b_xz = -ci * (cd * cd * cs * si * s33 + sd * ss * (s11 - s33) * cd + cs * si * (s11 * sd * sd - s22));
-  o.b_yy = -(cd * cd * s33 * si * si + s11 * sd * sd * si * si + ci * ci * s22) * ss * ss + 2 * cd * cs * sd * si * (s11 - s33) * ss - cs * cs * (cd * cd * s11 + s33 * sd * sd);
-  o.b_yz = (cd * cd * si * ss * s33 - cs * sd * (s11 - s33) * cd + si * ss * (s11 * sd * sd - s22)) * ci;
-  o.b_zz = -cd * cd * ci * ci * s33 - ci * ci * s11 * sd * sd - si * si * s22;
-  
+  o.b_xx = -((ci * ci * s11 * sr * sr + s33 * si * si) * cd * cd + 2 * ci * sd * si * sr * (s33 - s11) * cd + (s33 * sd * sd * sr * sr + cr * cr * s22) * ci * ci + sd * sd * si * si * s11) * cs * cs + 2 * cr * cs * (cd * cd * ci * sr * s11 + sd * si * (s33 - s11) * cd - ci * sr * (-s33 * sd * sd + s22)) * ss - ss * ss * (cd * cd * cr * cr * s11 + cr * cr * s33 * sd * sd + s22 * sr * sr);
+  o.b_xy = cr * (cd * cd * ci * sr * s11 + sd * si * (s33 - s11) * cd - ci * sr * (-s33 * sd * sd + s22)) * cs * cs + ss * ((-cd * cd * s11 + ci * ci * s22 - s33 * sd * sd) * cr * cr + (ci * ci * s11 * sr * sr + s33 * si * si) * cd * cd + 2 * ci * sd * si * sr * (s33 - s11) * cd + s33 * ci * ci * sd * sd * sr * sr + sd * sd * si * si * s11 - s22 * sr * sr) * cs - ss * ss * cr * (cd * cd * ci * sr * s11 + sd * si * (s33 - s11) * cd - ci * sr * (-s33 * sd * sd + s22));
+  o.b_xz = cd * cs * sd * sr * (s33 - s11) * si * si - ((cs * (-s11 * sr * sr + s33) * ci + cr * sr * ss * s11) * cd * cd - cs * ((s33 * sr * sr - s11) * sd * sd + cr * cr * s22) * ci - cr * sr * ss * (-s33 * sd * sd + s22)) * si - cd * ci * sd * (ci * cs * sr - cr * ss) * (s33 - s11);
+  o.b_yy = -((ci * ci * s11 * sr * sr + s33 * si * si) * cd * cd + 2 * ci * sd * si * sr * (s33 - s11) * cd + (s33 * sd * sd * sr * sr + cr * cr * s22) * ci * ci + sd * sd * si * si * s11) * ss * ss - 2 * cr * cs * (cd * cd * ci * sr * s11 + sd * si * (s33 - s11) * cd - ci * sr * (-s33 * sd * sd + s22)) * ss - cs * cs * (cd * cd * cr * cr * s11 + cr * cr * s33 * sd * sd + s22 * sr * sr);
+  o.b_yz = -cd * sd * sr * ss * (s33 - s11) * si * si - ((-ss * (-s11 * sr * sr + s33) * ci + cr * cs * sr * s11) * cd * cd + ss * ((s33 * sr * sr - s11) * sd * sd + cr * cr * s22) * ci - cr * cs * sr * (-s33 * sd * sd + s22)) * si + cd * ci * sd * (ci * sr * ss + cr * cs) * (s33 - s11);
+  o.b_zz = -(cd * cd * s11 * sr * sr + s33 * sd * sd * sr * sr + cr * cr * s22) * si * si - 2 * cd * ci * sd * sr * (s11 - s33) * si - ci * ci * (cd * cd * s33 + s11 * sd * sd);
+
 }
 
 #endif
