@@ -68,12 +68,14 @@ public:
   }
   
   virtual bool isSubset(std::set<std::string> const& parameters) const {
+    bool bIsSubSet=true;
     for(auto const& kv : m_bindingPoint) {
       if (parameters.find(kv.first) == parameters.end()) {
-        return false;
+        std::cerr<<"Argument "<<kv.first<<" expected but not provided\n";
+        bIsSubSet=false;
       }
     }
-    return true;
+    return bIsSubSet;
   }
   
   virtual void set(std::string const& parameter, Vector<unsigned> const& index, Slice<double> const& value) {
@@ -122,12 +124,14 @@ public:
   }
   
   virtual bool isSubset(std::set<std::string> const& parameters) const {
+    bool bIsSubSet=true;
     for(auto const& kv : m_bindingPoint) {
       if (parameters.find(kv.first) == parameters.end()) {
-        return false;
+        std::cerr<<"Argument "<<kv.first<<" expected but not provided\n";
+        bIsSubSet=false;
       }
     }
-    return true;
+    return bIsSubSet;
   }
   
   virtual void set(std::string const& parameter, Vector<unsigned> const& index, Slice<double> const& value) {
