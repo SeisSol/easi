@@ -74,7 +74,11 @@ void Switch::evaluate(Query& query, ResultAdapter& result) {
     }
   }
   if (!result.isSubset(parameters)) {
-    throw std::invalid_argument("Switch is not complete with respect to request.");
+    throw std::invalid_argument(
+      addFileReference(
+        addMissingParameters("Switch is not complete with respect to request.", result.parameters(), parameters)
+      )
+    );
   }
   
   // Evaluate submodels

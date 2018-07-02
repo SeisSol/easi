@@ -66,6 +66,14 @@ void parse(T* component, YAML::Node const&, std::set<std::string> const&, YAMLAb
 }
 
 template<>
+void parse<Component>(Component* component, YAML::Node const& node, std::set<std::string> const&, YAMLAbstractParser* parser) {
+  auto mark = node.Mark();
+  std::stringstream s;
+  s << parser->currentFileName() << "@" << node.Mark().line+1;
+  component->setFileReference(s.str());
+}
+
+template<>
 void parse<Composite>(Composite* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   if (node["components"]) {
     if (node["components"].IsSequence()) {

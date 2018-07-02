@@ -74,12 +74,14 @@ public:
   virtual Component* parse(std::string const& fileName);
   virtual Component* parse(YAML::Node const& node, std::set<std::string> const& in);
   virtual AsagiReader* asagiReader() { return m_asagiReader; }
+  virtual std::string currentFileName() { return m_currentFileName; }
 
 private:
   std::set<std::string> m_in;
   std::unordered_map<std::string, Component* (*)(YAML::Node const&, std::set<std::string> const&, YAMLAbstractParser*)> m_creators;
   AsagiReader* m_asagiReader;
   bool m_externalAsagiReader;
+  std::string m_currentFileName;
 };
 
 YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, char firstVariable)
@@ -128,8 +130,11 @@ void YAMLParser::registerSpecial(std::string const& tag) {
 Component* YAMLParser::parse(std::string const& fileName) {
   Component* root;
   try {
+    std::string lastFileName = m_currentFileName;
+    m_currentFileName = fileName;
     YAML::Node config = YAML::LoadFile(fileName);
     root = parse(config, m_in);
+    m_currentFileName = lastFileName;
   } catch (YAML::Exception const& e) {
     std::cerr << fileName << ": " << e.what() << std::endl;
     throw std::runtime_error("Error while parsing easi model file.");

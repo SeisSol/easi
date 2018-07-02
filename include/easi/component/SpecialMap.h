@@ -98,7 +98,7 @@ void SpecialMap<Special>::setMap(std::map<std::string, double> const& constants)
     if (bp < 0) {
       std::stringstream ss;
       ss << "Unknown constant " << kv.first << ".";
-      throw std::invalid_argument(ss.str());
+      throw std::invalid_argument(addFileReference(ss.str()));
     }
     m_prototype.i.*get_pointer_to_member<typename Special::in>(bp) = kv.second;
     in.erase(kv.first);

@@ -55,10 +55,20 @@ public:
   std::set<std::string> const& out() const { return m_out; }
   unsigned dimDomain() const { return m_in.size(); }
   unsigned dimCodomain() const { return m_out.size(); }
+  
+  void setFileReference(std::string const& fileReference) { m_fileReference = fileReference; }
+  
+  std::string addFileReference(std::string const& what_arg) {
+    std::stringstream s;
+    s << m_fileReference << ": " << what_arg;
+    return s.str();
+  }
 
 protected:
   void setIn(std::set<std::string> const& parameters) { m_in = parameters; }
   void setOut(std::set<std::string> const&  parameters) { m_out = parameters; }
+  
+  std::string m_fileReference;
 
 private:
   std::set<std::string> m_in;

@@ -63,6 +63,8 @@ public:
   
   virtual void evaluate(Query& query, ResultAdapter& result);
   
+  std::string addMissingParameters(std::string const& what_arg, std::set<std::string> expected, std::set<std::string> supplied);
+  
 protected:
   virtual Matrix<double> map(Matrix<double>& x) = 0;
   
@@ -83,7 +85,7 @@ void Composite::add(Component* component) {
     os << ") added to a composite are incompatible (should be ";
     printWithSeparator(out(), os);
     os << ").";
-    throw std::invalid_argument(os.str());
+    throw std::invalid_argument(addFileReference(os.str()));
   }
   
   m_components.push_back(component);
@@ -97,7 +99,11 @@ void Composite::evaluate(Query& query, ResultAdapter& result) {
   unsigned nComponents = m_components.size();
   if (nComponents == 0) {
     if (!result.isSubset(out())) {
-      throw std::invalid_argument("Component does not supply all required parameters.");
+      throw std::invalid_argument(
+        addFileReference(
+          addMissingParameters("Component does not supply all required parameters.", result.parameters(), out())
+        )
+      );
     }
     unsigned col = 0;
     for (std::string const& param : out()) {
@@ -182,7 +188,23 @@ void Composite::couldNotFindModelError(int group, Slice<double> const& y) {
     ss << y(d) << " ";
   }
   ss << "] in group " << group << ".";
-  throw std::runtime_error(ss.str());
+  throw std::runtime_error(addFileReference(ss.str()));
+}
+
+std::string Composite::addMissingParameters(std::string const& what_arg, std::set<std::string> expected, std::set<std::string> supplied) {
+  std::set<std::string> missing;
+  std::set_difference(  expected.begin(), expected.end(),
+                        supplied.begin(), supplied.end(),
+                        std::inserter(missing, missing.begin()));
+  
+  std::stringstream s;
+  s << what_arg << " Missing: {";
+  for (auto const& m : missing) {
+    s << m << ", ";
+  }
+  s.seekp(-2, std::ios_base::cur);
+  s << "}.";
+  return s.str();
 }
 }
 

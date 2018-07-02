@@ -80,7 +80,7 @@ void SCECFile::setMap(std::set<std::string> const& in, std::string const& fileNa
     os << "SCECFile requires 2D input (got ";
     printWithSeparator(in, os);
     os << ").";
-    throw std::invalid_argument(os.str());
+    throw std::invalid_argument(addFileReference(os.str()));
   }
   
   readSCECFile(fileName);
@@ -92,7 +92,7 @@ void SCECFile::readSCECFile(std::string const& fileName) {
   std::ifstream in(fileName, std::ifstream::in);
   
   if (!in.good()) {
-    throw std::runtime_error("Could not open " + fileName + " for reading.");
+    throw std::runtime_error(addFileReference("Could not open " + fileName + " for reading."));
   }
 
   std::string dummyLine;

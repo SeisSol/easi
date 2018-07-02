@@ -95,7 +95,7 @@ void FunctionMap::setMap(std::set<std::string> const& in, OutMap const& function
     m_functions.push_back(compiler.getFunction(it->first));
     unsigned funDomain = compiler.getParameterCount(it->first);
     if (dimDomain != funDomain && dimDomain != std::numeric_limits<unsigned>::max()) {
-      throw std::invalid_argument("All functions in a FunctionMap must have the same domain.");
+      throw std::invalid_argument(addFileReference("All functions in a FunctionMap must have the same domain."));
     }
     dimDomain = funDomain;
   }

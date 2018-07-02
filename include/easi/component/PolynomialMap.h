@@ -85,7 +85,7 @@ void PolynomialMap::setMap(std::set<std::string> const& in, OutMap const& outMap
     os << "Polynomial map requires 1D input (got ";
     printWithSeparator(in, os);
     os << ").";
-    throw std::invalid_argument(os.str());
+    throw std::invalid_argument(addFileReference(os.str()));
   }
 
   std::set<std::string> out;
@@ -93,7 +93,7 @@ void PolynomialMap::setMap(std::set<std::string> const& in, OutMap const& outMap
   for (auto const& kv : outMap) {
     out.insert(kv.first);
     if (nCoeffs != std::numeric_limits<unsigned>::max() && kv.second.size() != nCoeffs) {
-      throw std::invalid_argument("All parameters in a polynomial map must have the same number of coefficients.");
+      throw std::invalid_argument(addFileReference("All parameters in a polynomial map must have the same number of coefficients."));
     }
     nCoeffs = kv.second.size();
   }

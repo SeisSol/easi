@@ -71,7 +71,7 @@ Matrix<double> AffineMap::map(Matrix<double>& x) {
 
 void AffineMap::setMap(std::set<std::string> const& in, Transformation const& matrix, Translation const& translation) {
   if (matrix.size() != translation.size()) {
-    throw std::invalid_argument("Matrix and translation must have the same size in an affine map.");
+    throw std::invalid_argument(addFileReference("Matrix and translation must have the same size in an affine map."));
   }
     
   setIn(in);
@@ -81,14 +81,14 @@ void AffineMap::setMap(std::set<std::string> const& in, Transformation const& ma
   for (auto const& kv : matrix) {
     out.insert(kv.first);
     if (nCoeffs != std::numeric_limits<unsigned>::max() && kv.second.size() != nCoeffs) {
-      throw std::invalid_argument("The matrix in a affine map must have the same number of coefficients for each entry.");
+      throw std::invalid_argument(addFileReference("The matrix in a affine map must have the same number of coefficients for each entry."));
     }
     nCoeffs = kv.second.size();
   }
   setOut(out);
   
   if (nCoeffs != dimDomain()) {
-    throw std::invalid_argument("Number of matrix entries does not match number of input parameters.");
+    throw std::invalid_argument(addFileReference("Number of matrix entries does not match number of input parameters."));
   }
   
   m_matrix.reallocate(dimDomain(), dimCodomain());

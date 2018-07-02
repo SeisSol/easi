@@ -97,10 +97,10 @@ void ASAGI::setGrid(std::set<std::string> const& in, std::vector<std::string> co
     os << "ASAGI requires " << grid->getDimensions() << "D input (got ";
     printWithSeparator(in, os);
     os << ").";
-    throw std::invalid_argument(os.str());
+    throw std::invalid_argument(addFileReference(os.str()));
   }  
   if (dimDomain() > MaxDimensions) {
-    throw std::runtime_error("Unsupported number of dimensions for ASAGI.");
+    throw std::runtime_error(addFileReference("Unsupported number of dimensions for ASAGI."));
   }
   
   std::set<std::string> out;
@@ -112,7 +112,7 @@ void ASAGI::setGrid(std::set<std::string> const& in, std::vector<std::string> co
     os << "ASAGI supplies " << m_numValues << "D output (got ";
     printWithSeparator(out, os);
     os << ").";
-    throw std::invalid_argument(os.str());
+    throw std::invalid_argument(addFileReference(os.str()));
   }
   
   delete m_grid;

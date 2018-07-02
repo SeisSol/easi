@@ -49,6 +49,7 @@ public:
   virtual bool isSubset(std::set<std::string> const& parameters) const = 0;
   virtual ResultAdapter* subsetAdapter(std::set<std::string> const& subset) = 0;
   virtual unsigned numberOfParameters() const = 0;
+  virtual std::set<std::string> parameters() const = 0;
 };
 
 template<typename T>
@@ -68,14 +69,12 @@ public:
   }
   
   virtual bool isSubset(std::set<std::string> const& parameters) const {
-    bool bIsSubSet=true;
     for(auto const& kv : m_bindingPoint) {
       if (parameters.find(kv.first) == parameters.end()) {
-        std::cerr<<"Argument "<<kv.first<<" expected but not provided\n";
-        bIsSubSet=false;
+        return false;
       }
     }
-    return bIsSubSet;
+    return true;
   }
   
   virtual void set(std::string const& parameter, Vector<unsigned> const& index, Slice<double> const& value) {
@@ -101,6 +100,14 @@ public:
   }
   
   virtual unsigned numberOfParameters() const { return m_parameter.size(); }
+  
+  virtual std::set<std::string> parameters() const {
+    std::set<std::string> params;
+    for(auto const& kv : m_bindingPoint) {
+      params.insert(kv.first);
+    }
+    return params;
+  }
 
 private:
   T* m_arrayOfStructs;
@@ -124,14 +131,12 @@ public:
   }
   
   virtual bool isSubset(std::set<std::string> const& parameters) const {
-    bool bIsSubSet=true;
     for(auto const& kv : m_bindingPoint) {
       if (parameters.find(kv.first) == parameters.end()) {
-        std::cerr<<"Argument "<<kv.first<<" expected but not provided\n";
-        bIsSubSet=false;
+        return false;
       }
     }
-    return bIsSubSet;
+    return true;
   }
   
   virtual void set(std::string const& parameter, Vector<unsigned> const& index, Slice<double> const& value) {
@@ -158,6 +163,14 @@ public:
   }
   
   virtual unsigned numberOfParameters() const { return m_arrays.size(); }
+  
+  virtual std::set<std::string> parameters() const {
+    std::set<std::string> params;
+    for(auto const& kv : m_bindingPoint) {
+      params.insert(kv.first);
+    }
+    return params;
+  }
 
 private:
   std::unordered_map<std::string, unsigned> m_bindingPoint;
