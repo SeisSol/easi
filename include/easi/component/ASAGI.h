@@ -129,9 +129,9 @@ void ASAGI::setGrid(std::set<std::string> const& in, std::vector<std::string> co
   delete[] m_permutation;
   m_permutation = new unsigned[m_numValues];
   unsigned* perm = m_permutation;
-  for (auto const& o : out) {
-    auto it = std::find(parameters.begin(), parameters.end(), o);
-    *perm++ = std::distance(parameters.begin(), it);
+  for (auto const& p : parameters) {
+    auto it = std::find(out.begin(), out.end(), p);
+    *perm++ = std::distance(out.begin(), it);
   }
 }
 
