@@ -16,20 +16,27 @@ In SeisSol, the function f maps every point in space (say x,y,z) to a vector of 
 which define a rheological model.
 Here, over 5000 lines of model-specific Fortran code could be replaced with YAML files.
 
-Basic principles
-================
-
 An easi model consists of only two components: Map and Filter.
-These components may be wired as a tree, e.g. as in the following figure.
+These components may be wired as a tree, e.g. as in the following figure:
 
 .. image:: figs/tree.png
     :width: 50%
     :align: center
 
-A Map maps m-dimensional points to n-dimensional points.
-A Filter accepts or rejects points.
+The procedure is as follows:
+A point x,y,z enters the tree at the root.
+The first Map takes a 3-dimensional vector as input and returns a n-dimensional vector.
+The following Filters decide if they accept this n-dimensional vector or reject it (e.g. accept if it lies in a hypercube and reject otherwise).
+Then, the branch which accepts a vector is taken (a Map accepts everything by default).
+The final parameter vector is, in this example, always 3-dimensional as it contains the density and the Lamé parameters.
 
 .. toctree::
-   :maxdepth: 2
-   
-   getting_started
+  :maxdepth: 2
+  :caption: Contents
+
+  getting_started
+  components
+  maps
+  filters
+  builders
+  glossary
