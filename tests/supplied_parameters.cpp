@@ -5,7 +5,7 @@
  * @author Carsten Uphoff (c.uphoff AT tum.de, http://www5.in.tum.de/wiki/index.php/Carsten_Uphoff,_M.Sc.)
  *
  * @section LICENSE
- * Copyright (c) 2017, SeisSol Group
+ * Copyright (c) 2018, SeisSol Group
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -36,46 +36,26 @@
  *
  * @section DESCRIPTION
  **/
-#ifndef EASI_COMPONENT_H_
-#define EASI_COMPONENT_H_
 
-#include "easi/Query.h"
-#include "easi/ResultAdapter.h"
+#include <easi/YAMLParser.h>
 
-namespace easi {
-class Component {
-public:
-  virtual ~Component() {}
+int main(int argc, char** argv) {
+  assert(argc == 2);
 
-  virtual void evaluate(Query& query, ResultAdapter& result) = 0;
-  virtual bool accept(int group, Slice<double> const& x) const = 0;
-  virtual bool acceptAlways() const = 0;
-  
-  std::set<std::string> const& in() const { return m_in; }
-  std::set<std::string> const& out() const { return m_out; }
-  unsigned dimDomain() const { return m_in.size(); }
-  unsigned dimCodomain() const { return m_out.size(); }
-  
-  void setFileReference(std::string const& fileReference) { m_fileReference = fileReference; }
-  
-  std::string addFileReference(std::string const& what_arg) {
-    std::stringstream s;
-    s << m_fileReference << ": " << what_arg;
-    return s.str();
-  }
+  easi::YAMLParser parser(3);
+  easi::Component* model = parser.parse(argv[1]);
 
-  virtual std::set<std::string> suppliedParameters() { return out(); }
+  std::set<std::string> supplied = model->suppliedParameters();
+  std::set<std::string> expected = {"rho", "mu", "lambda", "plastCo", "bulkFriction", "s_xx", "s_yy", "s_zz", "s_xy", "s_yz", "s_xz"};
 
-protected:
-  void setIn(std::set<std::string> const& parameters) { m_in = parameters; }
-  void setOut(std::set<std::string> const&  parameters) { m_out = parameters; }
-  
-  std::string m_fileReference;
+  std::set<std::string> missing;
+  std::set_difference(  expected.begin(), expected.end(),
+                        supplied.begin(), supplied.end(),
+                        std::inserter(missing, missing.begin()));
 
-private:
-  std::set<std::string> m_in;
-  std::set<std::string> m_out;
-};
+  assert(missing.empty());
+
+  delete model;
+
+  return 0;
 }
-
-#endif

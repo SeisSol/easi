@@ -64,6 +64,8 @@ public:
   virtual void evaluate(Query& query, ResultAdapter& result);
   
   std::string addMissingParameters(std::string const& what_arg, std::set<std::string> expected, std::set<std::string> supplied);
+
+  virtual std::set<std::string> suppliedParameters();
   
 protected:
   virtual Matrix<double> map(Matrix<double>& x) = 0;
@@ -205,6 +207,21 @@ std::string Composite::addMissingParameters(std::string const& what_arg, std::se
   s.seekp(-2, std::ios_base::cur);
   s << "}.";
   return s.str();
+}
+
+std::set<std::string> Composite::suppliedParameters() {
+  if (m_components.empty()) {
+    return Component::suppliedParameters();
+  }
+
+  return std::accumulate(begin(), end(), std::set<std::string>(), [](std::set<std::string>& a, Component*& b) {
+    std::set<std::string> supplied;
+    auto c = b->suppliedParameters();
+    std::set_union( a.begin(), a.end(),
+                    c.begin(), c.end(),
+                    std::inserter(supplied, supplied.begin()) );
+    return supplied;
+  });
 }
 }
 
