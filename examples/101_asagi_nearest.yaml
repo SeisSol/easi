@@ -1,0 +1,12 @@
+!AffineMap
+matrix:
+  x: [1.0, 0.0, 0.0]
+  z: [0.0, 1.0, 0.0]
+translation:
+  x: 0.0
+  z: 0.0
+components: !ASAGI
+  file: ../examples/asagi_example.nc
+  parameters: [rho, mu, lambda]
+  var: data
+  interpolation: nearest

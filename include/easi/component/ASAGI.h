@@ -64,6 +64,7 @@ public:
 
   void setGrid(std::set<std::string> const& in, std::vector<std::string> const& parameters, asagi::Grid* grid, unsigned numberOfThreads);
 
+  void getNearestNeighbour(Slice<double> const& x, double* buffer);
   void getNeighbours(Slice<double> const& x, double* weights, double* buffer);
   unsigned permutation(unsigned index) const { return m_permutation[index]; }
 
@@ -132,6 +133,18 @@ void ASAGI::setGrid(std::set<std::string> const& in, std::vector<std::string> co
   for (auto const& p : parameters) {
     auto it = std::find(out.begin(), out.end(), p);
     *perm++ = std::distance(out.begin(), it);
+  }
+}
+
+void ASAGI::getNearestNeighbour(Slice<double> const& x, double* buffer) {
+  double pos[MaxDimensions];
+  float* bufferSP = reinterpret_cast<float*>(buffer);
+  for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
+    pos[d] = x(d);
+  }
+  m_grid->getBuf(bufferSP, pos);
+  for (int j = m_numValues-1; j >= 0; --j) {
+    buffer[j] = static_cast<double>(bufferSP[j]);
   }
 }
 

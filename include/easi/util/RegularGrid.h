@@ -54,6 +54,7 @@ public:
   void setVolume(double const* min, double const* max);
   double* operator()(unsigned const* index);
   
+  void getNearestNeighbour(Slice<double> const& x, double* buffer);
   void getNeighbours(Slice<double> const& x, double* weights, double* buffer);
 
 private:
@@ -96,6 +97,27 @@ double* RegularGrid::operator()(unsigned const* index) {
     stride *= m_num[d];
   }
   return m_values + m_numValues * idx;
+}
+
+void RegularGrid::getNearestNeighbour(Slice<double> const& x, double* buffer) {
+  assert(x.size() == m_dimensions);
+
+  unsigned idx[MaxDimensions];
+  for (unsigned d = 0; d < m_dimensions; ++d) {
+    if (x(d) < m_min[d]) {
+      idx[d] = 0;
+    } else if (x(d) >= m_max[d]) {
+      idx[d] = m_num[d]-1;
+    } else {
+      double xn = (x(d) - m_min[d]) / m_delta[d];
+      idx[d] = std::round(xn);
+    }
+  }
+
+  double* values = operator()(idx);
+  for (unsigned v = 0; v < m_numValues; ++v) {
+    buffer[v] = values[v];
+  }
 }
 
 void RegularGrid::getNeighbours(Slice<double> const& x, double* weights, double* buffer) {

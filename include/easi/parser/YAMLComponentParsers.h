@@ -208,6 +208,16 @@ void parse<PolynomialMap>(PolynomialMap* component, YAML::Node const& node, std:
   parse<Map>(component, node, in, parser);
 }
 
+template<typename GridImpl>
+void parseGrid(Grid<GridImpl>* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
+  if (node["interpolation"]) {
+    std::string interpolation = node["interpolation"].as<std::string>();
+    component->setInterpolationType(interpolation);
+  }
+
+  parse<Map>(component, node, in, parser);
+}
+
 template<>
 void parse<SCECFile>(SCECFile* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   checkType(node, "file", {YAML::NodeType::Scalar});
@@ -215,7 +225,7 @@ void parse<SCECFile>(SCECFile* component, YAML::Node const& node, std::set<std::
   std::string fileName = node["file"].as<std::string>();
   component->setMap(in, fileName);
 
-  parse<Map>(component, node, in, parser);
+  parseGrid<SCECFile>(component, node, in, parser);
 }
 
 #ifdef USE_ASAGI
@@ -223,9 +233,9 @@ template<>
 void parse<ASAGI>(ASAGI* component, YAML::Node const& node, std::set<std::string> const& in, YAMLAbstractParser* parser) {
   checkType(node, "file", {YAML::NodeType::Scalar});
   checkType(node, "parameters", {YAML::NodeType::Sequence});
-  
+
   auto parameters = node["parameters"].as<std::vector<std::string>>();
-  
+
   std::string varName = "data";
   if (node["var"]) {
     varName = node["var"].as<std::string>();
@@ -236,7 +246,7 @@ void parse<ASAGI>(ASAGI* component, YAML::Node const& node, std::set<std::string
 
   component->setGrid(in, parameters, grid, parser->asagiReader()->numberOfThreads());
 
-  parse<Map>(component, node, in, parser);
+  parseGrid<ASAGI>(component, node, in, parser);
 }
 #endif
 

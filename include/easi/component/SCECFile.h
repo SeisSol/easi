@@ -53,6 +53,9 @@ public:
 
   void setMap(std::set<std::string> const& in, std::string const& fileName);
 
+  void getNearestNeighbour(Slice<double> const& x, double* buffer) {
+    m_grid->getNearestNeighbour(x, buffer);
+  }
   void getNeighbours(Slice<double> const& x, double* weights, double* buffer) {
     m_grid->getNeighbours(x, weights, buffer);
   }

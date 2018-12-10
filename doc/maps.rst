@@ -138,6 +138,7 @@ Looks up values using ASAGI (with trilinear interpolation).
     file: <string>
     parameters: [<parameter>,<parameter>,...]
     var: <string>
+    interpolation: (nearest|linear)
 
 :Domain:
   *inherited*
@@ -152,6 +153,8 @@ Looks up values using ASAGI (with trilinear interpolation).
   the NetCDF file
 :var:
   The NetCDF variable which holds the data (default: data)
+:interpolation:
+  Choose between nearest neighbour and linear interpolation (default: linear)
 
 SCECFile
 --------
@@ -163,6 +166,7 @@ http://scecdata.usc.edu/cvws/download/tpv16/TPV16\_17\_Description\_v03.pdf).
 
     !SCECFile
     file: <string>
+    interpolation: (nearest|linear)
 
 :Domain:
   *inherited*, must be 2D
@@ -171,7 +175,9 @@ http://scecdata.usc.edu/cvws/download/tpv16/TPV16\_17\_Description\_v03.pdf).
 :Example:
   `example <https://github.com/SeisSol/easi/blob/master/examples/f_16_scec.yaml#L8>`_
 :file:
-  Path to a SCEC stress file 
+  Path to a SCEC stress file
+:interpolation:
+  Choose between nearest neighbour and linear interpolation (default: linear)
 
 EvalModel
 ---------
