@@ -19,11 +19,10 @@
     -31000.0: [2950.0, 4.2598e10, 5.1212e10, 4.2598e6]
     -.inf:    [3200.0, 6.4800e10, 6.5088e10, 6.4800e6]
 [s_xx, s_yy, s_zz, s_xy, s_yz, s_xz]: !AffineMap
-  map:
-    matrix:
-      z: [0.0, 0.0, 1.0]
-    translation:
-      z: 0
+  matrix:
+    z: [0.0, 0.0, 1.0]
+  translation:
+    z: 0
   components:
     - !FunctionMap
       map:
