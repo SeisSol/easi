@@ -54,6 +54,7 @@
 #include "easi/component/SpecialMap.h"
 #include "easi/component/Special.h"
 #include "easi/component/OptimalStress.h"
+#include "easi/component/AndersonianStress.h"
 
 #ifdef USE_ASAGI
 #include "easi/component/ASAGI.h"

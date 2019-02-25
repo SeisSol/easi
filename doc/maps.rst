@@ -214,12 +214,12 @@ in the rake direction on the optimally oriented plane defined by strike
 and dip angles (this can be only a virtual plane if such optimal
 orientation does not correspond to any segment of the fault system). The
 principal stress magnitudes are prescribed by the relative prestress
-ratio R (where R=1/(1+S)), the effective confining stress
-(effectiveConfiningStress = tr(sii)/3) and the stress shape ratio
-s2ratio = (s2-s3)/(s1-s3), where s1>s2>s3 are the principal stress
+ratio R (where :math:`R=1/(1+S)`), the effective confining stress
+(effectiveConfiningStress :math:`= Tr(sii)/3`) and the stress shape ratio
+:math:`s2ratio = (s_2-s_3)/(s_1-s_3)`, where :math:`s_1>s_2>s_3` are the principal stress
 magnitudes, following the procedure described in Ulrich et al.
-(2018), methods section A6. To prescribe R, static and dynamic friction
-(mu\_s and mu\_d) as well as cohesion are required.
+(2019), methods section 'Initial Stress'. To prescribe R, static and dynamic friction
+(mu\_s and mu\_d) as well as cohesion are required. 
 
 .. code-block:: YAML
 
@@ -232,11 +232,55 @@ magnitudes, following the procedure described in Ulrich et al.
             rake:      <double>
             cohesion:  <double>
             s2ratio:   <double>
+            R:         <double>
+            effectiveConfiningStress: <double>
 
 :Domain:
   *inherited*
 :Codomain:
   stress components (s\_xx, s\_yy, s\_zz, s\_xy, s\_yz, and s\_xz)
+
+AndersonianStress
+-----------------
+
+This function allows computing Andersonian stresses (for which one principal axis of the stress tensor is vertical).
+
+The principal stress orientations are defined by SH_max (measured from North, positive eastwards), the direction of maximum horizontal compressive stress.
+
+S_v defines which of the principal stresses :math:`s_i` is vertical where :math:`s_1>s_2>s_3`.
+S_v = 1, 2 or 3 should be used if the vertical principal stress is the maximum, intermediate or minimum compressive stress.
+Assuming mu_d=0.6, S_v = 1 favours normal faulting on a 60° dipping fault plane striking SH_max,
+S_v = 2 favours strike-slip faulting on a vertical fault plane making an angle of 30° with SH_max and
+S_v = 3 favours reverse faulting on a 30° dipping fault plane striking SH_max.
+
+The principal stress magnitudes are prescribed by the relative fault strength S (related to the relative prestress ratio R by :math:`R=1/(1+S)`), 
+the vertical stress sig_zz and the stress shape ratio
+:math:`s2ratio = (s_2-s_3)/(s_1-s_3)`, where :math:`s_1>s_2>s_3` are the principal stress
+magnitudes, following the procedure described in Ulrich et al.
+(2019), methods section 'Initial Stress'. To prescribe S, static and dynamic friction
+(mu\_s and mu\_d) as well as cohesion are required. 
+
+
+
+.. code-block:: YAML
+
+        components: !AndersonianStress
+          constants:
+            mu_d:      <double>
+            mu_s:      <double>
+            SH_max:    <double>
+            S_v:       <int (1,2 or 3)>
+            cohesion:  <double>
+            s2ratio:   <double>
+            S:         <double>
+            sig_zz:    <double>
+
+:Domain:
+  *inherited*
+:Codomain:
+  stress components (s\_xx, s\_yy, s\_zz, s\_xy, s\_yz, and s\_xz)
+
+
 
 STRESS\_STR\_DIP\_SLIP\_AM (deprecated)
 ---------------------------------------
