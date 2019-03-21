@@ -41,6 +41,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <numeric>
 #include <sstream>
 #include "easi/Component.h"
 #include "easi/util/Print.h"
