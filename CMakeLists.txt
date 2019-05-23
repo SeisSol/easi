@@ -43,7 +43,9 @@ cmake_minimum_required (VERSION 2.6)
 enable_language (Fortran)
 
 # Compiler settings
-add_compile_options (-std=c++11 -Wall -Werror)
+add_compile_options (-Wall -Werror)
+set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # easi library
 include_directories (include)

@@ -39,6 +39,7 @@
 #ifndef EASI_UTIL_REGULARGRID_H_
 #define EASI_UTIL_REGULARGRID_H_
 
+#include <cmath>
 #include "Matrix.h"
 
 namespace easi {
