@@ -19,3 +19,4 @@ components: !SCECFile
         s_xy: return s_strike;
         s_yz: return s_dip;
     [mu_s, mu_d, d_c, cohesion, forced_rupture_time]: !IdentityMap {}
+    [s_normal, s_strike, s_dip]: !IdentityMap {}
