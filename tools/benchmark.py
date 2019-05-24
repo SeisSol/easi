@@ -27,7 +27,7 @@ examples = [
     Example('f_120_sumatra', [0.0, 0.0, -50000.0], [50000.0, 100000.0, 0.0])
 ]
 
-print('example,npoints,tsetup,teval')
+print('example,npars,npoints,tsetup,teval')
 
 for example in examples:
     print(example.name, end=',', flush=True)
