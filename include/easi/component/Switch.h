@@ -40,7 +40,9 @@
 #define EASI_COMPONENT_SWITCH_H_
 
 #include <set>
+#include <algorithm>
 #include "easi/component/Filter.h"
+#include "easi/util/Print.h"
 
 namespace easi {
 class Switch : public Filter {
@@ -59,24 +61,36 @@ protected:
 
 private:
   std::vector<std::set<std::string>> m_restrictions;
+  std::set<std::string> m_parameters;
 };
 
 void Switch::add(Component* component, std::set<std::string> const& restrictions) {
+  std::set<std::string> overlap;
+  std::set_intersection(restrictions.begin(), restrictions.end(),
+                        m_parameters.begin(), m_parameters.end(),
+                        std::inserter(overlap, overlap.end()));
+  if (overlap.size() != 0) {
+    std::stringstream s;
+    s << "Switch requires a partition of parameters. The parameters {";
+    printWithSeparator(overlap, s);
+    s << "} were specified in multiple branches.";
+    throw std::invalid_argument(
+      addFileReference(s.str())
+    );
+  }
+
   Composite::add(component);
   m_restrictions.push_back(restrictions);
+  for (auto const& r : restrictions) {
+    m_parameters.insert(r);
+  }
 }
 
 void Switch::evaluate(Query& query, ResultAdapter& result) {
-  std::set<std::string> parameters;
-  for (auto i = m_restrictions.cbegin(); i != m_restrictions.cend(); ++i) {
-    for (auto j = (*i).cbegin(); j != (*i).cend(); ++j) {
-      parameters.insert(*j);
-    }
-  }
-  if (!result.isSubset(parameters)) {
+  if (!result.isSubset(m_parameters)) {
     throw std::invalid_argument(
       addFileReference(
-        addMissingParameters("Switch is not complete with respect to request.", result.parameters(), parameters)
+        addMissingParameters("Switch is not complete with respect to request.", result.parameters(), m_parameters)
       )
     );
   }

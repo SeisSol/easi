@@ -202,10 +202,7 @@ std::string Composite::addMissingParameters(std::string const& what_arg, std::se
   
   std::stringstream s;
   s << what_arg << " Missing: {";
-  for (auto const& m : missing) {
-    s << m << ", ";
-  }
-  s.seekp(-2, std::ios_base::cur);
+  printWithSeparator(missing, s);
   s << "}.";
   return s.str();
 }

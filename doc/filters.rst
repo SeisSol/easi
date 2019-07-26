@@ -98,3 +98,8 @@ Can be used to use select a component based on the requested parameters.
   `120_sumatra <https://github.com/SeisSol/easi/blob/master/examples/120_sumatra.yaml#L1>`__:
   [mu\_d, mu\_s, d\_c] are defined with a !ConstantMap
   and [cohesion, forced\_rupture\_time] are defined with a !FunctionMap.
+
+The component on the right-hand side of the colon specifies a sub-model for the parameters on the
+left-hand side of the colon.
+The parameter lists must not intersect, as otherwise the sub-model, which shall be evaluated for
+a parameter, would not be uniquely defined.
