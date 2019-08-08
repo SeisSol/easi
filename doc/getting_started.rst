@@ -10,7 +10,7 @@ Dependencies
 
 Easi depends on the following two projects:
 
--  `ImpalaJIT <https://github.com/Manuel1605/ImpalaJIT>`__
+-  `ImpalaJIT <https://github.com/uphoffc/ImpalaJIT>`__
 -  `yaml-cpp <https://github.com/jbeder/yaml-cpp>`__
 
 Make sure to link against these libraries when using easi.
