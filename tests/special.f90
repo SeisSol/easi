@@ -3,7 +3,8 @@ module special_mod
     module procedure STRESS_STR_DIP_SLIP_AM
   end interface
 contains
-  subroutine STRESS_STR_DIP_SLIP_AM(mu_dy, mu_st, strike, dip, sigmazz, cohesion, R, DipSlipFaulting, s2ratio, bii) bind (c, name='STRESS_STR_DIP_SLIP_AM')
+  subroutine STRESS_STR_DIP_SLIP_AM(mu_dy, mu_st, strike, dip, sigmazz, cohesion, &
+                                    R, DipSlipFaulting, s2ratio, bii) bind (c, name='STRESS_STR_DIP_SLIP_AM')
     use iso_c_binding, only: c_double
     implicit none
     real(kind=c_double), intent(in), value          :: mu_dy, mu_st, strike, dip, sigmazz, cohesion, R, DipSlipFaulting, s2ratio
@@ -45,7 +46,8 @@ contains
       R3= transpose(reshape((/ c, -s, 0d0, s, c, 0d0, 0d0, 0d0, 1d0 /), shape(R3)))
 
       Stress = transpose(reshape((/ sii(2), 0d0, 0d0, 0d0, sii(1), 0d0, 0d0, 0d0, sii(3) /), shape(Stress)))
-      Stress_cartesian_norm = MATMUL(R3,MATMUL(R2,MATMUL(R1,MATMUL(Stress,MATMUL(TRANSPOSE(R1),MATMUL(TRANSPOSE(R2),TRANSPOSE(R3)))))))/sigmazz
+      Stress_cartesian_norm = MATMUL(R3,MATMUL(R2,MATMUL(R1,MATMUL(Stress,&
+        MATMUL(TRANSPOSE(R1),MATMUL(TRANSPOSE(R2),TRANSPOSE(R3)))))))/sigmazz
 
     ELSE
       c2bis = c2 - cos(2d0*(Phi-dip_rad))

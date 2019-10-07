@@ -39,6 +39,8 @@
 #ifndef EASI_RESULTADAPTER_H_
 #define EASI_RESULTADAPTER_H_
 
+#include <set>
+#include <unordered_map>
 #include "easi/util/Matrix.h"
 
 namespace easi {

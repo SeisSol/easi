@@ -63,9 +63,11 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+include (src/sources.cmake)
+
 function (easi_add_executable name files libs)
   add_executable (${name} ${files})
-  target_link_libraries(${name} ${libs} ${YAMLCPP_LIBRARIES} ${IMPALAJIT_LIBRARIES} ${ASAGI_LIBRARIES} ${NETCDF_LIBRARIES})
+  target_link_libraries(${name} ${libs} easi ${YAMLCPP_LIBRARIES} ${IMPALAJIT_LIBRARIES} ${ASAGI_LIBRARIES} ${NETCDF_LIBRARIES})
   target_include_directories(${name} PUBLIC ${YAMLCPP_INCLUDE_DIRS} ${IMPALAJIT_INCLUDE_DIRS} ${ASAGI_INCLUDE_DIRS} ${NETCDF_INCLUDE_DIRS})
   target_compile_options(${name} PUBLIC ${YAMLCPP_CFLAGS_OTHER} ${IMPALAJIT_CFLAGS_OTHER} ${ASAGI_CFLAGS_OTHER} ${NETCDF_CFLAGS_OTHER})
 endfunction (easi_add_executable)

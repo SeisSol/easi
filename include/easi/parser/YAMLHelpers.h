@@ -46,7 +46,7 @@
 #include "easi/Component.h"
 
 namespace easi {
-void checkExistence(YAML::Node const& node, std::string const& name) {
+inline void checkExistence(YAML::Node const& node, std::string const& name) {
   std::stringstream ss;
   if (node.IsScalar() || !node[name]) {
     ss << node.Tag() << ": Parameter '" << name << "' is missing." << std::endl << node;
@@ -54,7 +54,7 @@ void checkExistence(YAML::Node const& node, std::string const& name) {
   }
 }
 
-void checkType(YAML::Node const& node, std::string const& name, std::set<YAML::NodeType::value> const& types, bool required = true) {
+inline void checkType(YAML::Node const& node, std::string const& name, std::set<YAML::NodeType::value> const& types, bool required = true) {
   std::stringstream ss;
   if (required) {
     checkExistence(node, name);
