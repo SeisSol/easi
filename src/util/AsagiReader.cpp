@@ -1,4 +1,5 @@
 #include "easi/util/AsagiReader.h"
+#include <stdexcept>
 
 asagi::Grid* easi::AsagiReader::open(char const* file, char const* varname) {
   asagi::Grid* grid = asagi::Grid::createArray();
