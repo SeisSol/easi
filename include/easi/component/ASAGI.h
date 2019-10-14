@@ -168,6 +168,56 @@ void ASAGI::getNeighbours(Slice<double> const& x, double* weights, double* buffe
   }
 }
 
+ void ASAGI::getNeighbours(Slice<double> const& x, int numNeighbours, double* weights, double* buffer) {
+  double midPos[MaxDimensions];
+  double midWeights[MaxDimensions];
+  //define center node of patch
+  for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
+    midPos[d]     = m_min[d] + std::floor((x(d) - m_min[d]) * m_deltaInv[d]) * m_delta[d];
+  }
+
+  int index[MaxDimensions];
+  int startIndex = -(numNeighbours     /2); //floor
+  int endIndex   =  (numNeighbours + 1)/2; // ceil
+  std::fill_n(index,maxDimensions,startIndex);
+  
+  while (index[MaxDimensions-1]  < endIndex ){
+    //compute position
+    double pos[MaxDimensions];
+    for(int d=0 ; d<MaxDimensions ; d++){
+      pos[d] = midPos[d] + index[d] * m_delta[d];
+    }
+
+    //compute 1D index
+    int i = (index[MaxDimensions-1]+startIndex);
+    for(int d=MaxDimensions-2; d >= 0 ; d++){
+      i = i * numNeighbours + (index[d]+startIndex);
+    }
+
+    //compute weights
+    for(int d=0 ; d<MaxDimensions ; d++){
+      weights[i * MaxDimensions + d] = x[d] - pos[d];
+    }
+    
+    float* bufferSP = reinterpret_cast<float*>(buffer + i*m_numValues);
+    m_grid->getBuf(bufferSP, pos);
+    for (int j = m_numValues-1; j >= 0; --j) {
+      buffer[i*m_numValues + j] = static_cast<double>(bufferSP[j]);
+    }
+    
+    //update index
+    for(int d=0 ; d<MaxDimensions-1 ; d++){
+      ++index[d];
+      if( index[d] == endIndex ){
+        index[d] = startIndex;
+      }else{
+        break;
+      }
+    }
+  }
+}
+
+
 }
 
 

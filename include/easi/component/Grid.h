@@ -82,24 +82,62 @@ Matrix<double> Grid<GridImpl>::map(Matrix<double>& x) {
   #pragma omp parallel num_threads(numberOfThreads()) shared(x,y)
 #endif
   {
-    double* neighbours = new double[(1 << dimDomain()) * dimCodomain()];
-    double* weights = new double[dimDomain()];
+    int interpolation_order = 5; //TODO make me a variable
+    int num_interpolation_nodes = interpolation_order + 1;
+    int num_interpolation_nodes_global = std::pow(num_interpolation_nodes , dimDomain())
+
+    double* neighbours = new double[num_interpolation_nodes * dimCodomain()];
+    double* weights    = new double[num_interpolation_nodes * dimDomain()  ];
+    std::vector<double> lagrange_factors;
+    lagrange_factors.resize(dimCodomain() * num_interpolation_nodes);
+
+    
 #ifdef _OPENMP
     #pragma omp for
 #endif
     for (unsigned i = 0; i < x.rows(); ++i) {
+      // TODO: interpolation of arbitrary order
       if (m_interpolationType == Linear) {
-        getNeighbours(x.rowSlice(i), weights, neighbours);
-
-        // linear interpolation
+        getNeighbours(x.rowSlice(i), num_interpolation_nodes, weights, neighbours);
+        
+        //for each dimension reduce multindeces by one order
         for (int d = static_cast<int>(dimDomain())-1; d >= 0; --d) {
-          for (int p = 0; p < (1 << d); ++p) {
-            for (int v = 0; v < static_cast<int>(dimCodomain()); ++v) {
-              neighbours[p*dimCodomain() + v] = neighbours[p*dimCodomain() + v] * (1.0-weights[d]) + neighbours[((1 << d) + p)*dimCodomain() + v] * weights[d];
+          
+          int index_polynomial = 0; //1d index of the current goal multiindex
+          
+          //stop if multindex is out of range
+          while(index_polynomial < num_interpolation_nodes_global){
+            //reduction:
+            std::fill_n(lagrange_factors.data(),1.0,dimCodomain());
+            
+            //sum over interpolation polynomials
+            for(int p = 0 ; p < num_interpolation_nodes; ++p){
+              //multiplication over lagrange factors       
+              for(int f = 0 ; f < num_interpolation_nodes; ++f){
+                if(p==f) continue;
+                
+                int index_factor = (index_polynomial + f) * offset;
+                //interpolation for each variable
+                for (int v = 0; v < static_cast<int>(dimCodomain()); ++v) {
+                  lagrange_factor[p * dimCodomain() +  v] *=
+                    neighbours[ index_factor * dimCodomain() + v ] *
+                   (weights   [ index_factor * dimDomain()   + d ]) / ((p-f) * dx);
+                }
+              }
             }
+            for (int v = 0; v < static_cast<int>(dimCodomain()); ++v) {
+              neighbours[index_polynomial * dimCodomain() + v] = 0;
+            }
+            for(int p = 0 ; p < num_interpolation_nodes; ++p){
+              for (int v = 0; v < static_cast<int>(dimCodomain()); ++v) {
+                neighbours[index_polynomial * dimCodomain() + v] += lagrange_factor[p * dimCodomain() +  v];
+              }
+            }
+            index_polynomial = index_polynomial + num_interpolation_nodes * offset;
           }
+          offset = offset*num_interpolation_nodes; //set offset for next dimension
         }
-      } else {
+      }else{
         getNearestNeighbour(x.rowSlice(i), neighbours);
       }
       
