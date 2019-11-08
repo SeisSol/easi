@@ -317,6 +317,9 @@ Component* createSpecial(YAML::Node const& node, std::set<std::string> const& in
   
   SpecialMap<Special>* component = new SpecialMap<Special>;
   component->setMap(constants);
+
+  parse<Map>(component, node, in, parser);
+
   return component;
 }
 }
