@@ -55,21 +55,21 @@ void model(double x, double z, double params[9]) {
   
   if (x <= 0.0 && z <= 0.0) {
     params[3]  = 2.509795E+07; // s_xy
-    params[9]  = 4.000000E+06; // cohesion
+    params[9]  = -4.000000E+06; // cohesion
   } else if (x <= 75.0 && z <= 0.0) {
     double xi = x / 75.0;
     params[3]  = 2.509795E+07 * (1.0-xi) + 2.523141E+07 * xi; // s_xy
-    params[9]  = 4.000000E+06; // cohesion
+    params[9]  = -4.000000E+06; // cohesion
   } else if (x >= 75.0 && x <= 150.0 && z >= 150.0 && z <= 225.0) {
     double xi  = (x- 75.0) / 75.0;
     double eta = (z-150.0) / 75.0;
     params[3]  = (2.444593E+07 * (1.0-eta) + 2.445351E+07 * eta) * (1.0 - xi)
                + (2.488395E+07 * (1.0-eta) + 2.498051E+07 * eta) * xi; // s_xy
-    params[9]  = (3.800000E+06 * (1.0-eta) + 3.700000E+06 * eta) * (1.0 - xi)
-               + (3.800000E+06 * (1.0-eta) + 3.700000E+06 * eta) * xi; // cohesion
+    params[9]  = -((3.800000E+06 * (1.0-eta) + 3.700000E+06 * eta) * (1.0 - xi)
+               + (3.800000E+06 * (1.0-eta) + 3.700000E+06 * eta) * xi); // cohesion
   } else {
     params[3]  = 2.498051E+07; // s_xy
-    params[9]  = 3.700000E+06; // cohesion
+    params[9]  = -3.700000E+06; // cohesion
   }
 }
 
