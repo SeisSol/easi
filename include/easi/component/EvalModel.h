@@ -64,7 +64,7 @@ void EvalModel::evaluate(Query& query, ResultAdapter& result) {
   Query subQuery = query.shallowCopy();
   
   Matrix<double> y(subQuery.x.rows(), dimCodomain());
-  ArraysAdapter adapter;
+  ArraysAdapter<> adapter;
   unsigned col = 0;
   for (auto const& o : out()) {
     adapter.addBindingPoint(o, &y(0, col++));
