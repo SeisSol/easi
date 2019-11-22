@@ -34,7 +34,7 @@ std::vector<std::vector<double>> genericModel(std::string const& fileName, easi:
   easi::YAMLParser parser(query.dimDomain());
   easi::Component* model = parser.parse(fileName);
   
-  easi::ArraysAdapter adapter;
+  easi::ArraysAdapter<> adapter;
   std::vector<std::vector<double>> material(parameters.size());
   auto it = material.begin();
   for (auto const& p : parameters) {
