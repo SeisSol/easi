@@ -92,7 +92,7 @@ int main(int argc, char** argv)
     auto supplied = model->suppliedParameters();
     parameters = std::vector<std::string>(supplied.begin(), supplied.end());
   }
-  easi::ArraysAdapter adapter;
+  easi::ArraysAdapter<> adapter;
   std::vector<std::vector<double>> material(parameters.size());
   auto it = material.begin();
   for (auto const& p : parameters) {
