@@ -55,8 +55,6 @@ template<> double function_wrapper<5>(dasm_gen_func f, Matrix<double> const& x, 
 template<> double function_wrapper<6>(dasm_gen_func f, Matrix<double> const& x, unsigned index) { return f(x(index, 0), x(index, 1), x(index, 2), x(index, 3), x(index, 4), x(index, 5)); }
 template<> double function_wrapper<7>(dasm_gen_func f, Matrix<double> const& x, unsigned index) { return f(x(index, 0), x(index, 1), x(index, 2), x(index, 3), x(index, 4), x(index, 5), x(index, 6)); }
 template<> double function_wrapper<8>(dasm_gen_func f, Matrix<double> const& x, unsigned index) { return f(x(index, 0), x(index, 1), x(index, 2), x(index, 3), x(index, 4), x(index, 5), x(index, 6), x(index, 7)); }
-template<> double function_wrapper<9>(dasm_gen_func f, Matrix<double> const& x, unsigned index) { return f(x(index, 0), x(index, 1), x(index, 2), x(index, 3), x(index, 4), x(index, 5), x(index, 6), x(index, 7), x(index, 8)); }
-template<> double function_wrapper<10>(dasm_gen_func f, Matrix<double> const& x, unsigned index) { return f(x(index, 0), x(index, 1), x(index, 2), x(index, 3), x(index, 4), x(index, 5), x(index, 6), x(index, 7), x(index, 8), x(index, 9)); }
 
 function_wrapper_t getFunctionWrapper(unsigned dimDomain) {
   function_wrapper_t w;
@@ -69,8 +67,6 @@ function_wrapper_t getFunctionWrapper(unsigned dimDomain) {
     case 6: w = &function_wrapper<6>; break;
     case 7: w = &function_wrapper<7>; break;
     case 8: w = &function_wrapper<8>; break;
-    case 9: w = &function_wrapper<9>; break;
-    case 10: w = &function_wrapper<10>; break;
     default: throw std::invalid_argument("Unsupported number of function arguments."); break; 
   }
   return w;
