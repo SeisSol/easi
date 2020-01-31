@@ -38,7 +38,6 @@
  **/
 #ifndef EASI_UTIL_MAGIC_H_
 #define EASI_UTIL_MAGIC_H_
-
 #define MAGIC_EXPAND(X) X
 
 #define MAGIC_CONCATENATE(a,b) MAGIC_CONCATENATE_1(a,b)
@@ -50,7 +49,7 @@
 #define MAGIC_ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, N, ...) N
 #define MAGIC_RSEQ_N() 20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
 
-#define MAGIC_FOR_EACH_1(N, macro, prefix, first, ...) macro(N-1, prefix, first)
+#define MAGIC_FOR_EACH_1(N, macro, prefix, first) macro(N-1, prefix, first)
 #define MAGIC_FOR_EACH_2(N, macro, prefix, first, ...) macro(N-2, prefix, first) MAGIC_EXPAND(MAGIC_FOR_EACH_1(N, macro, prefix, __VA_ARGS__))
 #define MAGIC_FOR_EACH_3(N, macro, prefix, first, ...) macro(N-3, prefix, first) MAGIC_EXPAND(MAGIC_FOR_EACH_2(N, macro, prefix, __VA_ARGS__))
 #define MAGIC_FOR_EACH_4(N, macro, prefix, first, ...) macro(N-4, prefix, first) MAGIC_EXPAND(MAGIC_FOR_EACH_3(N, macro, prefix, __VA_ARGS__))
@@ -71,7 +70,7 @@
 #define MAGIC_FOR_EACH_19(N, macro, prefix, first, ...) macro(N-19, prefix, first) MAGIC_EXPAND(MAGIC_FOR_EACH_18(N, macro, prefix, __VA_ARGS__))
 #define MAGIC_FOR_EACH_20(N, macro, prefix, first, ...) macro(N-20, prefix, first) MAGIC_EXPAND(MAGIC_FOR_EACH_19(N, macro, prefix, __VA_ARGS__))
 
-#define MAGIC_FOR_EACH_COMMA_SEPARATED_1(macro, prefix, first, ...) macro(prefix, first)
+#define MAGIC_FOR_EACH_COMMA_SEPARATED_1(macro, prefix, first) macro(prefix, first)
 #define MAGIC_FOR_EACH_COMMA_SEPARATED_2(macro, prefix, first, ...) macro(prefix, first), MAGIC_EXPAND(MAGIC_FOR_EACH_COMMA_SEPARATED_1(macro, prefix, __VA_ARGS__))
 #define MAGIC_FOR_EACH_COMMA_SEPARATED_3(macro, prefix, first, ...) macro(prefix, first), MAGIC_EXPAND(MAGIC_FOR_EACH_COMMA_SEPARATED_2(macro, prefix, __VA_ARGS__))
 #define MAGIC_FOR_EACH_COMMA_SEPARATED_4(macro, prefix, first, ...) macro(prefix, first), MAGIC_EXPAND(MAGIC_FOR_EACH_COMMA_SEPARATED_3(macro, prefix, __VA_ARGS__))
