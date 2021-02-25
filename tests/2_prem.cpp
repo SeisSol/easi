@@ -87,7 +87,6 @@ int main(int argc, char** argv) {
   auto material = elasticModel(argv[1], query);
 
   // Assertions are based on tables given in Dziewonski and Anderson paper.
-  Converter innerCore();
   assertEqual( material[0], Converter(12.87073, 11.10542, 3.55823, 1e-4)); // r=1000000
   assertEqual( material[1], Converter(11.65478,  9.83496,     0.0, 1e-4)); // r=2000000
   assertEqual( material[2], Converter( 5.55641, 13.71168, 7.26486, 1e-4)); // r=3500000

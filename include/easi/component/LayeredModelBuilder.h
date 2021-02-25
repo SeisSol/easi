@@ -67,8 +67,6 @@ public:
 
 private:
   Component* createModel(Nodes::iterator& lower, Nodes::iterator& upper, std::set<std::string> const& in);
-
-  Component* m_root = nullptr;
   
   Map* m_map = nullptr;
   enum InterpolationType m_interpolationType;

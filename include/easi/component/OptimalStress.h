@@ -72,7 +72,7 @@ void easi::OptimalStress::evaluate() {
   double s2 = sin(2.0*Phi);
   double c2 = cos(2.0*Phi);
   double alpha = (2.0*i.s2ratio-1.0)/3.0;
-  double effectiveConfiningStress = abs(i.effectiveConfiningStress);
+  double effectiveConfiningStress = std::fabs(i.effectiveConfiningStress);
 
   double ds = (i.mu_d * effectiveConfiningStress + i.R*(i.cohesion + (i.mu_s-i.mu_d)*effectiveConfiningStress)) / (s2 + i.mu_d*(alpha + c2) + i.R*(i.mu_s-i.mu_d)*(alpha + c2));
   double sm = effectiveConfiningStress - alpha*ds;
