@@ -41,6 +41,10 @@
 
 #include "easi/util/Matrix.h"
 
+#include <set>
+#include <vector>
+#include <unordered_map>
+
 namespace easi {
 class ResultAdapter {
 public:
