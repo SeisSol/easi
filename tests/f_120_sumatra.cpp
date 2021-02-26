@@ -58,6 +58,8 @@ void model(double x, double y, double z, double params[6]) {
   double bii[6];
   STRESS_STR_DIP_SLIP_AM(0.25, 0.3, strike, 8.0, 555562000.0, 0.4e6, 0.7, 1.0, 0.5, bii);
   
+  // @todo These lines can be enabled again once we switch from a
+  //       header-only library to a regular library.
   /*easi::STRESS_STR_DIP_SLIP_AM test;
   test.i.mu_d = 0.25;
   test.i.mu_s = 0.3;
