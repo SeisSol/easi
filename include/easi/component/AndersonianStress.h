@@ -71,7 +71,7 @@ void easi::AndersonianStress::evaluate() {
   double c2 = cos(2.0*Phi);
   double alpha = (2.0*i.s2ratio-1.0)/3.0;
   //we assume that szz is the effectiveConfiningStress  = sii/3 which is not necessarily true, but then we scale the stress to get b_zz = szz
-  double effectiveConfiningStress = abs(i.sig_zz);
+  double effectiveConfiningStress = std::fabs(i.sig_zz);
   double R = 1.0/(1.0+i.S);
   double ds = (i.mu_d * effectiveConfiningStress + R*(i.cohesion + (i.mu_s-i.mu_d)*effectiveConfiningStress)) / (s2 + i.mu_d*(alpha + c2) + R*(i.mu_s-i.mu_d)*(alpha + c2));
   double sm = effectiveConfiningStress - alpha*ds;

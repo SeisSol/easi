@@ -39,8 +39,10 @@
 #
 
 project (easi)
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.8)
 enable_language (Fortran)
+
+option (ASAGI "Enable support for ASAGI" ON)
 
 # Compiler settings
 add_compile_options (-Wall -Werror)
@@ -52,10 +54,14 @@ include_directories (include)
 
 # external packages
 find_package (PkgConfig REQUIRED)
-pkg_check_modules (YAMLCPP REQUIRED yaml-cpp)
-pkg_check_modules (IMPALAJIT REQUIRED impalajit)
-pkg_check_modules (ASAGI REQUIRED asagi)
-pkg_check_modules (NETCDF REQUIRED netcdf)
+pkg_check_modules (YAMLCPP REQUIRED IMPORTED_TARGET yaml-cpp)
+pkg_check_modules (IMPALAJIT REQUIRED IMPORTED_TARGET impalajit)
+
+if (${ASAGI})
+    find_package (HDF5 REQUIRED COMPONENTS C HL)
+    pkg_check_modules (NETCDF REQUIRED IMPORTED_TARGET netcdf)
+    pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
+endif ()
 
 find_package (OpenMP)
 if (OPENMP_FOUND)
@@ -63,17 +69,35 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+function (set_dependencies target)
+    target_link_libraries (${target} PRIVATE
+        PkgConfig::YAMLCPP
+        PkgConfig::IMPALAJIT
+    )
+    if (${ASAGI})
+        target_link_libraries (${target} PRIVATE
+            ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
+            PkgConfig::ASAGI
+            PkgConfig::NETCDF
+        )
+    endif ()
+endfunction ()
+
 function (easi_add_executable name files libs)
-  add_executable (${name} ${files})
-  target_link_libraries(${name} ${libs} ${YAMLCPP_LIBRARIES} ${IMPALAJIT_LIBRARIES} ${ASAGI_LIBRARIES} ${NETCDF_LIBRARIES})
-  target_include_directories(${name} PUBLIC ${YAMLCPP_INCLUDE_DIRS} ${IMPALAJIT_INCLUDE_DIRS} ${ASAGI_INCLUDE_DIRS} ${NETCDF_INCLUDE_DIRS})
-  target_compile_options(${name} PUBLIC ${YAMLCPP_CFLAGS_OTHER} ${IMPALAJIT_CFLAGS_OTHER} ${ASAGI_CFLAGS_OTHER} ${NETCDF_CFLAGS_OTHER})
+    add_executable (${name} ${files})
+    set_dependencies (${name})
+    target_link_libraries (${name} PRIVATE ${libs})
 endfunction (easi_add_executable)
 
-easi_add_executable (easicube tools/easicube.cpp "")
+if (${ASAGI})
+    easi_add_executable (easicube tools/easicube.cpp "")
+endif ()
 
 add_library (easitest tests/easitest.cpp tests/special.f90)
-add_definitions (-DUSE_ASAGI)
+set_dependencies (easitest)
+if (${ASAGI})
+    add_definitions (-DUSE_ASAGI)
+endif ()
 
 enable_testing ()
 function (easi_add_test name)
@@ -89,8 +113,10 @@ easi_add_test (3_layered_linear)
 easi_add_test (5_function)
 easi_add_test (26_function)
 easi_add_test (33_layered_constant)
-easi_add_test (101_asagi)
-easi_add_test (101_asagi_nearest)
+if (${ASAGI})
+    easi_add_test (101_asagi)
+    easi_add_test (101_asagi_nearest)
+endif ()
 easi_add_test (f_16_scec)
 easi_add_test (f_120_sumatra)
 easi_add_test (supplied_parameters)

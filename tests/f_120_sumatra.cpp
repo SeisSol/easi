@@ -39,7 +39,6 @@
 
 #include <cmath>
 #include "easitest.h"
-#include "easi/component/Special.h"
 
 void model(double x, double y, double z, double params[6]) {
   double xS1 = 5.0000000000e+05;
@@ -59,7 +58,9 @@ void model(double x, double y, double z, double params[6]) {
   double bii[6];
   STRESS_STR_DIP_SLIP_AM(0.25, 0.3, strike, 8.0, 555562000.0, 0.4e6, 0.7, 1.0, 0.5, bii);
   
-  easi::STRESS_STR_DIP_SLIP_AM test;
+  // @todo These lines can be enabled again once we switch from a
+  //       header-only library to a regular library.
+  /*easi::STRESS_STR_DIP_SLIP_AM test;
   test.i.mu_d = 0.25;
   test.i.mu_s = 0.3;
   test.i.strike = strike;
@@ -75,7 +76,7 @@ void model(double x, double y, double z, double params[6]) {
   assert(equal(test.o.b_zz, bii[2]));
   assert(equal(test.o.b_xy, bii[3]));
   assert(equal(test.o.b_yz, bii[4]));
-  assert(equal(test.o.b_xz, bii[5]));
+  assert(equal(test.o.b_xz, bii[5]));*/
   
   double const g = 9.8;
   double layers[] = {0.0,   -2000.0, -6000.0, -12000.0, -23000.0, -600.0e6};

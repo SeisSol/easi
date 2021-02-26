@@ -50,7 +50,7 @@
 #include "easi/util/AsagiReader.h"
 #else
 namespace easi {
-  struct AsagiReader {
+  class AsagiReader {
   };
 }
 #endif
