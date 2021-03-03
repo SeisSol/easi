@@ -39,6 +39,7 @@
 #ifndef EASI_COMPONENT_LAYEREDMODELBUILDER_H_
 #define EASI_COMPONENT_LAYEREDMODELBUILDER_H_
 
+#include <cmath>
 #include <map>
 #include <string>
 #include <sstream>
@@ -101,6 +102,13 @@ void LayeredModelBuilder::setNodes(Nodes const& nodes) {
 }
 
 Component* LayeredModelBuilder::getResult() {
+  for (auto it = m_nodes.begin(); it != m_nodes.end(); ++it) {
+    if (std::isnan(it->first)) {
+      throw std::invalid_argument("Not a number nodes are forbidden.");
+    } else if (m_interpolationType == Linear && std::isinf(it->first)) {
+      throw std::invalid_argument("Infinite nodes are forbidden for interpolation = linear.");
+    }
+  }
   Nodes::iterator lower = m_nodes.end();
   Nodes::iterator upper;
   for (upper = m_nodes.begin(); upper != m_nodes.end(); ++upper) {
