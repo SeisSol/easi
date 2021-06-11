@@ -422,9 +422,9 @@ is equivalent to:
                 effectiveConfiningStress: 0.0
     components: !FunctionMap
         map:
-           b_xx: return -b_xx/b_zz;
-           b_yy: return -b_yy/b_zz;
+           b_xx: return b_xx/b_zz;
+           b_yy: return b_yy/b_zz;
            b_zz: return 1;
-           b_xy: return -b_xy/b_zz;
-           b_xz: return -b_xz/b_zz;
-           b_yz: return -b_yz/b_zz;
+           b_xy: return b_xy/b_zz;
+           b_xz: return b_xz/b_zz;
+           b_yz: return b_yz/b_zz;

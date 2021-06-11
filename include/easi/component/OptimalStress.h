@@ -40,7 +40,6 @@
 #define EASI_COMPONENT_OPTIMALSTRESS_H_
 
 #include <cmath>
-#include <cassert>
 #include "easi/util/MagicStruct.h"
 
 namespace easi {
@@ -73,7 +72,6 @@ void easi::OptimalStress::evaluate() {
   double s2 = sin(2.0*Phi);
   double c2 = cos(2.0*Phi);
   double alpha = (2.0*i.s2ratio-1.0)/3.0;
-  assertm(i.effectiveConfiningStress*i.s_zz==0.0, "effectiveConfiningStress and s_zz cannot be both non zero");
   // if i.s_zz non zero, we use the value as mean effective stress constrain, and we correct latter on
   double effectiveConfiningStress = std::max(std::fabs(i.effectiveConfiningStress), std::fabs(i.s_zz));
 
@@ -104,7 +102,7 @@ void easi::OptimalStress::evaluate() {
   o.b_zz = -(cd * cd * s11 * sr * sr + s33 * sd * sd * sr * sr + cr * cr * s22) * si * si - 2 * cd * ci * sd * sr * (s11 - s33) * si - ci * ci * (cd * cd * s33 + s11 * sd * sd);
   
   if (abs(i.s_zz)>0.0) {
-    double factor = -effectiveConfiningStress/b_zz;
+    double factor = -effectiveConfiningStress/o.b_zz;
     o.b_xx = o.b_xx * factor;  
     o.b_yy = o.b_yy * factor;  
     o.b_zz = o.b_zz * factor;  
