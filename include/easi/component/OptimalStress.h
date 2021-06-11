@@ -40,12 +40,13 @@
 #define EASI_COMPONENT_OPTIMALSTRESS_H_
 
 #include <cmath>
+#include <cassert>
 #include "easi/util/MagicStruct.h"
 
 namespace easi {
   struct OptimalStress {
     struct in {
-      double mu_d, mu_s, strike, dip, rake, effectiveConfiningStress, cohesion, R, s2ratio;
+      double mu_d, mu_s, strike, dip, rake, effectiveConfiningStress, s_zz, cohesion, R, s2ratio;
     };
     in i;
     
@@ -58,7 +59,7 @@ namespace easi {
   };
 }
 
-SELF_AWARE_STRUCT(easi::OptimalStress::in, mu_d, mu_s, strike, dip, rake, effectiveConfiningStress, cohesion, R, s2ratio)
+SELF_AWARE_STRUCT(easi::OptimalStress::in, mu_d, mu_s, strike, dip, rake, effectiveConfiningStress, s_zz, cohesion, R, s2ratio)
 SELF_AWARE_STRUCT(easi::OptimalStress::out, b_xx, b_yy, b_zz, b_xy, b_yz, b_xz)
 
 // COMPUTE NORMALIZED STRESS FOLLOWING THE METHOD OF Ulrich et al. (2018)
@@ -72,7 +73,9 @@ void easi::OptimalStress::evaluate() {
   double s2 = sin(2.0*Phi);
   double c2 = cos(2.0*Phi);
   double alpha = (2.0*i.s2ratio-1.0)/3.0;
-  double effectiveConfiningStress = std::fabs(i.effectiveConfiningStress);
+  assertm(i.effectiveConfiningStress*i.s_zz==0.0, "effectiveConfiningStress and s_zz cannot be both non zero");
+  // if i.s_zz non zero, we use the value as mean effective stress constrain, and we correct latter on
+  double effectiveConfiningStress = std::max(std::fabs(i.effectiveConfiningStress), std::fabs(i.s_zz));
 
   double ds = (i.mu_d * effectiveConfiningStress + i.R*(i.cohesion + (i.mu_s-i.mu_d)*effectiveConfiningStress)) / (s2 + i.mu_d*(alpha + c2) + i.R*(i.mu_s-i.mu_d)*(alpha + c2));
   double sm = effectiveConfiningStress - alpha*ds;
@@ -99,7 +102,16 @@ void easi::OptimalStress::evaluate() {
   o.b_yy = -((ci * ci * s11 * sr * sr + s33 * si * si) * cd * cd + 2 * ci * sd * si * sr * (s33 - s11) * cd + (s33 * sd * sd * sr * sr + cr * cr * s22) * ci * ci + sd * sd * si * si * s11) * ss * ss - 2 * cr * cs * (cd * cd * ci * sr * s11 + sd * si * (s33 - s11) * cd - ci * sr * (-s33 * sd * sd + s22)) * ss - cs * cs * (cd * cd * cr * cr * s11 + cr * cr * s33 * sd * sd + s22 * sr * sr);
   o.b_yz = -cd * sd * sr * ss * (s33 - s11) * si * si - ((-ss * (-s11 * sr * sr + s33) * ci + cr * cs * sr * s11) * cd * cd + ss * ((s33 * sr * sr - s11) * sd * sd + cr * cr * s22) * ci - cr * cs * sr * (-s33 * sd * sd + s22)) * si + cd * ci * sd * (ci * sr * ss + cr * cs) * (s33 - s11);
   o.b_zz = -(cd * cd * s11 * sr * sr + s33 * sd * sd * sr * sr + cr * cr * s22) * si * si - 2 * cd * ci * sd * sr * (s11 - s33) * si - ci * ci * (cd * cd * s33 + s11 * sd * sd);
-
+  
+  if (abs(i.s_zz)>0.0) {
+    double factor = -effectiveConfiningStress/b_zz;
+    o.b_xx = o.b_xx * factor;  
+    o.b_yy = o.b_yy * factor;  
+    o.b_zz = o.b_zz * factor;  
+    o.b_xy = o.b_xy * factor;  
+    o.b_xz = o.b_xz * factor;  
+    o.b_yz = o.b_yz * factor;  
+  }
 }
 
 #endif
