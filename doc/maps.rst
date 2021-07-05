@@ -251,7 +251,7 @@ This component allows computing Andersonian stress tensors (for which one princi
 The principal stress orientations are defined by SH_max (measured from North, positive eastwards), the direction of maximum horizontal compressive stress.
 
 S_v defines which of the principal stresses :math:`s_i` is vertical where :math:`s_1>s_2>s_3`.
-S_v = 1, 2, or 3 should be used when the vertical principal stress is the maximum, intermediate, or minimum compressive stress, respetively.
+S_v = 1, 2, or 3 should be used when the vertical principal stress is the maximum, intermediate, or minimum compressive stress, respectively.
 Assuming mu_d=0.6, S_v = 1 favours normal faulting on a 60° dipping fault plane striking SH_max,
 S_v = 2 favours strike-slip faulting on a vertical fault plane making an angle of 30° with SH_max and
 S_v = 3 favours reverse faulting on a 30° dipping fault plane striking SH_max.
