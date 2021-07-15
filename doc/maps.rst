@@ -222,6 +222,15 @@ The principal stress magnitudes are prescribed by:
 To prescribe R, static and dynamic friction (mu\_s and mu\_d) as well as cohesion are required. 
 The procedure is described in Ulrich et al. (2019), methods section 'Initial Stress'.
 
+The principal stresses are oriented relatively to the strike, dip and rake angles as follow:
+
+.. image:: figs/OptimalStress_orientation.png
+    :width: 50%
+    :align: center
+
+The red plane, that contains :math:`s_1` and :math:`s_3` is normal to the optimally oriented fault plane and contains the rake vector.
+:math:`s_2` (not represented) is normal to the red plane.
+
 
 .. code-block:: YAML
 
