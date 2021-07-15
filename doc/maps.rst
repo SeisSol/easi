@@ -230,7 +230,7 @@ The principal stresses are oriented relatively to the strike, dip and rake angle
 
 The red plane, that contains :math:`s_1` and :math:`s_3` is normal to the optimally oriented fault plane and contains the rake vector.
 :math:`s_2` (not represented) is normal to the red plane.
-
+Note that the OptimalStress component is only valid for an ENU system.
 
 .. code-block:: YAML
 
