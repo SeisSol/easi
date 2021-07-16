@@ -45,7 +45,7 @@
 namespace easi {
   struct OptimalStress_Szz {
     struct in {
-      double mu_d, mu_s, strike, dip, rake, s_zz, cohesion, R, s2ratio;
+      double mu_d, mu_s, strike, dip, rake, s_zz, cohesion, R0, s2ratio;
     };
     in i;
     
@@ -58,7 +58,7 @@ namespace easi {
   };
 }
 
-SELF_AWARE_STRUCT(easi::OptimalStress_Szz::in, mu_d, mu_s, strike, dip, rake, s_zz, cohesion, R, s2ratio)
+SELF_AWARE_STRUCT(easi::OptimalStress_Szz::in, mu_d, mu_s, strike, dip, rake, s_zz, cohesion, R0, s2ratio)
 SELF_AWARE_STRUCT(easi::OptimalStress_Szz::out, b_xx, b_yy, b_zz, b_xy, b_yz, b_xz)
 
 // COMPUTE NORMALIZED STRESS FOLLOWING THE METHOD OF Ulrich et al. (2018)
@@ -91,8 +91,8 @@ void easi::OptimalStress_Szz::evaluate() {
   double a3 = pow(-si * sr * sd + ci * cd, 2.0);
   double a = a1 + a2 + a3;
   double b = a1 + (2.0*i.s2ratio-1.0)*a2 - a3;
-  double mufac = (i.mu_d + i.R * (i.mu_s-i.mu_d));
-  double ds = (std::fabs(i.s_zz) + i.R * a * std::fabs(i.cohesion) / mufac) / (b + a * c2 + a *s2 / mufac);
+  double mufac = (i.mu_d + i.R0 * (i.mu_s-i.mu_d));
+  double ds = (std::fabs(i.s_zz) + i.R0 * a * std::fabs(i.cohesion) / mufac) / (b + a * c2 + a *s2 / mufac);
   double sm  = (std::fabs(i.s_zz) - b * ds) / a;
 
   //sii are all positive

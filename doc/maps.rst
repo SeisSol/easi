@@ -206,8 +206,8 @@ Provides values by evaluating another easi tree.
   evaluate this intermediate variable before executing the
   "!STRESS\_STR\_DIP\_SLIP\_AM" component.
 
-OptimalStress
--------------
+OptimalStress_Szz
+------------------
 
 This component generates a stress tensor which maximizes shear traction
 on the optimally oriented plane defined by the strike and dip angles, along the rake angle orientation.
@@ -217,7 +217,8 @@ The principal stress magnitudes are prescribed by:
 
 - the relative prestress ratio R (where :math:`R=1/(1+S)`, with S the relative fault strength), 
 - the stress shape ratio s2ratio :math:`= (s_2-s_3)/(s_1-s_3)`, where :math:`s_1`, :math:`s_2` and :math:`s_3` are the maximum, intermediate, and minimum compressive stress, respetively, and 
-- either the :math:`s_{zz}` component of the stress tensor, or the mean effective stress, effectiveConfiningStress :math:`= Tr(s_{ii})/3`. (if s_zz is set, effectiveConfiningStress should be set 0, and vice versa).
+- the :math:`s_{zz}` component of the stress tensor
+
 
 To prescribe R, static and dynamic friction (mu\_s and mu\_d) as well as cohesion are required. 
 The procedure is described in Ulrich et al. (2019), methods section 'Initial Stress'.
@@ -230,11 +231,11 @@ The principal stresses are oriented relatively to the strike, dip and rake angle
 
 The red plane, that contains :math:`s_1` and :math:`s_3` is normal to the optimally oriented fault plane and contains the rake vector.
 :math:`s_2` (not represented) is normal to the red plane.
-Note that the OptimalStress component is only valid for an ENU system.
+Note that the OptimalStress_Szz component is only valid for an ENU system.
 
 .. code-block:: YAML
 
-        components: !OptimalStress
+        components: !OptimalStress_Szz
           constants:
             mu_d:      <double>
             mu_s:      <double>
@@ -243,8 +244,7 @@ Note that the OptimalStress component is only valid for an ENU system.
             rake:      <double>
             cohesion:  <double>
             s2ratio:   <double>
-            R:         <double>
-            effectiveConfiningStress: <double>
+            R0:         <double>
             s_zz: <double>
 
 :Domain:
@@ -360,6 +360,79 @@ Evaluates application-defined functions.
 Deprecated components
 ---------------------
 
+OptimalStress
+^^^^^^^^^^^^^^
+
+This component does the same as the component `OptimalStress_Szz`, but prescribes the effectiveConfiningStress :math:`= Tr(s_{ii})/3`,
+rather than the :math:`s_{zz}` component of the stress tensor.
+Note that the OptimalStress component is only valid for an ENU system.
+
+.. code-block:: YAML
+
+        components: !OptimalStress
+          constants:
+            mu_d:      <double>
+            mu_s:      <double>
+            strike:    <double>
+            dip:       <double>
+            rake:      <double>
+            cohesion:  <double>
+            s2ratio:   <double>
+            R:         <double>
+            effectiveConfiningStress: <double>
+
+:Domain:
+  *inherited*
+:Codomain:
+  stress components (b\_xx, b\_yy, b\_zz, b\_xy, b\_yz, and b\_xz)
+
+The following code:
+
+.. code-block:: YAML
+
+    !OptimalStress
+        constants:
+            mu_d:     a
+            mu_s:     b
+            strike:   c
+            dip:      d
+            rake:     e
+            cohesion: f
+            s2ratio:  g
+            R:        h
+            effectiveConfiningStress:     i
+
+can be (in most case accurately) approximated by:
+
+.. code-block:: YAML
+
+    !EvalModel
+    parameters: [b_xx,b_yy,b_zz,b_xy, b_xz, b_yz]
+    model: !ConstantMap
+        map:
+                mu_d: a
+        components: !OptimalStress_Szz
+              constants:
+                mu_s:      b
+                strike:    c
+                dip:       d
+                rake:      e
+                cohesion:  f
+                s2ratio:   g
+                R0:        h
+                s_zz:      i
+    components: !FunctionMap
+        map:
+           b_xx: return b_xx*(3.*b_zz)/(b_xx+b_yy+b_zz);
+           b_yy: return b_yy*(3.*b_zz)/(b_xx+b_yy+b_zz);
+           b_zz: return b_zz*(3.*b_zz)/(b_xx+b_yy+b_zz);
+           b_xy: return b_xy*(3.*b_zz)/(b_xx+b_yy+b_zz);
+           b_xz: return b_xz*(3.*b_zz)/(b_xx+b_yy+b_zz);
+           b_yz: return b_yz*(3.*b_zz)/(b_xx+b_yy+b_zz);
+
+
+Note that this is not fully equivalent if `cohesion` is not small compared to `effectiveConfiningStress`.
+
 
 STRESS\_STR\_DIP\_SLIP\_AM
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -387,11 +460,12 @@ STRESS\_STR\_DIP\_SLIP\_AM
   `120_initial_stress <https://github.com/SeisSol/easi/blob/9e93f35fbacc950d00534643c59a64dff306a381/examples/120_initial_stress.yaml#L44>`__
 
 This component, used for example in the setup of the Sumatra SC paper 
-(Uphoff et al., 2017) is deprecated and can be substituted by the more complete 'OptimalStress' routine. 
-While in the 'OptimalStress' routine, a rake parameter defines the direction of maximized shear traction 
+(Uphoff et al., 2017) is deprecated and can be substituted by the more complete 'OptimalStress_Szz' routine. 
+While in the 'OptimalStress_Szz' routine, a rake parameter defines the direction of maximized shear traction 
 on the optimally oriented fault, such direction is here defined by the parameter
 DipSlipFaulting (1 for pure dip-slip, 0 for pure strike-slip).
 Another difference with the OptimalStress component is that STRESS\_STR\_DIP\_SLIP\_AM returns a normalized stress tensor.
+Note that the STRESS\_STR\_DIP\_SLIP\_AM component is only valid for an ENU system.
 
 The following code:
 
@@ -418,7 +492,7 @@ is equivalent to:
     model: !ConstantMap
         map:
                 mu_d: a
-        components: !OptimalStress
+        components: !OptimalStress_Szz
               constants:
                 mu_s:      b
                 strike:    c
@@ -426,9 +500,8 @@ is equivalent to:
                 rake:     90.0
                 cohesion:  e
                 s2ratio:   f
-                R:         g
+                R0:        g
                 s_zz:      h
-                effectiveConfiningStress: 0.0
     components: !FunctionMap
         map:
            b_xx: return b_xx/b_zz;
