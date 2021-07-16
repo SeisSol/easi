@@ -221,7 +221,8 @@ The principal stress magnitudes are prescribed by:
 
 
 To prescribe R, static and dynamic friction (mu\_s and mu\_d) as well as cohesion are required. 
-The procedure is described in Ulrich et al. (2019), methods section 'Initial Stress'.
+The procedure is described in Ulrich et al. (2019), methods section 'Initial Stress' 
+(note that in Ulrich et al. (2019), as in the deprecated `OptimalStress` component, the effectiveConfiningStress :math:`= Tr(s_{ii})/3` is prescribed instead of `s_{zz}`).
 
 The principal stresses are oriented relatively to the strike, dip and rake angles as follow:
 
