@@ -85,13 +85,12 @@ void easi::OptimalStress_Szz::evaluate() {
   double cs = cos(strike_rad);
   double ss = sin(strike_rad);
 
-  // a1, a2 and a3 are the coefficient of b_zz = a1 s11 + a2 s22 + a3 s33;
-  // o.b_zz = -(cd * cd * s11 * sr * sr + s33 * sd * sd * sr * sr + cr * cr * s22) * si * si - 2 * cd * ci * sd * sr * (s11 - s33) * si - ci * ci * (cd * cd * s33 + s11 * sd * sd);
-  double a1 = -pow(si * sr * cd + ci * sd, 2.0);
-  double a2 = -si * si * cr * cr;
-  double a3 = -pow(-si * sr * sd + ci * cd, 2.0);
+  // a1, a2 and a3 are the coefficient of o.b_zz = -a1 s11  -a2 s22  -a3 s33;
+  double a1 = pow(si * sr * cd + ci * sd, 2.0);
+  double a2 = si * si * cr * cr;
+  double a3 = pow(-si * sr * sd + ci * cd, 2.0);
   double a = a1 + a2 + a3;
-  double b = a1 + (2.0*i.s2ratio-1.0)*a2 - a3;  
+  double b = a1 + (2.0*i.s2ratio-1.0)*a2 - a3;
   double mufac = (i.mu_d + i.R * (i.mu_s-i.mu_d));
   double ds = (std::fabs(i.s_zz) + i.R * a * std::fabs(i.cohesion) / mufac) / (b + a * c2 + a *s2 / mufac);
   double sm  = (std::fabs(i.s_zz) - b * ds) / a;
