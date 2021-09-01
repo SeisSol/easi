@@ -39,6 +39,7 @@
 #ifndef EASI_COMPONENT_H_
 #define EASI_COMPONENT_H_
 
+#include <sstream>
 #include "easi/Query.h"
 #include "easi/ResultAdapter.h"
 
