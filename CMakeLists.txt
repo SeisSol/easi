@@ -5,7 +5,8 @@ enable_language (Fortran)
 
 option (ASAGI "Enable support for ASAGI" ON)
 
-# external packages
+### external packages ###
+
 find_package (PkgConfig REQUIRED)
 pkg_check_modules (YAMLCPP REQUIRED IMPORTED_TARGET yaml-cpp)
 pkg_check_modules (IMPALAJIT REQUIRED IMPORTED_TARGET impalajit)
@@ -16,6 +17,8 @@ if (${ASAGI})
     pkg_check_modules (NETCDF REQUIRED IMPORTED_TARGET netcdf)
     pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
 endif ()
+
+### easi lib ###
 
 set (EASI_SOURCES
     src/component/ASAGI.cpp
@@ -69,18 +72,42 @@ target_include_directories (easi
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+# installation
+
+include (GNUInstallDirs)
+install (TARGETS easi EXPORT easi-targets)
+install (DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install (EXPORT easi-targets
+    FILE
+        easiTargets.cmake
+    NAMESPACE
+        easi::
+    DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}/cmake/easi
+)
+
+
+### easicube ###
+
 if (${ASAGI})
     add_executable (easicube tools/easicube.cpp)
     target_link_libraries(easicube PRIVATE easi)
+    set_target_properties (easicube PROPERTIES
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+    )
 endif ()
+install (TARGETS easicube)
 
+
+### tests ###
+
+enable_testing ()
 add_library (easitest
     tests/easitest.cpp
     tests/special.f90
 )
 target_link_libraries(easitest PUBLIC easi)
 
-enable_testing ()
 function (easi_add_test name)
     add_executable (${name} tests/${name}.cpp)
     target_link_libraries (${name} PRIVATE easitest)
