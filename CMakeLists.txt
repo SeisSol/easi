@@ -1,5 +1,9 @@
 project (easi)
 cmake_minimum_required (VERSION 3.8)
+
+include (GNUInstallDirs)
+include (CMakePackageConfigHelpers)
+
 enable_language (CXX)
 enable_language (Fortran)
 
@@ -57,10 +61,11 @@ target_link_libraries (easi
         PkgConfig::IMPALAJIT
 )
 if (${ASAGI})
-    target_link_libraries (easi PRIVATE
-        ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
-        PkgConfig::ASAGI
-        PkgConfig::NETCDF
+    target_link_libraries (easi
+        PRIVATE
+            ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
+            PkgConfig::ASAGI
+            PkgConfig::NETCDF
     )
     target_compile_definitions (easi PUBLIC -DUSE_ASAGI)
 endif ()
@@ -74,16 +79,22 @@ target_include_directories (easi
 
 # installation
 
-include (GNUInstallDirs)
 install (TARGETS easi EXPORT easi-targets)
 install (DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install (EXPORT easi-targets
-    FILE
-        easiTargets.cmake
-    NAMESPACE
-        easi::
-    DESTINATION
-        ${CMAKE_INSTALL_LIBDIR}/cmake/easi
+    FILE easiTargets.cmake
+    NAMESPACE easi::
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/easi
+)
+
+configure_package_config_file (
+    cmake/easiConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/easiConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/easi"
+)
+install (
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/easiConfig.cmake"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/easi"
 )
 
 
