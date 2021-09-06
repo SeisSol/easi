@@ -4,13 +4,7 @@
 #include "easi/component/Grid.h"
 #include "easi/util/Slice.h"
 
-#ifdef USE_ASAGI
 #include <asagi.h>
-#else
-namespace asagi {
-class Grid;
-}
-#endif
 
 #include <set>
 #include <string>

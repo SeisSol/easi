@@ -13,6 +13,8 @@ class AsagiReader {};
 } // namespace easi
 #endif
 
+#include <iostream>
+
 namespace easi {
 
 YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, char firstVariable)

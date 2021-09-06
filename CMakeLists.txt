@@ -1,5 +1,5 @@
 project (easi)
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.9)
 
 include (GNUInstallDirs)
 include (CMakePackageConfigHelpers)
@@ -11,12 +11,12 @@ option (ASAGI "Enable support for ASAGI" ON)
 
 ### external packages ###
 
-find_package (PkgConfig REQUIRED)
-pkg_check_modules (YAMLCPP REQUIRED IMPORTED_TARGET yaml-cpp)
-pkg_check_modules (IMPALAJIT REQUIRED IMPORTED_TARGET impalajit)
+find_package (yaml-cpp REQUIRED)
+find_package (impalajit REQUIRED)
 find_package (OpenMP)
 
 if (${ASAGI})
+    find_package (PkgConfig REQUIRED)
     find_package (HDF5 REQUIRED COMPONENTS C HL)
     pkg_check_modules (NETCDF REQUIRED IMPORTED_TARGET netcdf)
     pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
@@ -25,7 +25,6 @@ endif ()
 ### easi lib ###
 
 set (EASI_SOURCES
-    src/component/ASAGI.cpp
     src/component/AffineMap.cpp
     src/component/AndersonianStress.cpp
     src/component/Composite.cpp
@@ -48,6 +47,7 @@ set (EASI_SOURCES
 )
 if (${ASAGI})
     list (APPEND EASI_SOURCES
+        src/component/ASAGI.cpp
         src/util/AsagiReader.cpp
     )
 endif ()
@@ -56,10 +56,13 @@ add_library (easi ${EASI_SOURCES})
 target_compile_features (easi PUBLIC cxx_std_11)
 target_link_libraries (easi
     PUBLIC
-        PkgConfig::YAMLCPP
+        yaml-cpp
     PRIVATE
-        PkgConfig::IMPALAJIT
+        impalajit::impalajit
 )
+if (${OpenMP_CXX_FOUND})
+    target_link_libraries (easi PRIVATE OpenMP::OpenMP_CXX)
+endif ()
 if (${ASAGI})
     target_link_libraries (easi
         PRIVATE
@@ -79,22 +82,24 @@ target_include_directories (easi
 
 # installation
 
+set(CONFIG_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/easi)
+
 install (TARGETS easi EXPORT easi-targets)
 install (DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install (EXPORT easi-targets
     FILE easiTargets.cmake
     NAMESPACE easi::
-    DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/easi
+    DESTINATION ${CONFIG_DESTINATION}
 )
 
 configure_package_config_file (
     cmake/easiConfig.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/easiConfig.cmake"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/easi"
+    INSTALL_DESTINATION ${CONFIG_DESTINATION}
 )
 install (
     FILES "${CMAKE_CURRENT_BINARY_DIR}/easiConfig.cmake"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/easi"
+    DESTINATION ${CONFIG_DESTINATION}
 )
 
 
@@ -106,8 +111,8 @@ if (${ASAGI})
     set_target_properties (easicube PROPERTIES
         INSTALL_RPATH_USE_LINK_PATH TRUE
     )
+    install (TARGETS easicube)
 endif ()
-install (TARGETS easicube)
 
 
 ### tests ###

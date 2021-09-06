@@ -1,4 +1,8 @@
-@PACKAGE_INIT@
+include (CMakeFindDependencyMacro)
+
+find_dependency (yaml-cpp REQUIRED)
+find_dependency (impalajit REQUIRED)
+find_dependency (OpenMP)
 
 if (NOT TARGET easi::easi)
     include ("${CMAKE_CURRENT_LIST_DIR}/easiTargets.cmake")
