@@ -2,22 +2,23 @@
  * @file
  * This file is part of SeisSol.
  *
- * @author Carsten Uphoff (c.uphoff AT tum.de, http://www5.in.tum.de/wiki/index.php/Carsten_Uphoff,_M.Sc.)
+ * @author Carsten Uphoff (c.uphoff AT tum.de,
+ *http://www5.in.tum.de/wiki/index.php/Carsten_Uphoff,_M.Sc.)
  *
  * @section LICENSE
  * Copyright (c) 2017, SeisSol Group
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived from this
  *    software without specific prior written permission.
@@ -43,40 +44,40 @@
 
 namespace easi {
 struct Query {
-  Vector<int> group;
-  Matrix<double> x;
-  Vector<unsigned> index;
-  
-  inline Query(unsigned numPoints, unsigned dimDomain, bool initIndices = true);
-  ~Query() { clear(); }
-  
-  unsigned numPoints() const { return x.rows(); }
-  unsigned dimDomain() const { return x.cols(); }
-  
-  inline Query shallowCopy();
-  
-  inline void clear();
+    Vector<int> group;
+    Matrix<double> x;
+    Vector<unsigned> index;
+
+    inline Query(unsigned numPoints, unsigned dimDomain, bool initIndices = true);
+    ~Query() { clear(); }
+
+    unsigned numPoints() const { return x.rows(); }
+    unsigned dimDomain() const { return x.cols(); }
+
+    inline Query shallowCopy();
+
+    inline void clear();
 };
 
 Query::Query(unsigned numPoints, unsigned dimDomain, bool initIndices)
-  : group(numPoints), x(numPoints, dimDomain), index(numPoints) {
-  if (initIndices) {
-    for (unsigned i = 0; i < numPoints; ++i) {
-      index(i) = i;
+    : group(numPoints), x(numPoints, dimDomain), index(numPoints) {
+    if (initIndices) {
+        for (unsigned i = 0; i < numPoints; ++i) {
+            index(i) = i;
+        }
     }
-  }
 }
 
 Query Query::shallowCopy() {
-  Query copy = *this;
-  return copy;
+    Query copy = *this;
+    return copy;
 }
 
 void Query::clear() {
-  group.clear();
-  x.clear();
-  index.clear();
+    group.clear();
+    x.clear();
+    index.clear();
 }
-}
+} // namespace easi
 
 #endif

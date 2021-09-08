@@ -2,22 +2,23 @@
  * @file
  * This file is part of SeisSol.
  *
- * @author Carsten Uphoff (c.uphoff AT tum.de, http://www5.in.tum.de/wiki/index.php/Carsten_Uphoff,_M.Sc.)
+ * @author Carsten Uphoff (c.uphoff AT tum.de,
+ *http://www5.in.tum.de/wiki/index.php/Carsten_Uphoff,_M.Sc.)
  *
  * @section LICENSE
  * Copyright (c) 2017, SeisSol Group
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived from this
  *    software without specific prior written permission.
@@ -44,65 +45,65 @@
 namespace easi {
 class AxisAlignedCuboidalDomainFilter : public Filter {
 public:
-  typedef std::map<std::string, std::pair<double, double>> Limits;
+    typedef std::map<std::string, std::pair<double, double>> Limits;
 
-  virtual bool accept(int, Slice<double> const& x) const;
-  void setDomain(Limits const& limits);
+    virtual bool accept(int, Slice<double> const& x) const;
+    void setDomain(Limits const& limits);
 
 private:
-  std::vector<std::pair<double,double>> m_limits;
+    std::vector<std::pair<double, double>> m_limits;
 };
 
 bool AxisAlignedCuboidalDomainFilter::accept(int, Slice<double> const& x) const {
-  bool acc = true;
-  for (unsigned d = 0; d < dimDomain(); ++d) {
-    acc = acc && (x(d) >= m_limits[d].first) && (x(d) <= m_limits[d].second);
-  }
-  return acc;
+    bool acc = true;
+    for (unsigned d = 0; d < dimDomain(); ++d) {
+        acc = acc && (x(d) >= m_limits[d].first) && (x(d) <= m_limits[d].second);
+    }
+    return acc;
 }
 
 void AxisAlignedCuboidalDomainFilter::setDomain(Limits const& limits) {
-  m_limits.clear();
-  std::set<std::string> inout;
-  for (auto const& kv : limits) {
-    inout.insert(kv.first);
-    m_limits.push_back(kv.second);
-  }
-  setInOut(inout);
+    m_limits.clear();
+    std::set<std::string> inout;
+    for (auto const& kv : limits) {
+        inout.insert(kv.first);
+        m_limits.push_back(kv.second);
+    }
+    setInOut(inout);
 }
 
 class SphericalDomainFilter : public Filter {
 public:
-  typedef std::map<std::string, double> Centre;
-  
-  virtual bool accept(int, Slice<double> const& x) const;
-  void setDomain(double radius, Centre const& centre);
+    typedef std::map<std::string, double> Centre;
+
+    virtual bool accept(int, Slice<double> const& x) const;
+    void setDomain(double radius, Centre const& centre);
 
 private:
-  double m_radius2;
-  Vector<double> m_centre;
+    double m_radius2;
+    Vector<double> m_centre;
 };
 
 bool SphericalDomainFilter::accept(int, Slice<double> const& x) const {
-  double distance2 = 0.0;
-  for (unsigned d = 0; d < dimDomain(); ++d) {
-    double diff = x(d)-m_centre(d);
-    distance2 += diff*diff;
-  }
-  return distance2 <= m_radius2;
+    double distance2 = 0.0;
+    for (unsigned d = 0; d < dimDomain(); ++d) {
+        double diff = x(d) - m_centre(d);
+        distance2 += diff * diff;
+    }
+    return distance2 <= m_radius2;
 }
 
 void SphericalDomainFilter::setDomain(double radius, Centre const& centre) {
-  m_radius2 = radius*radius;
-  m_centre.reallocate(centre.size());
-  std::set<std::string> inout;
-  unsigned d = 0;
-  for (auto const& kv : centre) {
-    inout.insert(kv.first);
-    m_centre(d++) = kv.second;
-  }
-  setInOut(inout);
+    m_radius2 = radius * radius;
+    m_centre.reallocate(centre.size());
+    std::set<std::string> inout;
+    unsigned d = 0;
+    for (auto const& kv : centre) {
+        inout.insert(kv.first);
+        m_centre(d++) = kv.second;
+    }
+    setInOut(inout);
 }
-}
+} // namespace easi
 
 #endif

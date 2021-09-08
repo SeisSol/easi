@@ -2,22 +2,23 @@
  * @file
  * This file is part of SeisSol.
  *
- * @author Carsten Uphoff (c.uphoff AT tum.de, http://www5.in.tum.de/wiki/index.php/Carsten_Uphoff,_M.Sc.)
+ * @author Carsten Uphoff (c.uphoff AT tum.de,
+ *http://www5.in.tum.de/wiki/index.php/Carsten_Uphoff,_M.Sc.)
  *
  * @section LICENSE
  * Copyright (c) 2017, SeisSol Group
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived from this
  *    software without specific prior written permission.
@@ -39,44 +40,44 @@
 #ifndef EASI_COMPONENT_H_
 #define EASI_COMPONENT_H_
 
-#include <sstream>
 #include "easi/Query.h"
 #include "easi/ResultAdapter.h"
+#include <sstream>
 
 namespace easi {
 class Component {
 public:
-  virtual ~Component() {}
+    virtual ~Component() {}
 
-  virtual void evaluate(Query& query, ResultAdapter& result) = 0;
-  virtual bool accept(int group, Slice<double> const& x) const = 0;
-  virtual bool acceptAlways() const = 0;
-  
-  std::set<std::string> const& in() const { return m_in; }
-  std::set<std::string> const& out() const { return m_out; }
-  unsigned dimDomain() const { return m_in.size(); }
-  unsigned dimCodomain() const { return m_out.size(); }
-  
-  void setFileReference(std::string const& fileReference) { m_fileReference = fileReference; }
-  
-  std::string addFileReference(std::string const& what_arg) {
-    std::stringstream s;
-    s << m_fileReference << ": " << what_arg;
-    return s.str();
-  }
+    virtual void evaluate(Query& query, ResultAdapter& result) = 0;
+    virtual bool accept(int group, Slice<double> const& x) const = 0;
+    virtual bool acceptAlways() const = 0;
 
-  virtual std::set<std::string> suppliedParameters() { return out(); }
+    std::set<std::string> const& in() const { return m_in; }
+    std::set<std::string> const& out() const { return m_out; }
+    unsigned dimDomain() const { return m_in.size(); }
+    unsigned dimCodomain() const { return m_out.size(); }
+
+    void setFileReference(std::string const& fileReference) { m_fileReference = fileReference; }
+
+    std::string addFileReference(std::string const& what_arg) {
+        std::stringstream s;
+        s << m_fileReference << ": " << what_arg;
+        return s.str();
+    }
+
+    virtual std::set<std::string> suppliedParameters() { return out(); }
 
 protected:
-  void setIn(std::set<std::string> const& parameters) { m_in = parameters; }
-  void setOut(std::set<std::string> const&  parameters) { m_out = parameters; }
-  
-  std::string m_fileReference;
+    void setIn(std::set<std::string> const& parameters) { m_in = parameters; }
+    void setOut(std::set<std::string> const& parameters) { m_out = parameters; }
+
+    std::string m_fileReference;
 
 private:
-  std::set<std::string> m_in;
-  std::set<std::string> m_out;
+    std::set<std::string> m_in;
+    std::set<std::string> m_out;
 };
-}
+} // namespace easi
 
 #endif
