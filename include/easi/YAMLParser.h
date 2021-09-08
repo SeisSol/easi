@@ -115,6 +115,7 @@ YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, cha
   // Specials
   registerSpecial<STRESS_STR_DIP_SLIP_AM>("!STRESS_STR_DIP_SLIP_AM");
   registerSpecial<OptimalStress>("!OptimalStress");
+  registerSpecial<OptimalStress_Szz>("!OptimalStress_Szz");
   registerSpecial<AndersonianStress>("!AndersonianStress");
 }
 

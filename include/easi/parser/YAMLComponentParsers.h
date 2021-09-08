@@ -52,8 +52,9 @@
 #include "easi/component/EvalModel.h"
 #include "easi/component/LayeredModelBuilder.h"
 #include "easi/component/SpecialMap.h"
-#include "easi/component/Special.h"
+#include "easi/component/STRESS_STR_DIP_SLIP_AM.h"
 #include "easi/component/OptimalStress.h"
+#include "easi/component/OptimalStress_Szz.h"
 #include "easi/component/AndersonianStress.h"
 
 #ifdef USE_ASAGI
