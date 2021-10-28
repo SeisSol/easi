@@ -1,109 +1,142 @@
-##
-# @file
-# This file is part of SeisSol.
-#
-# @author Carsten Uphoff (c.uphoff AT tum.de, http://www5.in.tum.de/wiki/index.php/Carsten_Uphoff,_M.Sc.)
-#
-# @section LICENSE
-# Copyright (c) 2017, SeisSol Group
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice,
-#    this list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-#
-# 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from this
-#    software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-#
-# @section DESCRIPTION
-# Builds easi unit tests.
-#
-
 project (easi)
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.13)
+
+include (GNUInstallDirs)
+include (CMakePackageConfigHelpers)
+
+enable_language (CXX)
 enable_language (Fortran)
 
 option (ASAGI "Enable support for ASAGI" ON)
 
-# Compiler settings
-add_compile_options (-Wall -Werror)
-set (CMAKE_CXX_STANDARD 11)
-set (CMAKE_CXX_STANDARD_REQUIRED ON)
+### external packages ###
 
-# easi library
-include_directories (include)
+find_package (yaml-cpp REQUIRED)
+find_package (impalajit REQUIRED)
+find_package (OpenMP)
 
-# external packages
-find_package (PkgConfig REQUIRED)
-pkg_check_modules (YAMLCPP REQUIRED IMPORTED_TARGET yaml-cpp)
-pkg_check_modules (IMPALAJIT REQUIRED IMPORTED_TARGET impalajit)
-
-if (${ASAGI})
+if (ASAGI)
+    find_package (PkgConfig REQUIRED)
     find_package (HDF5 REQUIRED COMPONENTS C HL)
     pkg_check_modules (NETCDF REQUIRED IMPORTED_TARGET netcdf)
     pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
 endif ()
 
-find_package (OpenMP)
-if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
+### easi lib ###
 
-function (set_dependencies target)
-    target_link_libraries (${target} PRIVATE
-        PkgConfig::YAMLCPP
-        PkgConfig::IMPALAJIT
+set (EASI_SOURCES
+    src/component/AffineMap.cpp
+    src/component/AndersonianStress.cpp
+    src/component/Composite.cpp
+    src/component/ConstantMap.cpp
+    src/component/DomainFilter.cpp
+    src/component/EvalModel.cpp
+    src/component/FunctionMap.cpp
+    src/component/LayeredModelBuilder.cpp
+    src/component/OptimalStress.cpp
+    src/component/PolynomialMap.cpp
+    src/component/SCECFile.cpp
+    src/component/Special.cpp
+    src/component/Switch.cpp
+    src/parser/YAMLComponentParsers.cpp
+    src/parser/YAMLHelpers.cpp
+    src/util/FunctionWrapper.cpp
+    src/util/RegularGrid.cpp
+    src/Query.cpp
+    src/YAMLParser.cpp
+)
+if (ASAGI)
+    list (APPEND EASI_SOURCES
+        src/component/ASAGI.cpp
+        src/util/AsagiReader.cpp
     )
-    if (${ASAGI})
-        target_link_libraries (${target} PRIVATE
+endif ()
+
+add_library (easi ${EASI_SOURCES})
+target_compile_features (easi PUBLIC cxx_std_14)
+set_target_properties(easi PROPERTIES
+    CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+)
+target_link_libraries (easi
+    PUBLIC
+        yaml-cpp
+    PRIVATE
+        impalajit::impalajit
+)
+if (${OpenMP_CXX_FOUND})
+    target_link_libraries (easi PRIVATE OpenMP::OpenMP_CXX)
+endif ()
+if (ASAGI)
+    target_link_libraries (easi
+        PRIVATE
             ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
             PkgConfig::ASAGI
             PkgConfig::NETCDF
-        )
-    endif ()
-endfunction ()
+    )
+    target_compile_definitions (easi PUBLIC -DUSE_ASAGI)
+endif ()
+target_include_directories (easi
+    PUBLIC
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
-function (easi_add_executable name files libs)
-    add_executable (${name} ${files})
-    set_dependencies (${name})
-    target_link_libraries (${name} PRIVATE ${libs})
-endfunction (easi_add_executable)
+# installation
 
-if (${ASAGI})
-    easi_add_executable (easicube tools/easicube.cpp "")
+set(CONFIG_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/easi)
+
+install (TARGETS easi EXPORT easi-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+install (DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install (EXPORT easi-targets
+    FILE easiTargets.cmake
+    NAMESPACE easi::
+    DESTINATION ${CONFIG_DESTINATION}
+)
+
+configure_package_config_file (
+    cmake/easiConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/easiConfig.cmake"
+    INSTALL_DESTINATION ${CONFIG_DESTINATION}
+)
+install (
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/easiConfig.cmake"
+    DESTINATION ${CONFIG_DESTINATION}
+)
+
+
+### easicube ###
+
+if (ASAGI)
+    add_executable (easicube tools/easicube.cpp)
+    target_link_libraries(easicube PRIVATE easi)
+    set_target_properties (easicube PROPERTIES
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+    )
+    install (TARGETS easicube)
 endif ()
 
-add_library (easitest tests/easitest.cpp tests/special.f90)
-set_dependencies (easitest)
-if (${ASAGI})
-    add_definitions (-DUSE_ASAGI)
-endif ()
+
+### tests ###
 
 enable_testing ()
+add_library (easitest
+    tests/easitest.cpp
+    tests/special.f90
+)
+target_link_libraries(easitest PUBLIC easi)
+
 function (easi_add_test name)
-  easi_add_executable (${name} tests/${name}.cpp easitest)
-  string (TOUPPER ${name} NAME_UP)
-  add_test (${NAME_UP}_TEST ${name} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${name}.yaml)
+    add_executable (${name} tests/${name}.cpp)
+    target_link_libraries (${name} PRIVATE easitest)
+    string (TOUPPER ${name} NAME_UP)
+    add_test (${NAME_UP}_TEST ${name} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${name}.yaml)
 endfunction (easi_add_test)
 
 easi_add_test (0_constant)
@@ -113,7 +146,7 @@ easi_add_test (3_layered_linear)
 easi_add_test (5_function)
 easi_add_test (26_function)
 easi_add_test (33_layered_constant)
-if (${ASAGI})
+if (ASAGI)
     easi_add_test (101_asagi)
     easi_add_test (101_asagi_nearest)
 endif ()

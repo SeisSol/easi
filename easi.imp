@@ -1,0 +1,3 @@
+[
+    { include: ["@<yaml-cpp/node/.*>", "private", "<yaml-cpp/yaml.h>", "public"] },
+]
