@@ -15,7 +15,7 @@ find_package (yaml-cpp REQUIRED)
 find_package (impalajit REQUIRED)
 find_package (OpenMP)
 
-if (${ASAGI})
+if (ASAGI)
     find_package (PkgConfig REQUIRED)
     find_package (HDF5 REQUIRED COMPONENTS C HL)
     pkg_check_modules (NETCDF REQUIRED IMPORTED_TARGET netcdf)
@@ -45,7 +45,7 @@ set (EASI_SOURCES
     src/Query.cpp
     src/YAMLParser.cpp
 )
-if (${ASAGI})
+if (ASAGI)
     list (APPEND EASI_SOURCES
         src/component/ASAGI.cpp
         src/util/AsagiReader.cpp
@@ -54,6 +54,11 @@ endif ()
 
 add_library (easi ${EASI_SOURCES})
 target_compile_features (easi PUBLIC cxx_std_11)
+set_target_properties(easi PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+)
 target_link_libraries (easi
     PUBLIC
         yaml-cpp
@@ -63,7 +68,7 @@ target_link_libraries (easi
 if (${OpenMP_CXX_FOUND})
     target_link_libraries (easi PRIVATE OpenMP::OpenMP_CXX)
 endif ()
-if (${ASAGI})
+if (ASAGI)
     target_link_libraries (easi
         PRIVATE
             ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
@@ -105,7 +110,7 @@ install (
 
 ### easicube ###
 
-if (${ASAGI})
+if (ASAGI)
     add_executable (easicube tools/easicube.cpp)
     target_link_libraries(easicube PRIVATE easi)
     set_target_properties (easicube PROPERTIES
@@ -138,7 +143,7 @@ easi_add_test (3_layered_linear)
 easi_add_test (5_function)
 easi_add_test (26_function)
 easi_add_test (33_layered_constant)
-if (${ASAGI})
+if (ASAGI)
     easi_add_test (101_asagi)
     easi_add_test (101_asagi_nearest)
 endif ()
