@@ -1,5 +1,5 @@
 project (easi)
-cmake_minimum_required (VERSION 3.9)
+cmake_minimum_required (VERSION 3.13)
 
 include (GNUInstallDirs)
 include (CMakePackageConfigHelpers)
@@ -53,9 +53,9 @@ if (ASAGI)
 endif ()
 
 add_library (easi ${EASI_SOURCES})
-target_compile_features (easi PUBLIC cxx_std_11)
+target_compile_features (easi PUBLIC cxx_std_14)
 set_target_properties(easi PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 14
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
 )
@@ -89,7 +89,10 @@ target_include_directories (easi
 
 set(CONFIG_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/easi)
 
-install (TARGETS easi EXPORT easi-targets)
+install (TARGETS easi EXPORT easi-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 install (DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install (EXPORT easi-targets
     FILE easiTargets.cmake
