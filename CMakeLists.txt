@@ -71,13 +71,18 @@ if(${OpenMP_CXX_FOUND})
     target_link_libraries(easi PRIVATE OpenMP::OpenMP_CXX)
 endif()
 if(ASAGI)
+    find_package(MPI REQUIRED)
     target_link_libraries(easi
         PRIVATE
             ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
             PkgConfig::ASAGI
             PkgConfig::NETCDF
     )
-    target_compile_definitions(easi PUBLIC -DUSE_ASAGI)
+    target_link_libraries(easi
+            PUBLIC
+            MPI::MPI_CXX
+    )
+    target_compile_definitions(easi PRIVATE -DUSE_ASAGI)
 endif()
 if(IMPALAJIT)
     target_link_libraries(easi PRIVATE
