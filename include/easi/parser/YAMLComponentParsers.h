@@ -53,8 +53,10 @@ void parse_ConstantMap(ConstantMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser);
 void parse_AffineMap(AffineMap* component, YAML::Node const& node, std::set<std::string> const& in,
                      YAMLAbstractParser* parser);
+#ifdef USE_IMPALAJIT
 void parse_FunctionMap(FunctionMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser);
+#endif
 void parse_PolynomialMap(PolynomialMap* component, YAML::Node const& node,
                          std::set<std::string> const& in, YAMLAbstractParser* parser);
 void parse_SCECFile(SCECFile* component, YAML::Node const& node, std::set<std::string> const& in,

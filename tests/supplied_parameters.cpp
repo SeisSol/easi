@@ -1,4 +1,5 @@
 #include "easi/YAMLParser.h"
+#include <algorithm>
 
 int main(int argc, char** argv) {
     assert(argc == 2);

@@ -31,7 +31,9 @@ YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, cha
     registerType("!AxisAlignedCuboidalDomainFilter", parse_AxisAlignedCuboidalDomainFilter);
     registerType("!SphericalDomainFilter", parse_SphericalDomainFilter);
     registerType("!AffineMap", parse_AffineMap);
+#ifdef USE_IMPALAJIT
     registerType("!FunctionMap", parse_FunctionMap);
+#endif
     registerType("!SCECFile", parse_SCECFile);
 #ifdef USE_ASAGI
     registerType("!ASAGI", parse_ASAGI);

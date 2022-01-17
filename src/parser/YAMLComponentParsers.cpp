@@ -133,6 +133,7 @@ void parse_AffineMap(AffineMap* component, YAML::Node const& node, std::set<std:
     parse_Map(component, node, in, parser);
 }
 
+#ifdef USE_IMPALAJIT
 void parse_FunctionMap(FunctionMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser) {
     checkType(node, "map", {YAML::NodeType::Map});
@@ -142,6 +143,7 @@ void parse_FunctionMap(FunctionMap* component, YAML::Node const& node,
     component->setMap(in, out);
     parse_Map(component, node, in, parser);
 }
+#endif
 
 void parse_PolynomialMap(PolynomialMap* component, YAML::Node const& node,
                          std::set<std::string> const& in, YAMLAbstractParser* parser) {
