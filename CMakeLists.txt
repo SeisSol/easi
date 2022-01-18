@@ -8,7 +8,7 @@ enable_language(CXX)
 enable_language(Fortran)
 
 option(ASAGI "Enable support for ASAGI" ON)
-option(IMPALAJIT "Use ImpalaJIT" OFF)
+option(IMPALAJIT "Use ImpalaJIT" ON)
 
 ### external packages ###
 
