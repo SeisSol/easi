@@ -1,6 +1,6 @@
 #include "easi/parser/YAMLComponentParsers.h"
 
-#ifdef USE_ASAGI
+#ifdef EASI_USE_ASAGI
 #include "easi/util/AsagiReader.h"
 #endif
 
@@ -133,7 +133,7 @@ void parse_AffineMap(AffineMap* component, YAML::Node const& node, std::set<std:
     parse_Map(component, node, in, parser);
 }
 
-#ifdef USE_IMPALAJIT
+#ifdef EASI_USE_IMPALAJIT
 void parse_FunctionMap(FunctionMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser) {
     checkType(node, "map", {YAML::NodeType::Map});
@@ -176,7 +176,7 @@ void parse_SCECFile(SCECFile* component, YAML::Node const& node, std::set<std::s
     parse_Grid<SCECFile>(component, node, in, parser);
 }
 
-#ifdef USE_ASAGI
+#ifdef EASI_USE_ASAGI
 void parse_ASAGI(ASAGI* component, YAML::Node const& node, std::set<std::string> const& in,
                  YAMLAbstractParser* parser) {
     checkType(node, "file", {YAML::NodeType::Scalar});

@@ -5,7 +5,7 @@
 #include "easi/component/Special.h"
 #include "easi/parser/YAMLComponentParsers.h"
 
-#ifdef USE_ASAGI
+#ifdef EASI_USE_ASAGI
 #include "easi/util/AsagiReader.h"
 #else
 namespace easi {
@@ -31,11 +31,11 @@ YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, cha
     registerType("!AxisAlignedCuboidalDomainFilter", parse_AxisAlignedCuboidalDomainFilter);
     registerType("!SphericalDomainFilter", parse_SphericalDomainFilter);
     registerType("!AffineMap", parse_AffineMap);
-#ifdef USE_IMPALAJIT
+#ifdef EASI_USE_IMPALAJIT
     registerType("!FunctionMap", parse_FunctionMap);
 #endif
     registerType("!SCECFile", parse_SCECFile);
-#ifdef USE_ASAGI
+#ifdef EASI_USE_ASAGI
     registerType("!ASAGI", parse_ASAGI);
 #endif
     registerType("!LayeredModel", create_LayeredModel);

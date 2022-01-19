@@ -1,4 +1,4 @@
-#ifdef USE_IMPALAJIT
+#ifdef EASI_USE_IMPALAJIT
 #include "easi/util/FunctionWrapper.h"
 #include "easi/util/Matrix.h"
 
