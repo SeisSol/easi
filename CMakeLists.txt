@@ -1,5 +1,9 @@
 project(easi)
 cmake_minimum_required(VERSION 3.13)
+set(EASI_VERSION_MAJOR 1)
+set(EASI_VERSION_MINOR 0)
+set(EASI_VERSION_PATCH 0)
+
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -136,8 +140,16 @@ configure_package_config_file(
     "${CMAKE_CURRENT_BINARY_DIR}/easiConfig.cmake"
     INSTALL_DESTINATION ${CONFIG_DESTINATION}
 )
+
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/easiConfigVersion.cmake"
+        VERSION ${EASI_VERSION_MAJOR}.${EASI_VERSION_MINOR}.${EASI_VERSION_PATCH}
+        COMPATIBILITY SameMajorVersion
+)
 install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/easiConfig.cmake"
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/easiConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/easiConfigVersion.cmake"
     DESTINATION ${CONFIG_DESTINATION}
 )
 
