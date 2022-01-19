@@ -9,6 +9,7 @@ enable_language(Fortran)
 
 option(ASAGI "Enable support for ASAGI" ON)
 option(IMPALAJIT "Use ImpalaJIT" ON)
+option(IMPALAJIT_LLVM "Use llvm version of ImpalaJIT" OFF)
 
 ### external packages ###
 
@@ -16,7 +17,11 @@ find_package(yaml-cpp 0.6 REQUIRED)
 find_package(OpenMP)
 
 if(IMPALAJIT)
-    find_package (impalajit REQUIRED)
+    if (IMPALAJIT_LLVM)
+        find_package(ImpalaJIT-LLVM 1.0 REQUIRED)
+    else()
+        find_package (impalajit REQUIRED)
+    endif()
 endif()
 
 if(ASAGI)
@@ -84,10 +89,12 @@ if(ASAGI)
     )
     target_compile_definitions(easi PRIVATE -DEASI_USE_ASAGI)
 endif()
-if(IMPALAJIT)
-    target_link_libraries(easi PRIVATE
-            impalajit::impalajit
-    )
+if (IMPALAJIT)
+    if (IMPALAJIT_LLVM)
+        target_link_libraries(easi PRIVATE llvm::impalajit)
+    else()
+        target_link_libraries(easi PRIVATE impalajit::impalajit)
+    endif()
     target_compile_definitions(easi PRIVATE -DEASI_USE_IMPALAJIT)
 endif()
 

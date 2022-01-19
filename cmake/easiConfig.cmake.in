@@ -1,17 +1,22 @@
 @PACKAGE_INIT@
+set(EASI_IMPALAJITLLVM @IMPALAJIT_LLVM@)
 set(EASI_IMPALAJIT @IMPALAJIT@)
 set(EASI_ASAGI @ASAGI@)
 
-include (CMakeFindDependencyMacro)
+include(CMakeFindDependencyMacro)
 
-find_dependency (OpenMP)
+find_dependency(OpenMP)
 find_dependency(yaml-cpp 0.6 REQUIRED)
 
-if(EASI_IMPALAJIT)
-    find_dependency (impalajit REQUIRED)
+if (EASI_IMPALAJIT)
+    if (EASI_IMPALAJIT_LLVM)
+        find_dependency(ImpalaJIT-LLVM 1.0 REQUIRED)
+    else()
+        find_dependency(impalajit REQUIRED)
+    endif()
 endif()
 
-if(EASI_ASAGI)
+if (EASI_ASAGI)
     find_dependency(PkgConfig)
     pkg_check_modules(ASAGI REQUIRED IMPORTED_TARGET asagi)
     pkg_check_modules(NETCDF REQUIRED IMPORTED_TARGET netcdf)
