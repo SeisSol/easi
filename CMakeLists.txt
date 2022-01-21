@@ -12,16 +12,31 @@ enable_language(CXX)
 enable_language(Fortran)
 
 option(ASAGI "Enable support for ASAGI" ON)
-option(IMPALAJIT "Use ImpalaJIT" ON)
-option(IMPALAJIT_LLVM "Use llvm version of ImpalaJIT" OFF)
 
-### external packages ###
+option(IMPALAJIT "Use ImpalaJIT" ON)
+set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
+set(IMPALAJIT_BACKEND_OPTIONS original llvm)
+set_property(CACHE IMPALAJIT_BACKEND PROPERTY STRINGS ${IMPALAJIT_BACKEND_OPTIONS})
+
+function(check_parameter parameter_name value options)
+
+    list(FIND options ${value} INDEX)
+
+    set(WRONG_PARAMETER -1)
+    if (${INDEX} EQUAL ${WRONG_PARAMETER})
+        message(FATAL_ERROR "${parameter_name} is wrong. Specified \"${value}\". Allowed: ${options}")
+    endif()
+
+endfunction()
+check_parameter("IMPALAJIT_BACKEND" "${IMPALAJIT_BACKEND}" "${IMPALAJIT_BACKEND_OPTIONS}")
+
+    ### external packages ###
 
 find_package(yaml-cpp 0.6 REQUIRED)
 find_package(OpenMP)
 
 if(IMPALAJIT)
-    if (IMPALAJIT_LLVM)
+    if (IMPALAJIT_BACKEND STREQUAL llvm)
         find_package(ImpalaJIT-LLVM 1.0 REQUIRED)
     else()
         find_package (impalajit REQUIRED)
