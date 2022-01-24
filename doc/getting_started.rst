@@ -1,19 +1,35 @@
 Getting Started with easi
 =========================
 
-easi is a header-only library written in C++11.
-Hence, one simply needs 
-(Only unit tests must be compiled with CMake.)
+easi is a library written in C++14.
+It needs to be compiled with Cmake.
 
 Dependencies
 ------------
 
-Easi depends on the following two projects:
+Easi depends on the following three projects:
 
--  `ImpalaJIT <https://github.com/uphoffc/ImpalaJIT>`__
 -  `yaml-cpp <https://github.com/jbeder/yaml-cpp>`__
+-  `ASAGI <https://github.com/TUM-I5/ASAGI/>`__
+-  `ImpalaJIT <https://github.com/uphoffc/ImpalaJIT>`__
 
-Make sure to link against these libraries when using easi.
+Only yaml-cpp (version 0.6.x) is a required dependency.
+It can be obtained, for example, from the package repositories of most Linux distributions or as a module on SuperMUC-NG.
+
+Compilation
+------------
+Before installing easi, you first need to install all dependencies.
+Next, clone the easi repository and create a separate build directory.
+The directory can be outside of the repository.
+This makes the compilation cleaner.
+Finally, execute the following lines:
+
+.. code-block:: bash
+  # $EASI_SRC is the directory into which you've cloned the easi source
+  cmake -DCMAKE_PREFIX_PATH=$HOME -DCMAKE_INSTALL_PREFIX=$HOME -DASAGI=ON -DIMPALAJIT=ON $EASI_SRC
+  make -j4 install
+
+This installs easi into your home directory.
 
 Usage example
 -------------
