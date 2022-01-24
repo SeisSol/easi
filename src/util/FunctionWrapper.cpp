@@ -1,3 +1,4 @@
+#ifdef EASI_USE_IMPALAJIT
 #include "easi/util/FunctionWrapper.h"
 #include "easi/util/Matrix.h"
 
@@ -69,3 +70,5 @@ function_wrapper_t getFunctionWrapper(unsigned dimDomain) {
 }
 
 } // namespace easi
+
+#endif // IMPALA_JIT

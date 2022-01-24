@@ -18,7 +18,7 @@
 #include "easi/parser/YAMLAbstractParser.h"
 #include "easi/parser/YAMLHelpers.h"
 
-#ifdef USE_ASAGI
+#ifdef EASI_USE_ASAGI
 #include "easi/component/ASAGI.h"
 #endif
 
@@ -53,13 +53,15 @@ void parse_ConstantMap(ConstantMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser);
 void parse_AffineMap(AffineMap* component, YAML::Node const& node, std::set<std::string> const& in,
                      YAMLAbstractParser* parser);
+#ifdef EASI_USE_IMPALAJIT
 void parse_FunctionMap(FunctionMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser);
+#endif
 void parse_PolynomialMap(PolynomialMap* component, YAML::Node const& node,
                          std::set<std::string> const& in, YAMLAbstractParser* parser);
 void parse_SCECFile(SCECFile* component, YAML::Node const& node, std::set<std::string> const& in,
                     YAMLAbstractParser* parser);
-#ifdef USE_ASAGI
+#ifdef EASI_USE_ASAGI
 void parse_ASAGI(ASAGI* component, YAML::Node const& node, std::set<std::string> const& in,
                  YAMLAbstractParser* parser);
 #endif

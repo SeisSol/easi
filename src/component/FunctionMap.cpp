@@ -1,3 +1,4 @@
+#ifdef EASI_USE_IMPALAJIT
 #include "easi/component/FunctionMap.h"
 
 #include <impalajit.hh>
@@ -63,3 +64,4 @@ void FunctionMap::setMap(std::set<std::string> const& in, OutMap const& function
 }
 
 } // namespace easi
+#endif // EASI_USE_IMPALAJIT

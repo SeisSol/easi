@@ -1,6 +1,7 @@
 #ifndef EASI_COMPONENT_FUNCTIONMAP_H_
 #define EASI_COMPONENT_FUNCTIONMAP_H_
 
+#ifdef EASI_USE_IMPALAJIT
 #include "easi/component/Map.h"
 #include "easi/util/FunctionWrapper.h"
 #include "easi/util/Matrix.h"
@@ -30,5 +31,7 @@ private:
 };
 
 } // namespace easi
+
+#endif // EASI_USE_IMPALAJIT
 
 #endif

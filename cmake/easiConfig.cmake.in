@@ -1,8 +1,26 @@
-include (CMakeFindDependencyMacro)
+@PACKAGE_INIT@
+set(EASI_IMPALAJIT_BACKEND @IMPALAJIT_BACKEND@)
+set(EASI_IMPALAJIT @IMPALAJIT@)
+set(EASI_ASAGI @ASAGI@)
 
-find_dependency (yaml-cpp REQUIRED)
-find_dependency (impalajit REQUIRED)
-find_dependency (OpenMP)
+include(CMakeFindDependencyMacro)
+
+find_dependency(OpenMP)
+find_dependency(yaml-cpp 0.6 REQUIRED)
+
+if (EASI_IMPALAJIT)
+    if (EASI_IMPALAJIT_BACKEND STREQUAL llvm)
+        find_package(ImpalaJIT-LLVM 1.0 REQUIRED)
+    else()
+        find_package (impalajit REQUIRED)
+    endif()
+endif()
+
+if (EASI_ASAGI)
+    find_dependency(PkgConfig)
+    pkg_check_modules(ASAGI REQUIRED IMPORTED_TARGET asagi)
+    pkg_check_modules(NETCDF REQUIRED IMPORTED_TARGET netcdf)
+endif()
 
 if (NOT TARGET easi::easi)
     include ("${CMAKE_CURRENT_LIST_DIR}/easiTargets.cmake")
