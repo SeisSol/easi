@@ -25,9 +25,10 @@ This makes the compilation cleaner.
 Finally, execute the following lines:
 
 .. code-block:: bash
-  # $EASI_SRC is the directory into which you've cloned the easi source
-  cmake -DCMAKE_PREFIX_PATH=$HOME -DCMAKE_INSTALL_PREFIX=$HOME -DASAGI=ON -DIMPALAJIT=ON $EASI_SRC
-  make -j4 install
+
+    # $EASI_SRC is the directory into which you've cloned the easi source
+    cmake -DCMAKE_PREFIX_PATH=$HOME -DCMAKE_INSTALL_PREFIX=$HOME -DASAGI=ON -DIMPALAJIT=ON $EASI_SRC
+    make -j4 install
 
 This installs easi into your home directory.
 
