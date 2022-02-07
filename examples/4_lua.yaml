@@ -8,7 +8,14 @@ components:
         mu:         0.0
         lambda: 1.96e10
   - !LuaMap
-    map:
-      rho: return 1600. + 59.5 * (x[2] ^ (1./3.))
-      mu: return 0.
-      lambda: return (260. + 30*math.sqrt(x[2]))^2. * (1600. + 59.5 * x[2] ^(1./3.) )
+      returns: ["rho", "mu", "lambda"]
+      function: |
+         function f (x)
+          io.write(x[1], " ", x[2], " ", x[3], "\n")
+
+          return {
+          rho = 1600. + 59.5 * (x[2] ^ (1./3.)),
+          mu = 0,
+          lambda = (260. + 30*math.sqrt(x[2]))^2. * (1600. + 59.5 * x[2] ^(1./3.) )
+          }
+          end

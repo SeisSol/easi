@@ -148,11 +148,21 @@ void parse_FunctionMap(FunctionMap* component, YAML::Node const& node,
 #ifdef EASI_USE_LUA
 void parse_LuaMap(LuaMap* component, YAML::Node const& node,
                   std::set<std::string> const& in, YAMLAbstractParser* parser) {
-    checkType(node, "map", {YAML::NodeType::Map});
+    checkType(node, "returns", {YAML::NodeType::Scalar, YAML::NodeType::Sequence});
 
-    LuaMap::OutMap out = node["map"].as<LuaMap::OutMap>();
+    std::set<std::string> returns;
+    if (node["returns"].IsScalar()) {
+        returns.insert(node["returns"].as<std::string>());
+    } else {
+        const auto returnSeq = node["returns"].as<std::vector<std::string>>();
+        returns.insert(returnSeq.begin(), returnSeq.end());
+    }
 
-    component->setMap(in, out);
+    checkType(node, "function", {YAML::NodeType::Scalar});
+
+    const auto function = node["function"].as<std::string>();
+
+    component->setMap(in, returns, function);
     parse_Map(component, node, in, parser);
 }
 #endif
