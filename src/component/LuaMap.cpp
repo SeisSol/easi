@@ -28,7 +28,7 @@ double getField(lua_State* L, const std::string& key) {
     return result;
 }
 
-double LuaMap::executeLuaFunction(Matrix<double> xin,
+double LuaMap::executeLuaFunction(Matrix<double> x,
                                   unsigned coordIdx,
                                   unsigned funcIdx) {
     if (!luaState) {
@@ -44,19 +44,16 @@ double LuaMap::executeLuaFunction(Matrix<double> xin,
         }
     }
 
-    /* push functions and arguments */
+    // Push function and arguments to stack
+    lua_getglobal(luaState, "f");  // the function
+
+    // Add table as input: x holds coordinates
     lua_newtable(luaState);
     for (int i = 0; i < 3; ++i) {
         lua_pushnumber(luaState, i+1);
-        lua_pushnumber(luaState, xin(coordIdx, i));
+        lua_pushnumber(luaState, x(coordIdx, i));
         lua_rawset(luaState, -3);
     }
-    lua_pushstring(luaState, "test");
-    lua_pushnumber(luaState, 42);
-    lua_rawset(luaState, -3);
-    lua_setglobal(luaState, "x");
-    lua_getglobal(luaState, "f");  /* function to be called */
-    lua_getglobal(luaState, "x");
 
     if (lua_pcall(luaState, 1, 1, 0) != 0) {
         std::cerr
