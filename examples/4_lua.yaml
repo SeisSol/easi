@@ -8,7 +8,7 @@ components:
         mu:         0.0
         lambda: 1.96e10
   - !LuaMap
-      returns: ["rho", "mu", "lambda"]
+      returns: [rho, mu, lambda]
       function: |
          function f (x)
           io.write(x[1], " ", x[2], " ", x[3], "\n") -- optional debug output
