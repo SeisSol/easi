@@ -1,9 +1,8 @@
 project(easi)
 cmake_minimum_required(VERSION 3.13)
 set(EASI_VERSION_MAJOR 1)
-set(EASI_VERSION_MINOR 0)
-set(EASI_VERSION_PATCH 1)
-
+set(EASI_VERSION_MINOR 1)
+set(EASI_VERSION_PATCH 0)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -18,6 +17,8 @@ set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
 set(IMPALAJIT_BACKEND_OPTIONS original llvm)
 set_property(CACHE IMPALAJIT_BACKEND PROPERTY STRINGS ${IMPALAJIT_BACKEND_OPTIONS})
 
+option(LUA "Use Lua" OFF)
+
 function(check_parameter parameter_name value options)
 
     list(FIND options ${value} INDEX)
@@ -30,7 +31,7 @@ function(check_parameter parameter_name value options)
 endfunction()
 check_parameter("IMPALAJIT_BACKEND" "${IMPALAJIT_BACKEND}" "${IMPALAJIT_BACKEND_OPTIONS}")
 
-    ### external packages ###
+### external packages ###
 
 find_package(yaml-cpp 0.6 REQUIRED)
 find_package(OpenMP)
@@ -41,6 +42,10 @@ if(IMPALAJIT)
     else()
         find_package (impalajit REQUIRED)
     endif()
+endif()
+
+if (LUA)
+    find_package(Lua REQUIRED)
 endif()
 
 if(ASAGI)
@@ -60,6 +65,7 @@ set(EASI_SOURCES
     src/component/DomainFilter.cpp
     src/component/EvalModel.cpp
     src/component/FunctionMap.cpp
+    src/component/LuaMap.cpp
     src/component/LayeredModelBuilder.cpp
     src/component/OptimalStress.cpp
     src/component/PolynomialMap.cpp
@@ -94,6 +100,7 @@ target_link_libraries(easi
 if(${OpenMP_CXX_FOUND})
     target_link_libraries(easi PRIVATE OpenMP::OpenMP_CXX)
 endif()
+
 if(ASAGI)
     find_package(MPI REQUIRED)
     target_link_libraries(easi
@@ -103,18 +110,25 @@ if(ASAGI)
             PkgConfig::NETCDF
     )
     target_link_libraries(easi
-            PRIVATE
+            PUBLIC
             MPI::MPI_CXX
     )
-    target_compile_definitions(easi PRIVATE -DEASI_USE_ASAGI)
+    target_compile_definitions(easi PRIVATE EASI_USE_ASAGI)
 endif()
+
 if (IMPALAJIT)
     if (IMPALAJIT_BACKEND STREQUAL "llvm")
         target_link_libraries(easi PRIVATE llvm::impalajit)
     else()
         target_link_libraries(easi PRIVATE impalajit::impalajit)
     endif()
-    target_compile_definitions(easi PRIVATE -DEASI_USE_IMPALAJIT)
+    target_compile_definitions(easi PRIVATE EASI_USE_IMPALAJIT)
+endif()
+
+if (LUA)
+    target_include_directories(easi PRIVATE ${LUA_INCLUDE_DIR})
+    target_link_libraries(easi PRIVATE ${LUA_LIBRARIES})
+    target_compile_definitions(easi PRIVATE EASI_USE_LUA)
 endif()
 
 target_include_directories(easi
@@ -214,4 +228,10 @@ if(ASAGI)
     easi_add_test(101_asagi)
     easi_add_test(101_asagi_nearest)
 endif ()
+
+if (LUA)
+    easi_add_test(4_lua)
+endif()
+
+
 
