@@ -32,7 +32,6 @@ double LuaMap::executeLuaFunction(Matrix<double> x,
                                   unsigned coordIdx,
                                   unsigned funcIdx) {
     if (!luaState) {
-        std::cout << "Init lua state" << std::endl;
         luaState = luaL_newstate();
         luaL_openlibs(luaState);
         const auto status = luaL_dostring(luaState, function.data());

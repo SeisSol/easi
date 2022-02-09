@@ -2,7 +2,7 @@ project(easi)
 cmake_minimum_required(VERSION 3.13)
 set(EASI_VERSION_MAJOR 1)
 set(EASI_VERSION_MINOR 1)
-set(EASI_VERSION_PATCH 0)
+set(EASI_VERSION_PATCH 1)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

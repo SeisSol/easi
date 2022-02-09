@@ -27,13 +27,13 @@ public:
 
     ~LuaMap() override;
 protected:
-    virtual Matrix<double> map(Matrix<double>& x) override;
+    Matrix<double> map(Matrix<double>& x) override;
 
 private:
     double executeLuaFunction(Matrix<double> x, unsigned coordIdx, unsigned funcIdx);
     std::string function;
     std::vector<std::string> idxToNameMap;
-    lua_State* luaState;
+    lua_State* luaState{nullptr};
 
 };
 
