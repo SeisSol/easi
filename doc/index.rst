@@ -35,6 +35,7 @@ The final parameter vector is, in this example, always 3-dimensional as it conta
   :caption: Contents
 
   getting_started
+  compiling_dependencies
   components
   maps
   filters

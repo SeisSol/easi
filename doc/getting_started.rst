@@ -12,9 +12,10 @@ Easi depends on the following three projects:
 -  `yaml-cpp <https://github.com/jbeder/yaml-cpp>`__
 -  `ASAGI <https://github.com/TUM-I5/ASAGI/>`__
 -  `ImpalaJIT <https://github.com/uphoffc/ImpalaJIT>`__
+-  `Lua <https://www.lua.org/download.html>`__
 
 Only yaml-cpp (version 0.6.x) is a required dependency.
-It can be obtained, for example, from the package repositories of most Linux distributions or as a module on SuperMUC-NG.
+The compilation of dependencies is detailed in :doc:`compiling_dependencies`.
 
 Compilation
 ------------

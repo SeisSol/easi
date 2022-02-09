@@ -22,6 +22,7 @@ double getField(lua_State* L, const std::string& key) {
             << key
             << " but it did not return a number."
             << std::endl;
+        std::abort();
     }
     const auto result = lua_tonumber(L, -1);
     lua_pop(L, 1);
@@ -59,6 +60,7 @@ double LuaMap::executeLuaFunction(Matrix<double> x,
         << "Error running function f "
         << lua_tostring(luaState, -1)
         << std::endl;
+        std::abort();
     }
     return getField(luaState, idxToNameMap[funcIdx]);
 }
