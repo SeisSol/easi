@@ -16,10 +16,6 @@ if (EASI_IMPALAJIT)
     endif()
 endif()
 
-if (EASI_LUA)
-    find_package(Lua REQUIRED)
-endif()
-
 if (EASI_ASAGI)
     find_dependency(PkgConfig)
     pkg_check_modules(ASAGI REQUIRED IMPORTED_TARGET asagi)
