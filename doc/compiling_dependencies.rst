@@ -38,6 +38,7 @@ Alternatively to build from source:
 .. code-block:: bash
 
     git clone git@github.com:jbeder/yaml-cpp
+    git checkout yaml-cpp-0.6.3
     cd yaml-cpp
     mkdir build && cd build
     cmake ..  -DCMAKE_INSTALL_PREFIX=$HOME
