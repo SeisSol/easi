@@ -32,7 +32,8 @@ protected:
 private:
     double executeLuaFunction(Matrix<double> x, unsigned coordIdx, unsigned funcIdx);
     std::string function;
-    std::vector<std::string> idxToNameMap;
+    std::vector<std::string> idxToInputName;
+    std::vector<std::string> idxToOutputName;
     lua_State* luaState{nullptr};
 
 };

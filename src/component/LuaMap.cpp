@@ -49,8 +49,14 @@ double LuaMap::executeLuaFunction(Matrix<double> x,
 
     // Add table as input: x holds coordinates
     lua_newtable(luaState);
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < x.cols(); ++i) {
+        // Support x[1] indexing
         lua_pushnumber(luaState, i+1);
+        lua_pushnumber(luaState, x(coordIdx, i));
+        lua_rawset(luaState, -3);
+
+        // Support x["x"] indexing
+        lua_pushstring(luaState, idxToInputName[i].data());
         lua_pushnumber(luaState, x(coordIdx, i));
         lua_rawset(luaState, -3);
     }
@@ -62,7 +68,7 @@ double LuaMap::executeLuaFunction(Matrix<double> x,
         << std::endl;
         std::abort();
     }
-    return getField(luaState, idxToNameMap[funcIdx]);
+    return getField(luaState, idxToOutputName[funcIdx]);
 }
 
 Matrix<double> LuaMap::map(Matrix<double>& x) {
@@ -84,8 +90,11 @@ void LuaMap::setMap(const std::set<std::string>& in,
     setIn(in);
     setOut(out);
     function = newFunction;
+    for (const auto& i: in) {
+        idxToInputName.push_back(i);
+    }
     for (const auto& o : out) {
-        idxToNameMap.push_back(o);
+        idxToOutputName.push_back(o);
     }
 }
 
