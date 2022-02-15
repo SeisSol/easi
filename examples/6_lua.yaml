@@ -14,6 +14,6 @@ components: !LuaMap
   function: |
     function f (x)
      return {
-       effectiveConfiningStress = 2670.0*0.21*9.8*math.min(-100.0,x["elevation"]-x["z"]);
+       effectiveConfiningStress = 2670.0 * 0.21 * 9.8 * math.min(-100.0, x["elevation"] + x["z"])
      }
      end
