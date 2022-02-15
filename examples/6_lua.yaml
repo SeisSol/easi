@@ -1,0 +1,19 @@
+!EvalModel
+parameters: [elevation, z]
+model: !Switch
+  [elevation]: !ConstantMap
+         map:
+           elevation: 100.
+  [z]: !AffineMap
+         matrix:
+           z: [0.0, 0.0, 1.0]
+         translation:
+           z: 0.0
+components: !LuaMap
+  returns: [effectiveConfiningStress]
+  function: |
+    function f (x)
+     return {
+       effectiveConfiningStress = 2670.0*0.21*9.8*math.min(-100.0,x["elevation"]-x["z"]);
+     }
+     end

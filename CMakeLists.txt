@@ -231,6 +231,7 @@ endif ()
 
 if (LUA)
     easi_add_test(4_lua)
+    easi_add_test(6_lua)
 endif()
 
 
