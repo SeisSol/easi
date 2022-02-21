@@ -16,9 +16,9 @@ Alternatively for gcc compilers on SupermucNG:
 
 .. code-block:: bash
 
-    export FC=mpigcc
+    export FC=mpifc
     export CXX=mpigxx
-    export CC=mpifc
+    export CC=mpigcc
 
 2. Asagi
  
@@ -37,9 +37,10 @@ Alternatively to build from source:
 
 .. code-block:: bash
 
-    git clone git@github.com:jbeder/yaml-cpp
-    git checkout yaml-cpp-0.6.3
+    git clone https://github.com/jbeder/yaml-cpp.git
+    # git clone git@github.com:jbeder/yaml-cpp
     cd yaml-cpp
+    git checkout yaml-cpp-0.6.3
     mkdir build && cd build
     cmake ..  -DCMAKE_INSTALL_PREFIX=$HOME
     make -j 4
@@ -51,7 +52,8 @@ Alternatively to build from source:
 
 .. code-block:: bash
 
-    git clone git@github.com:uphoffc/ImpalaJIT
+    git clone https://github.com/uphoffc/ImpalaJIT.git
+    # git clone git@github.com:uphoffc/ImpalaJIT
     cd ImpalaJIT 
     mkdir build && cd build
     cmake ..  -DCMAKE_INSTALL_PREFIX=$HOME
