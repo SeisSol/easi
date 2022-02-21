@@ -72,7 +72,13 @@ int main(int argc, char** argv) {
         std::cerr << "from, to, and N must have 3 dimensions" << std::endl;
         return -1;
     }
-
+    for (unsigned n : N) {
+        if (n < 2) {
+            std::cerr << "number of grid points in each dimension should be greater than 1"
+                      << std::endl;
+            return -1;
+        }
+    }
     unsigned nGP = 1;
     for (unsigned n : N) {
         nGP *= n;
