@@ -37,8 +37,8 @@ Alternatively to build from source:
 
 .. code-block:: bash
 
-    git clone https://github.com/jbeder/yaml-cpp.git
-    # git clone git@github.com:jbeder/yaml-cpp
+    git clone git@github.com:jbeder/yaml-cpp
+    # git clone https://github.com/jbeder/yaml-cpp.git
     cd yaml-cpp
     git checkout yaml-cpp-0.6.3
     mkdir build && cd build
@@ -52,8 +52,8 @@ Alternatively to build from source:
 
 .. code-block:: bash
 
-    git clone https://github.com/uphoffc/ImpalaJIT.git
-    # git clone git@github.com:uphoffc/ImpalaJIT
+    git clone git@github.com:uphoffc/ImpalaJIT
+    # git clone https://github.com/uphoffc/ImpalaJIT.git
     cd ImpalaJIT 
     mkdir build && cd build
     cmake ..  -DCMAKE_INSTALL_PREFIX=$HOME
