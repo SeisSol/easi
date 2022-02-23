@@ -43,6 +43,10 @@ double LuaMap::executeLuaFunction(Matrix<double> x,
             std::abort();
         }
     }
+    
+    // Save stack size
+    const auto top = lua_gettop(luaState);
+
 
     // Push function and arguments to stack
     lua_getglobal(luaState, "f");  // the function
@@ -68,7 +72,14 @@ double LuaMap::executeLuaFunction(Matrix<double> x,
         << std::endl;
         std::abort();
     }
-    return getField(luaState, idxToOutputName[funcIdx]);
+
+    const auto retVal = getField(luaState, idxToOutputName[funcIdx]);
+
+    // Reset stack size to value before function call
+    // This should avoid stack overflows
+    lua_settop(luaState, top); 
+
+    return retVal;
 }
 
 Matrix<double> LuaMap::map(Matrix<double>& x) {
