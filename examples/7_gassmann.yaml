@@ -1,0 +1,36 @@
+### Compute the gassman equivalent of a poroelastic material
+### De la Puente et al.: Discontinuous Galerkin methods for wave propagation in poroelastic media (2008) eq (44)
+### First read poroelastic material parameters
+!EvalModel
+parameters: [bulk_solid, bulk_fluid, porosity, rho, rho_fluid, mu, lambda]
+model: !Include 7_poroelastic.yaml
+### Evaluate Gassmann equivalent as FunctionMap (requires ImpalaJIT)
+#components: !FunctionMap
+#  map: 
+#    rho:     return porosity * rho_fluid + (1-porosity) * rho;
+#    mu:      return mu;
+#    lambda: |
+#     bulk_matrix = lambda + 2.0/3.0 * mu;
+#     a = pow(1 - bulk_matrix / bulk_solid, 2);
+#     b = porosity / bulk_fluid;
+#     c = (1 - porosity) / bulk_solid;
+#     d = bulk_matrix / pow(bulk_solid, 2);
+#     return bulk_matrix + a / (b + c - d);
+### Evaluate Gassmann equivalent as LuaMap (requires Lua)
+components: !LuaMap
+  returns: [rho, mu, lambda]
+  function:
+    function f(x) 
+      bulk_matrix = x["lambda"] + 2.0/3.0 * x["mu"]
+      a = (1 - bulk_matrix / x["bulk_solid"])^2
+      b = x["porosity"] / x["bulk_fluid"]
+      c = (1 - x["porosity"]) / x["bulk_solid"]
+      d = bulk_matrix / (x["bulk_solid"])^2
+      return { 
+        rho = x["porosity"] * x["rho_fluid"] + (1-x["porosity"]) * x["rho"],
+        mu  = x["mu"],
+        lambda = bulk_matrix + a / (b + c - d)
+       }
+    end
+
+

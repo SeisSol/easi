@@ -1,0 +1,30 @@
+!Any
+components:
+  - !GroupFilter
+    groups: [1]
+    components: 
+      map:
+        rho:           2.39e3
+        bulk_solid:   22.6e9
+        lambda:        1.8866666666666667e9
+        mu:            1.67e9
+        permeability:  1.47e-17
+        tortuosity:    1
+        porosity:      0.24
+        rho_fluid:     1.03e3
+        bulk_fluid:    2.3e9
+        viscosity:     6.9e-4
+  - !GroupFilter
+    groups: [2]
+    components:
+      map:
+        rho:           2.664e3
+        bulk_solid:   32.3e9
+        lambda:        2.8066666666666666e9
+        mu:            0.695e9
+        permeability:  2.00e-12
+        tortuosity:    1
+        porosity:      0.4 
+        rho_fluid:     1.03e3
+        bulk_fluid:    2.3e9
+        viscosity:     6.9e-4
