@@ -20,7 +20,7 @@ The compilation of dependencies is detailed in :doc:`compiling_dependencies`.
 Compilation
 ------------
 Before installing easi, you first need to install all dependencies.
-Next, clone the easi repository and create a separate build directory.
+Next, clone the `easi repository <https://github.com/SeisSol/easi>`_ and create a separate build directory.
 The directory can be outside of the repository.
 This makes the compilation cleaner.
 Finally, execute the following lines:
