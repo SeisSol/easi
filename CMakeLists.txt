@@ -13,6 +13,7 @@ enable_language(Fortran)
 option(ASAGI "Enable support for ASAGI" ON)
 
 option(TESTING "Compile tests" OFF)
+option(EASICUBE "Compile easicube" ON)
 option(IMPALAJIT "Use ImpalaJIT" ON)
 set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
 set(IMPALAJIT_BACKEND_OPTIONS original llvm)
@@ -186,7 +187,7 @@ install(
 
 ### easicube ###
 
-if(ASAGI)
+if(ASAGI AND EASICUBE)
     add_executable (easicube tools/easicube.cpp)
     target_link_libraries(easicube PRIVATE easi)
     target_compile_definitions(easicube PRIVATE EASI_USE_ASAGI)
