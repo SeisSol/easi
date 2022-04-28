@@ -30,10 +30,10 @@ On SupermucNG and with intel compilers:
 
 .. code-block:: bash
 
-    module load yaml-cpp/0.6.3-intel19
+    module load yaml-cpp/0.7.0-intel21
 
     
-Alternatively to build from source:
+Alternatively you can build from source:
 
 .. code-block:: bash
 
