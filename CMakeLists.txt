@@ -188,6 +188,7 @@ install(
 if(ASAGI)
     add_executable (easicube tools/easicube.cpp)
     target_link_libraries(easicube PRIVATE easi)
+    target_compile_definitions(easicube PRIVATE EASI_USE_ASAGI)
     set_target_properties (easicube PROPERTIES
         INSTALL_RPATH_USE_LINK_PATH TRUE
     )

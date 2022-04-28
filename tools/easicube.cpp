@@ -37,7 +37,7 @@ void check_err(int const stat, int const line, char const* file) {
 }
 
 int main(int argc, char** argv) {
-   MPI_Init(NULL, NULL);
+    MPI_Init(&argc, &argv);
     if (argc < 3) {
         std::cerr << "Usage: easicube \"{from: [...], to: [...], N: [...], parameters: [...], "
                      "group: ...}\" <model_file> [<output_basename>]"
