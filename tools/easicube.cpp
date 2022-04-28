@@ -21,6 +21,13 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef EASI_USE_ASAGI
+#include "mpi.h"
+#else
+void MPI_Init(int *argc, char ***argv) {};
+void MPI_Finalize() {};
+#endif
+
 void check_err(int const stat, int const line, char const* file) {
     if (stat != NC_NOERR) {
         fprintf(stderr, "line %d of %s: %s\n", line, file, nc_strerror(stat));
@@ -30,6 +37,7 @@ void check_err(int const stat, int const line, char const* file) {
 }
 
 int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
     if (argc < 3) {
         std::cerr << "Usage: easicube \"{from: [...], to: [...], N: [...], parameters: [...], "
                      "group: ...}\" <model_file> [<output_basename>]"
@@ -228,5 +236,6 @@ int main(int argc, char** argv) {
         check_err(stat, __LINE__, __FILE__);
     }
 
+    MPI_Finalize();
     return 0;
 }
