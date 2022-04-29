@@ -12,6 +12,8 @@ enable_language(Fortran)
 
 option(ASAGI "Enable support for ASAGI" ON)
 
+option(TESTING "Compile tests" OFF)
+option(EASICUBE "Compile easicube" ON)
 option(IMPALAJIT "Use ImpalaJIT" ON)
 set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
 set(IMPALAJIT_BACKEND_OPTIONS original llvm)
@@ -185,7 +187,7 @@ install(
 
 ### easicube ###
 
-if(ASAGI)
+if(ASAGI AND EASICUBE)
     add_executable (easicube tools/easicube.cpp)
     target_link_libraries(easicube PRIVATE easi)
     target_compile_definitions(easicube PRIVATE EASI_USE_ASAGI)
@@ -197,43 +199,43 @@ endif()
 
 
 ### tests ###
-enable_testing()
-add_library(easitest
-    tests/easitest.cpp
-    tests/special.f90
-)
-target_link_libraries(easitest PUBLIC easi)
+if (TESTING)
+    enable_testing()
+    add_library(easitest
+        tests/easitest.cpp
+        tests/special.f90
+    )
+    target_link_libraries(easitest PUBLIC easi)
 
-function(easi_add_test name)
-    add_executable(${name} tests/${name}.cpp)
-    target_link_libraries(${name} PRIVATE easitest)
-    string(TOUPPER ${name} NAME_UP)
-    add_test(${NAME_UP}_TEST ${name} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${name}.yaml)
-endfunction(easi_add_test)
+    function(easi_add_test name)
+        add_executable(${name} tests/${name}.cpp)
+        target_link_libraries(${name} PRIVATE easitest)
+        string(TOUPPER ${name} NAME_UP)
+        add_test(${NAME_UP}_TEST ${name} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${name}.yaml)
+    endfunction(easi_add_test)
 
-easi_add_test(0_constant)
-easi_add_test(1_groups)
-easi_add_test(3_layered_linear)
-easi_add_test(33_layered_constant)
+    easi_add_test(0_constant)
+    easi_add_test(1_groups)
+    easi_add_test(3_layered_linear)
+    easi_add_test(33_layered_constant)
 
-if(IMPALA)
-    easi_add_test(2_prem)
-    easi_add_test(5_function)
-    easi_add_test(26_function)
-    easi_add_test(f_16_scec)
-    easi_add_test(f_120_sumatra)
-    easi_add_test(supplied_parameters)
+    if(IMPALA)
+        easi_add_test(2_prem)
+        easi_add_test(5_function)
+        easi_add_test(26_function)
+        easi_add_test(f_16_scec)
+        easi_add_test(f_120_sumatra)
+        easi_add_test(supplied_parameters)
+    endif()
+
+    if(ASAGI)
+        easi_add_test(101_asagi)
+        easi_add_test(101_asagi_nearest)
+    endif ()
+
+    if (LUA)
+        easi_add_test(4_lua)
+        easi_add_test(6_lua)
+    endif()
+
 endif()
-
-if(ASAGI)
-    easi_add_test(101_asagi)
-    easi_add_test(101_asagi_nearest)
-endif ()
-
-if (LUA)
-    easi_add_test(4_lua)
-    easi_add_test(6_lua)
-endif()
-
-
-
