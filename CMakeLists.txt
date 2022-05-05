@@ -194,6 +194,7 @@ if(ASAGI AND EASICUBE)
     set_target_properties (easicube PROPERTIES
         INSTALL_RPATH_USE_LINK_PATH TRUE
     )
+    target_link_libraries(easicube PUBLIC ${ASAGI_STATIC_LDFLAGS})
     install (TARGETS easicube)
 endif()
 
