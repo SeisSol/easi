@@ -194,7 +194,8 @@ if(ASAGI AND EASICUBE)
     set_target_properties (easicube PROPERTIES
         INSTALL_RPATH_USE_LINK_PATH TRUE
     )
-    target_link_libraries(easicube PUBLIC ${ASAGI_STATIC_LDFLAGS})
+    target_link_libraries(easicube PUBLIC ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES} PkgConfig::ASAGI PkgConfig::NETCDF)
+
     install (TARGETS easicube)
 endif()
 
