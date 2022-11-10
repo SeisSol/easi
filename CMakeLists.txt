@@ -11,6 +11,7 @@ enable_language(CXX)
 enable_language(Fortran)
 
 option(ASAGI "Enable support for ASAGI" ON)
+option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
 
 option(TESTING "Compile tests" OFF)
 option(EASICUBE "Compile easicube" ON)
