@@ -188,16 +188,20 @@ install(
 
 ### easicube ###
 
-if(ASAGI AND EASICUBE)
-    add_executable (easicube tools/easicube.cpp)
-    target_link_libraries(easicube PRIVATE easi)
-    target_compile_definitions(easicube PRIVATE EASI_USE_ASAGI)
-    set_target_properties (easicube PROPERTIES
-        INSTALL_RPATH_USE_LINK_PATH TRUE
-    )
-    target_link_libraries(easicube PUBLIC ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES} PkgConfig::ASAGI PkgConfig::NETCDF)
-
-    install (TARGETS easicube)
+if(EASICUBE)
+    if (ASAGI)
+        add_executable (easicube tools/easicube.cpp)
+        target_link_libraries(easicube PRIVATE easi)
+        target_compile_definitions(easicube PRIVATE EASI_USE_ASAGI)
+        set_target_properties (easicube PROPERTIES
+            INSTALL_RPATH_USE_LINK_PATH TRUE
+        )
+        target_link_libraries(easicube PUBLIC ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES} PkgConfig::ASAGI PkgConfig::NETCDF)
+    
+        install (TARGETS easicube)
+    else()
+        message(WARNING "easicube needs easi to be compiled with ASAGI. Since this is not the case, easicube will be skipped.")
+    endif()
 endif()
 
 
