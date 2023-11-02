@@ -8,7 +8,6 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 enable_language(CXX)
-enable_language(Fortran)
 
 option(ASAGI "Enable support for ASAGI" ON)
 option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
@@ -207,6 +206,7 @@ endif()
 
 ### tests ###
 if (TESTING)
+    enable_language(Fortran)
     enable_testing()
     add_library(easitest
         tests/easitest.cpp
