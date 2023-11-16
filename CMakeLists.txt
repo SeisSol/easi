@@ -19,7 +19,7 @@ set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
 set(IMPALAJIT_BACKEND_OPTIONS original llvm)
 set_property(CACHE IMPALAJIT_BACKEND PROPERTY STRINGS ${IMPALAJIT_BACKEND_OPTIONS})
 
-option(LUA "Use Lua" OFF)
+option(LUA "Use Lua" ON)
 
 function(check_parameter parameter_name value options)
 
