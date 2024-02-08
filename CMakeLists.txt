@@ -99,6 +99,8 @@ target_link_libraries(easi
     PUBLIC
         yaml-cpp
 )
+target_include_directories(easi PUBLIC ${YAML_CPP_INCLUDE_DIR})
+
 if(${OpenMP_CXX_FOUND})
     target_link_libraries(easi PRIVATE OpenMP::OpenMP_CXX)
 endif()
