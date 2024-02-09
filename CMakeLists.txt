@@ -4,6 +4,10 @@ set(EASI_VERSION_MAJOR 1)
 set(EASI_VERSION_MINOR 2)
 set(EASI_VERSION_PATCH 0)
 
+add_compile_definitions(
+    EASI_VERSION="${EASI_VERSION_MAJOR}.${EASI_VERSION_MINOR}.${EASI_VERSION_PATCH}"
+)
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
@@ -15,6 +19,7 @@ option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
 option(TESTING "Compile tests" OFF)
 option(EASICUBE "Compile easicube" ON)
 option(IMPALAJIT "Use ImpalaJIT" ON)
+option(PYTHON_BINDINGS "Compile python bindings" OFF)
 set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
 set(IMPALAJIT_BACKEND_OPTIONS original llvm)
 set_property(CACHE IMPALAJIT_BACKEND PROPERTY STRINGS ${IMPALAJIT_BACKEND_OPTIONS})
@@ -55,6 +60,23 @@ if(ASAGI)
     find_package (HDF5 REQUIRED COMPONENTS C HL)
     pkg_check_modules (NETCDF REQUIRED IMPORTED_TARGET netcdf)
     pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
+endif()
+
+if (PYTHON_BINDINGS)
+    set(PYBIND11_VER 2.11.1)
+    find_package(pybind11 ${PYBIND11_VER} QUIET)
+    if (NOT pybind11_FOUND)
+         include(FetchContent)
+         FetchContent_Declare(pybind11
+                            GIT_REPOSITORY https://github.com/pybind/pybind11.git
+                            GIT_TAG v${PYBIND11_VER})
+         FetchContent_MakeAvailable(pybind11)
+    endif ()
+
+    message(STATUS "Building Python bindings enabled")
+    add_subdirectory(python_bindings)
+    # position-independent code is required for linking a dynamic lib (e.g. pybind)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 
 ### easi lib ###
@@ -203,6 +225,14 @@ if(EASICUBE)
     else()
         message(WARNING "easicube needs easi to be compiled with ASAGI. Since this is not the case, easicube will be skipped.")
     endif()
+endif()
+
+if (PYTHON_BINDINGS)
+   #easi_INSTALL_PYTHONDIR can be predefined, e.g. with spack to install the python module with the other python modules
+   set(INSTALL_DESTINATION "$<$<BOOL:${easi_INSTALL_PYTHONDIR}>:${easi_INSTALL_PYTHONDIR}/easi>${CONFIG_DESTINATION}/python_wrapper")
+   install(TARGETS easi_python
+           EXPORT easi_python
+           LIBRARY DESTINATION ${INSTALL_DESTINATION})
 endif()
 
 
