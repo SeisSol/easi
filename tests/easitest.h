@@ -6,6 +6,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <array>
 
 struct ElasticMaterial {
     double lambda, mu, rho;
