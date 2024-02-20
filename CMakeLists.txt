@@ -64,6 +64,7 @@ endif()
 
 if (PYTHON_BINDINGS)
     set(PYBIND11_VER 2.11.1)
+    set(PYBIND11_FINDPYTHON ON)
     find_package(pybind11 ${PYBIND11_VER} QUIET)
     if (NOT pybind11_FOUND)
          include(FetchContent)
