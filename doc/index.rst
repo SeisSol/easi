@@ -36,6 +36,7 @@ The final parameter vector is, in this example, always 3-dimensional as it conta
 
   getting_started
   compiling_dependencies
+  python_bindings
   components
   maps
   filters
