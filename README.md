@@ -1,5 +1,8 @@
 # easi
 
+[![Documentation Status](https://readthedocs.org/projects/easyinit/badge/?version=latest)](https://easyinit.readthedocs.io/en/latest/?badge=latest)
+
+
 easi is a library for the **E**asy **I**nitialization of models in three (or less or more) dimensional domains.
 The purpose of easi is to evaluate functions f : R^m -> R^n,
 which are described in a [YAML](http://yaml.org) configuration file.
