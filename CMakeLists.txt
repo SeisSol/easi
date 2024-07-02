@@ -13,6 +13,8 @@ include(CMakePackageConfigHelpers)
 
 enable_language(CXX)
 
+set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH} )
+
 option(ASAGI "Enable support for ASAGI" ON)
 option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
 
@@ -42,6 +44,8 @@ check_parameter("IMPALAJIT_BACKEND" "${IMPALAJIT_BACKEND}" "${IMPALAJIT_BACKEND_
 
 find_package(yaml-cpp 0.6 REQUIRED)
 find_package(OpenMP)
+
+find_package(FILESYSTEM REQUIRED)
 
 if(IMPALAJIT)
     if (IMPALAJIT_BACKEND STREQUAL llvm)
@@ -123,6 +127,9 @@ target_link_libraries(easi
         yaml-cpp
 )
 target_include_directories(easi PUBLIC ${YAML_CPP_INCLUDE_DIR})
+
+
+target_link_libraries(easi PRIVATE std::filesystem)
 
 if(${OpenMP_CXX_FOUND})
     target_link_libraries(easi PRIVATE OpenMP::OpenMP_CXX)
