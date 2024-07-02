@@ -15,6 +15,18 @@ class AsagiReader {};
 
 #include <iostream>
 
+#ifdef EXPERIMENTAL_FS
+#include <experimental/filesystem>
+#else
+#include <filesystem>
+#endif
+
+#ifdef EXPERIMENTAL_FS
+namespace fs = std::experimental::filesystem;
+#else
+namespace fs = std::filesystem;
+#endif
+
 namespace easi {
 
 YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, char firstVariable)
@@ -68,9 +80,20 @@ void YAMLParser::registerType(std::string const& tag, std::function<CreateFuncti
 Component* YAMLParser::parse(std::string const& fileName) {
     Component* root;
     try {
-        std::string lastFileName = m_currentFileName;
-        m_currentFileName = fileName;
-        YAML::Node config = YAML::LoadFile(fileName);
+        const auto lastFileName = m_currentFileName;
+        const auto lastPath = fs::path(lastFileName);
+        const auto nextPath = fs::path(fileName);
+        const auto loadFileName = [&]() {
+            if (nextPath.is_relative()) {
+                // remove file
+                return lastPath.parent_path() / nextPath;
+            }
+            else {
+                return nextPath;
+            }
+        }();
+        m_currentFileName = loadFileName;
+        YAML::Node config = YAML::LoadFile(loadFileName);
         root = parse(config, m_in);
         m_currentFileName = lastFileName;
     } catch (YAML::Exception const& e) {
