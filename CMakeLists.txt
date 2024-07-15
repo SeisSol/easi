@@ -124,7 +124,7 @@ set_target_properties(easi PROPERTIES
 )
 
 
-if (${yaml-cpp_VERSION} VERSION_GREATER_EQUAL 0.7)
+if ("${yaml-cpp_VERSION}" VERSION_GREATER_EQUAL "0.8")
   target_link_libraries(easi PUBLIC yaml-cpp::yaml-cpp)
 else()
   # fallback code for old versions
