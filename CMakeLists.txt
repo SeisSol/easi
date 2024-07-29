@@ -122,11 +122,23 @@ set_target_properties(easi PROPERTIES
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
 )
-target_link_libraries(easi
-    PUBLIC
-        yaml-cpp
-)
-target_include_directories(easi PUBLIC ${YAML_CPP_INCLUDE_DIR})
+
+
+if ("${yaml-cpp_VERSION}" VERSION_GREATER_EQUAL "0.8")
+  target_link_libraries(easi PUBLIC yaml-cpp::yaml-cpp)
+else()
+  # fallback code for old versions
+  if (DEFINED YAML_CPP_INCLUDE_DIR AND EXISTS "${YAML_CPP_INCLUDE_DIR}")
+    target_include_directories(easi PUBLIC ${YAML_CPP_INCLUDE_DIR})
+  endif()
+  if (DEFINED YAML_CPP_LIBRARIES)
+    # use the YAML_CPP_LIBRARIES, if available (though it may just say `yaml-cpp`)
+    target_link_libraries(easi PUBLIC ${YAML_CPP_LIBRARIES})
+  else()
+    # fallback
+    target_link_libraries(easi PUBLIC yaml-cpp)
+  endif()
+endif()
 
 
 target_link_libraries(easi PRIVATE std::filesystem)
