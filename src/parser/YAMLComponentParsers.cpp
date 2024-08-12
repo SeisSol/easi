@@ -6,6 +6,34 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <string>
+
+#ifdef EXPERIMENTAL_FS
+#include <experimental/filesystem>
+#else
+#include <filesystem>
+#endif
+
+#ifdef EXPERIMENTAL_FS
+namespace fs = std::experimental::filesystem;
+#else
+namespace fs = std::filesystem;
+#endif
+
+namespace {
+    static std::string getFileName(const std::string& entry, easi::YAMLAbstractParser* parser) {
+        const auto entryPath = fs::path(entry);
+        if (entryPath.is_relative()) {
+            // remove file
+            const auto filePath = fs::path(parser->currentFileName());
+            return filePath.parent_path() / entryPath;
+        }
+        else {
+            return entryPath;
+        }
+    }
+}
+
 namespace easi {
 
 void parse_Component(Component* component, YAML::Node const& node, std::set<std::string> const&,
@@ -192,8 +220,9 @@ void parse_SCECFile(SCECFile* component, YAML::Node const& node, std::set<std::s
                     YAMLAbstractParser* parser) {
     checkType(node, "file", {YAML::NodeType::Scalar});
 
-    std::string fileName = node["file"].as<std::string>();
-    component->setMap(in, fileName);
+    const auto fileName = node["file"].as<std::string>();
+    const auto realFileName = getFileName(fileName, parser);
+    component->setMap(in, realFileName);
 
     parse_Grid<SCECFile>(component, node, in, parser);
 }
@@ -211,8 +240,9 @@ void parse_ASAGI(ASAGI* component, YAML::Node const& node, std::set<std::string>
         varName = node["var"].as<std::string>();
     }
 
-    std::string fileName = node["file"].as<std::string>();
-    asagi::Grid* grid = parser->asagiReader()->open(fileName.c_str(), varName.c_str());
+    const auto fileName = node["file"].as<std::string>();
+    const auto realFileName = getFileName(fileName, parser);
+    asagi::Grid* grid = parser->asagiReader()->open(realFileName.c_str(), varName.c_str());
 
     component->setGrid(in, parameters, grid, parser->asagiReader()->numberOfThreads());
 
