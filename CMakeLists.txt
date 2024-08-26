@@ -151,9 +151,9 @@ if(ASAGI)
     find_package(MPI REQUIRED)
     target_link_libraries(easi
         PUBLIC
-            ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
             PkgConfig::ASAGI
             PkgConfig::NETCDF
+            ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
     )
     target_link_libraries(easi
             PUBLIC
@@ -239,7 +239,6 @@ if(EASICUBE)
         set_target_properties (easicube PROPERTIES
             INSTALL_RPATH_USE_LINK_PATH TRUE
         )
-        target_link_libraries(easicube PUBLIC ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES} PkgConfig::ASAGI PkgConfig::NETCDF)
     
         install (TARGETS easicube)
     else()
