@@ -19,7 +19,7 @@ option(ASAGI "Enable support for ASAGI" ON)
 option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
 
 option(TESTING "Compile tests" OFF)
-option(EASICUBE "Compile easicube" ON)
+option(EASICUBE "Compile easicube" OFF)
 option(IMPALAJIT "Use ImpalaJIT" ON)
 option(PYTHON_BINDINGS "Compile python bindings" OFF)
 set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
