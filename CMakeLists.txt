@@ -104,6 +104,7 @@ set(EASI_SOURCES
     src/parser/YAMLComponentParsers.cpp
     src/parser/YAMLHelpers.cpp
     src/util/FunctionWrapper.cpp
+    src/util/ImpalaHandler.cpp
     src/util/RegularGrid.cpp
     src/Query.cpp
     src/YAMLParser.cpp

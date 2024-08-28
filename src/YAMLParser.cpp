@@ -45,6 +45,8 @@ YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, cha
     registerType("!AffineMap", parse_AffineMap);
 #ifdef EASI_USE_IMPALAJIT
     registerType("!FunctionMap", parse_FunctionMap);
+#elif defined(EASI_USE_LUA)
+    registerType("!FunctionMap", parse_FunctionMapToLua);
 #endif
 #ifdef EASI_USE_LUA
     registerType("!LuaMap", parse_LuaMap);

@@ -1,4 +1,5 @@
 #include "easi/parser/YAMLComponentParsers.h"
+#include "easi/util/ImpalaHandler.h"
 
 #ifdef EASI_USE_ASAGI
 #include "easi/util/AsagiReader.h"
@@ -191,6 +192,23 @@ void parse_LuaMap(LuaMap* component, YAML::Node const& node,
     const auto function = node["function"].as<std::string>();
 
     component->setMap(in, returns, function);
+    parse_Map(component, node, in, parser);
+}
+
+void parse_FunctionMapToLua(LuaMap* component, YAML::Node const& node,
+                       std::set<std::string> const& in, YAMLAbstractParser* parser) {
+    checkType(node, "map", {YAML::NodeType::Map});
+
+    const auto code = node["map"].as<std::unordered_map<std::string, std::string>>();
+
+    const auto luaCode = convertImpalaToLua(code, std::vector<std::string>(in.begin(), in.end()));
+
+    std::set<std::string> returns;
+    for (const auto& [var, _] : code) {
+        returns.insert(var);
+    }
+
+    component->setMap(in, returns, luaCode);
     parse_Map(component, node, in, parser);
 }
 #endif

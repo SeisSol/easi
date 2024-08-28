@@ -61,6 +61,8 @@ void parse_FunctionMap(FunctionMap* component, YAML::Node const& node,
 #ifdef EASI_USE_LUA
 void parse_LuaMap(LuaMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser);
+void parse_FunctionMapToLua(LuaMap* component, YAML::Node const& node,
+                       std::set<std::string> const& in, YAMLAbstractParser* parser);
 #endif
 void parse_PolynomialMap(PolynomialMap* component, YAML::Node const& node,
                          std::set<std::string> const& in, YAMLAbstractParser* parser);
