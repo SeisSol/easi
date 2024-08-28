@@ -29,12 +29,14 @@ double getField(lua_State* L, const std::string& key) {
     return result;
 }
 
-double LuaMap::executeLuaFunction(Matrix<double> x,
-                                  unsigned coordIdx,
-                                  unsigned funcIdx) {
+void LuaMap::executeLuaFunction(const Matrix<double>& x,
+                                  Matrix<double>& y) {
     if (!luaState) {
         luaState = luaL_newstate();
         luaL_openlibs(luaState);
+
+        // luaJIT_setmode(luaState, -1, LUAJIT_MODE_ALLFUNC|LUAJIT_MODE_ON);
+
         const auto status = luaL_dostring(luaState, function.data());
         if (status) {
             std::cerr
@@ -47,39 +49,41 @@ double LuaMap::executeLuaFunction(Matrix<double> x,
     // Save stack size
     const auto top = lua_gettop(luaState);
 
+    for (unsigned row = 0; row < y.rows(); ++row) {
+        // Push function and arguments to stack
+        lua_getglobal(luaState, "f");  // the function
 
-    // Push function and arguments to stack
-    lua_getglobal(luaState, "f");  // the function
+        // Add table as input: x holds coordinates
+        lua_newtable(luaState);
 
-    // Add table as input: x holds coordinates
-    lua_newtable(luaState);
-    for (int i = 0; i < x.cols(); ++i) {
-        // Support x[1] indexing
-        lua_pushnumber(luaState, i+1);
-        lua_pushnumber(luaState, x(coordIdx, i));
-        lua_rawset(luaState, -3);
+        for (int i = 0; i < x.cols(); ++i) {
+            // Support x[1] indexing
+            lua_pushnumber(luaState, i+1);
+            lua_pushnumber(luaState, x(row, i));
+            lua_rawset(luaState, -3);
 
-        // Support x["x"] indexing
-        lua_pushstring(luaState, idxToInputName[i].data());
-        lua_pushnumber(luaState, x(coordIdx, i));
-        lua_rawset(luaState, -3);
+            // Support x["x"] indexing
+            lua_pushstring(luaState, idxToInputName[i].data());
+            lua_pushnumber(luaState, x(row, i));
+            lua_rawset(luaState, -3);
+        }
+
+        if (lua_pcall(luaState, 1, 1, 0) != 0) {
+            std::cerr
+            << "Error running function f "
+            << lua_tostring(luaState, -1)
+            << std::endl;
+            std::abort();
+        }
+
+        for (unsigned col = 0; col < y.cols(); ++col) {
+            y(row, col) = getField(luaState, idxToOutputName[col]);
+        }
+
+        // Reset stack size to value before function call
+        // This should avoid stack overflows
+        lua_settop(luaState, top);
     }
-
-    if (lua_pcall(luaState, 1, 1, 0) != 0) {
-        std::cerr
-        << "Error running function f "
-        << lua_tostring(luaState, -1)
-        << std::endl;
-        std::abort();
-    }
-
-    const auto retVal = getField(luaState, idxToOutputName[funcIdx]);
-
-    // Reset stack size to value before function call
-    // This should avoid stack overflows
-    lua_settop(luaState, top); 
-
-    return retVal;
 }
 
 Matrix<double> LuaMap::map(Matrix<double>& x) {
@@ -87,11 +91,7 @@ Matrix<double> LuaMap::map(Matrix<double>& x) {
     assert(x.cols() == dimDomain());
 
     Matrix<double> y(x.rows(), dimCodomain());
-    for (unsigned i = 0; i < y.rows(); ++i) {
-        for (unsigned j = 0; j < y.cols(); ++j) {
-            y(i,j) = executeLuaFunction(x, i, j);
-        }
-    }
+    executeLuaFunction(x, y);
     return y;
 }
 
