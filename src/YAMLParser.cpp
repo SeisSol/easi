@@ -14,6 +14,7 @@ class AsagiReader {};
 #endif
 
 #include <iostream>
+#include <vector>
 
 #ifdef EXPERIMENTAL_FS
 #include <experimental/filesystem>
@@ -93,11 +94,12 @@ Component* YAMLParser::parse(std::string const& fileName) {
             }
         }();
         if (fs::exists(loadFileName)) {
-            m_currentFileName = loadFileName;
+            m_currentFileName = fs::canonical(loadFileName);
         }
-        else {
-            m_currentFileName = fs::current_path() / nextPath;
+        else if (fs::exists(nextPath)) {
+            m_currentFileName = nextPath;
         }
+        m_fileNames.insert(m_currentFileName);
         YAML::Node config = YAML::LoadFile(loadFileName);
         root = parse(config, m_in);
         m_currentFileName = lastFileName;
@@ -125,6 +127,10 @@ Component* YAMLParser::parse(YAML::Node const& node, std::set<std::string> const
         throw YAML::Exception(node.Mark(), ss.str());
     }
     return component;
+}
+
+std::vector<std::string> YAMLParser::getFileNameList() {
+    return std::vector<std::string>(m_fileNames.begin(), m_fileNames.end());
 }
 
 } // namespace easi

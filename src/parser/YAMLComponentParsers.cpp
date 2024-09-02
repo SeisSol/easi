@@ -28,10 +28,10 @@ namespace {
             const auto filePath = fs::path(parser->currentFileName());
             const auto newPath = filePath.parent_path() / entryPath;
             if (fs::exists(newPath)) {
-                return newPath;
+                return fs::canonical(newPath);
             }
             else {
-                return fs::current_path() / filePath;
+                return filePath;
             }
         }
         else {
