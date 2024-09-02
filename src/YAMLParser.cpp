@@ -92,7 +92,12 @@ Component* YAMLParser::parse(std::string const& fileName) {
                 return nextPath;
             }
         }();
-        m_currentFileName = loadFileName;
+        if (fs::exists(loadFileName)) {
+            m_currentFileName = loadFileName;
+        }
+        else {
+            m_currentFileName = fs::current_path() / nextPath;
+        }
         YAML::Node config = YAML::LoadFile(loadFileName);
         root = parse(config, m_in);
         m_currentFileName = lastFileName;
