@@ -20,7 +20,7 @@ option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
 
 option(TESTING "Compile tests" OFF)
 option(EASICUBE "Compile easicube" OFF)
-option(IMPALAJIT "Use ImpalaJIT" ON)
+option(IMPALAJIT "Use ImpalaJIT" OFF)
 option(PYTHON_BINDINGS "Compile python bindings" OFF)
 set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
 set(IMPALAJIT_BACKEND_OPTIONS original llvm)

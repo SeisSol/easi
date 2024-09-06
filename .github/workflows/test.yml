@@ -39,7 +39,7 @@ jobs:
           export CXX=${{matrix.compiler.cxx}}
           export FC=${{matrix.compiler.fc}}
 
-          cmake .. -GNinja -DTESTING=ON -DASAGI=ON -DLUA=ON -DEASICUBE=OFF
+          cmake .. -GNinja -DIMPALAJIT=OFF -DTESTING=ON -DASAGI=ON -DLUA=ON -DEASICUBE=OFF
           ninja
 
       - name: test-easi
