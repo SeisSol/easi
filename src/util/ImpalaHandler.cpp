@@ -39,12 +39,6 @@ enum class TokenType {
     Semicolon
 };
 
-enum class ControlType {
-    Function,
-    If,
-    Else,
-};
-
 struct Token {
     TokenType type;
     std::string value;
@@ -269,6 +263,7 @@ struct ParserState {
     }
 
     void parseAtomExpression() {
+        output << "(";
         if (probeConsume(TokenType::BracketOpen)) {
             parseExpression();
             expect(TokenType::BracketClose);
@@ -294,9 +289,11 @@ struct ParserState {
         else {
             throw std::runtime_error("Unexpected token when parsing expression: " + tokens[tokenPosition].value);
         }
+        output << ")";
     }
 
     void parseUnaryExpression() {
+        output << "(";
         if (probeConsume(TokenType::OperatorAdd)) {
             output << "+";
         }
@@ -304,9 +301,11 @@ struct ParserState {
             output << "-";
         }
         parseAtomExpression();
+        output << ")";
     }
 
     void parseMulExpression() {
+        output << "(";
         parseUnaryExpression();
         if (probeConsume(TokenType::OperatorMul)) {
             output << " * ";
@@ -316,9 +315,11 @@ struct ParserState {
             output << " / ";
             parseMulExpression();
         }
+        output << ")";
     }
 
     void parseAddExpression() {
+        output << "(";
         parseMulExpression();
         if (probeConsume(TokenType::OperatorAdd)) {
             output << " + ";
@@ -328,6 +329,7 @@ struct ParserState {
             output << " - ";
             parseAddExpression();
         }
+        output << ")";
     }
 
     void parseExpression() {
@@ -335,6 +337,7 @@ struct ParserState {
     }
 
     void parseAtomBoolean() {
+        output << "(";
         if (probeConsume(TokenType::BracketOpen)) {
             parseBoolean();
             expect(TokenType::BracketClose);
@@ -364,22 +367,27 @@ struct ParserState {
             }
             parseExpression();
         }
+        output << ")";
     }
 
     void parseAndBoolean() {
+        output << "(";
         parseAtomBoolean();
         if (probeConsume(TokenType::OperatorAnd)) {
             output << " and ";
             parseAndBoolean();
         }
+        output << ")";
     }
 
     void parseOrBoolean() {
+        output << "(";
         parseAndBoolean();
         if (probeConsume(TokenType::OperatorOr)) {
             output << " or ";
             parseOrBoolean();
         }
+        output << ")";
     }
 
     void parseBoolean() {
