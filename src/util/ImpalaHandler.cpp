@@ -191,12 +191,15 @@ struct ParserState {
     template<typename F>
     void parseList(F&& elementParse) {
         expect(TokenType::BracketOpen);
+        std::size_t index = 0;
         if (!probeConsume(TokenType::BracketClose)) {
-            elementParse();
-        }
-        while(!probeConsume(TokenType::BracketClose)) {
-            expect(TokenType::Comma);
-            elementParse();
+            elementParse(index);
+            ++index;
+            while(!probeConsume(TokenType::BracketClose)) {
+                expect(TokenType::Comma);
+                elementParse(index);
+                ++index;
+            }
         }
     }
 
@@ -239,8 +242,9 @@ struct ParserState {
 
     void parseReturn() {
         expect(TokenType::Return);
-        output << " return ";
+        output << " do return ";
         parseExpression();
+        output << " end ";
     }
 
     void parseStatement() {
@@ -255,11 +259,13 @@ struct ParserState {
     void parseFunctionCall() {
         const std::string functionName = expect(TokenType::Variable);
         output << "math." << functionName << "(";
-        parseList([this]() {
+        parseList([this](std::size_t index) {
+            if (index > 0) {
+                output << ", ";
+            }
             parseExpression();
-            output << ", ";
         });
-        output << "0)";
+        output << ")";
     }
 
     void parseAtomExpression() {
