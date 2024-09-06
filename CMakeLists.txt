@@ -19,7 +19,7 @@ option(ASAGI "Enable support for ASAGI" ON)
 option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
 
 option(TESTING "Compile tests" OFF)
-option(EASICUBE "Compile easicube" ON)
+option(EASICUBE "Compile easicube" OFF)
 option(IMPALAJIT "Use ImpalaJIT" ON)
 option(PYTHON_BINDINGS "Compile python bindings" OFF)
 set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
@@ -152,9 +152,9 @@ if(ASAGI)
     find_package(MPI REQUIRED)
     target_link_libraries(easi
         PUBLIC
-            ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
             PkgConfig::ASAGI
             PkgConfig::NETCDF
+            ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
     )
     target_link_libraries(easi
             PUBLIC
@@ -242,7 +242,6 @@ if(EASICUBE)
         set_target_properties (easicube PROPERTIES
             INSTALL_RPATH_USE_LINK_PATH TRUE
         )
-        target_link_libraries(easicube PUBLIC ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES} PkgConfig::ASAGI PkgConfig::NETCDF)
     
         install (TARGETS easicube)
     else()
