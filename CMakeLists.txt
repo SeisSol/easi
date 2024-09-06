@@ -178,6 +178,8 @@ if (LUA)
     target_compile_definitions(easi PRIVATE EASI_USE_LUA)
 endif()
 
+add_subdirectory(external)
+
 target_include_directories(easi
     PUBLIC
         $<INSTALL_INTERFACE:include>
@@ -279,7 +281,7 @@ if (TESTING)
     easi_add_test(3_layered_linear)
     easi_add_test(33_layered_constant)
 
-    if(IMPALA)
+    if(IMPALAJIT OR LUA)
         easi_add_test(2_prem)
         easi_add_test(5_function)
         easi_add_test(26_function)

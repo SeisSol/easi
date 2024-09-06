@@ -1,4 +1,5 @@
 #include "easi/component/LuaMap.h"
+#include <string>
 
 #ifdef EASI_USE_LUA
 extern "C" {
@@ -10,6 +11,46 @@ extern "C" {
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
+
+#ifdef EASI_LUA_LMATHX
+extern "C" int luaopen_mathx(lua_State* L);
+
+// Lua changes a lot between the different versions, hence we need quite some ifdefs here
+namespace {
+
+static void loadLmathx(lua_State* L) {
+#if LUA_VERSION_NUM < 502
+    lua_pushcfunction(L, luaopen_mathx);
+    lua_pushliteral(L, "mathx");
+    lua_call(L, 1, 0);
+#else
+    luaL_requiref(L, "mathx", luaopen_mathx, 1);
+    lua_pop(L, 1);
+#endif
+}
+
+static std::string loadCodeLmathX() {
+    // cf. example code for mathx: for Lua 5.3 and upwards, we need to supplement the math table.
+    // (for 5.2 and lower, that's done automatically)
+#if LUA_VERSION_NUM < 503
+    return "";
+#else
+    return "for fname,fval in pairs(mathx) do math[fname] = fval end;\n";
+#endif
+    return "";
+}
+
+}
+#else
+namespace {
+static void loadLmathx(lua_State* L) {
+}
+
+static std::string loadCodeLmathX() {
+    return "";   
+}
+}
+#endif
 
 namespace easi {
 
@@ -34,8 +75,8 @@ void LuaMap::executeLuaFunction(const Matrix<double>& x,
     if (!luaState) {
         luaState = luaL_newstate();
         luaL_openlibs(luaState);
-
-        // luaJIT_setmode(luaState, -1, LUAJIT_MODE_ALLFUNC|LUAJIT_MODE_ON);
+        
+        loadLmathx(luaState);
 
         const auto status = luaL_dostring(luaState, function.data());
         if (status) {
@@ -72,6 +113,7 @@ void LuaMap::executeLuaFunction(const Matrix<double>& x,
             std::cerr
             << "Error running function f "
             << lua_tostring(luaState, -1)
+            << " :::: f given by: " << function
             << std::endl;
             std::abort();
         }
@@ -100,7 +142,7 @@ void LuaMap::setMap(const std::set<std::string>& in,
                     const std::string& newFunction) {
     setIn(in);
     setOut(out);
-    function = newFunction;
+    function = loadCodeLmathX() + newFunction;
     for (const auto& i: in) {
         idxToInputName.push_back(i);
     }
