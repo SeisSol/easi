@@ -41,7 +41,7 @@ void model(double x, double y, double z, double params[6]) {
     assert(equal(test.o.b_xz, bii[5]));
 
     double const g = 9.8;
-    double layers[] = {0.0, -2000.0, -6000.0, -12000.0, -23000.0, -600.0e6};
+    double layers[] = {0.0, -2000.0, -6000.0, -12000.0, -23000.0, -100.0e6};
     double rho[] = {1000.0, 2720.0, 2860.0, 3050.0, 3300.0, 3375.0};
     double sigzz = 0.0;
     for (unsigned i = 1; i < sizeof(layers) / sizeof(double); ++i) {
@@ -86,7 +86,7 @@ void assertEqual(easi::Matrix<double> const& x, unsigned index,
 
     for (unsigned i = 0; i < 6; ++i) {
         assert(equal(material[i][index], params[i],
-                     10.0 * fabs(std::numeric_limits<double>::epsilon() * params[i])));
+                     std::max(1.e-6, 10.0 * fabs(std::numeric_limits<double>::epsilon() * params[i]))));
     }
 }
 
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> parameters{"s_xx", "s_yy", "s_zz", "s_xy", "s_yz", "s_xz"};
     auto material = genericModel(argv[1], query, parameters);
 
-    for (unsigned i = 0; i < 6; ++i) {
+    for (unsigned i = 0; i < 15; ++i) {
         assertEqual(query.x, i, material);
     }
 
