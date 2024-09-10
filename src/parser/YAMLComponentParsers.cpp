@@ -26,7 +26,13 @@ namespace {
         if (entryPath.is_relative()) {
             // remove file
             const auto filePath = fs::path(parser->currentFileName());
-            return filePath.parent_path() / entryPath;
+            const auto newPath = filePath.parent_path() / entryPath;
+            if (fs::exists(newPath)) {
+                return fs::canonical(newPath);
+            }
+            else {
+                return filePath;
+            }
         }
         else {
             return entryPath;

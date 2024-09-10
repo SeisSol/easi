@@ -3,12 +3,14 @@
 
 #include "parser/YAMLAbstractParser.h"
 
+#include <unordered_set>
 #include <yaml-cpp/yaml.h>
 
 #include <functional>
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace easi {
 
@@ -44,12 +46,15 @@ public:
     inline AsagiReader* asagiReader() override { return m_asagiReader; }
     inline std::string currentFileName() override { return m_currentFileName; }
 
+    std::vector<std::string> getFileNameList();
+
 private:
     std::set<std::string> m_in;
     std::unordered_map<std::string, std::function<CreateFunction>> m_creators;
     AsagiReader* m_asagiReader;
     bool m_externalAsagiReader;
     std::string m_currentFileName;
+    std::unordered_set<std::string> m_fileNames;
 };
 
 } // namespace easi
