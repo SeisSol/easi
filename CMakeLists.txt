@@ -117,9 +117,9 @@ if(ASAGI)
 endif()
 
 add_library(easi ${EASI_SOURCES})
-target_compile_features(easi PUBLIC cxx_std_14)
+target_compile_features(easi PUBLIC cxx_std_17)
 set_target_properties(easi PROPERTIES
-    CXX_STANDARD 14
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
 )
@@ -141,8 +141,11 @@ else()
   endif()
 endif()
 
-
-target_link_libraries(easi PRIVATE std::filesystem)
+# avoid linking to the imported std::filesystem target for now; to avoid its export
+target_link_libraries(easi PRIVATE ${FILESYSTEM_LIBRARIES})
+if (NOT IS_STD_FILESYSTEM_SUPPORT)
+    target_compile_definitions(easi PRIVATE EXPERIMENTAL_FS)
+endif()
 
 if(${OpenMP_CXX_FOUND})
     target_link_libraries(easi PRIVATE OpenMP::OpenMP_CXX)
