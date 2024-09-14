@@ -4,6 +4,7 @@
 #include "easi/component/OptimalStress.h"
 #include "easi/component/Special.h"
 #include "easi/parser/YAMLComponentParsers.h"
+#include <set>
 
 #ifdef EASI_USE_ASAGI
 #include "easi/util/AsagiReader.h"
@@ -28,13 +29,24 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #endif
 
+namespace {
+    std::set<std::string> makeVariables(std::size_t count, char first) {
+        std::set<std::string> variables;
+        for (std::size_t i = 0; i < count; ++i) {
+            variables.insert(std::string(1, first + i));
+        }
+        return variables;
+    }
+}
+
 namespace easi {
 
 YAMLParser::YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader, char firstVariable)
-    : m_asagiReader(externalAsagiReader), m_externalAsagiReader(externalAsagiReader != nullptr) {
-    for (unsigned i = 0; i < dimDomain; ++i) {
-        m_in.insert(std::string(1, firstVariable + i));
-    }
+    : YAMLParser(makeVariables(dimDomain, firstVariable), externalAsagiReader) {
+}
+
+YAMLParser::YAMLParser(const std::set<std::string>& variables, AsagiReader* externalAsagiReader)
+    : m_in(variables), m_asagiReader(externalAsagiReader), m_externalAsagiReader(externalAsagiReader != nullptr) {
     registerType("!Switch", parse_Switch);
     registerType("!ConstantMap", parse_ConstantMap);
     registerType("!PolynomialMap", parse_PolynomialMap);
