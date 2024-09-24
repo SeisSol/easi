@@ -199,7 +199,9 @@ void parse_FunctionMapToLua(LuaMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser) {
     checkType(node, "map", {YAML::NodeType::Map});
 
-    const auto code = node["map"].as<std::unordered_map<std::string, std::string>>();
+    const auto precode = node["map"].as<std::map<std::string, std::string>>();
+
+    const auto code = std::unordered_map<std::string, std::string>(precode.begin(), precode.end());
 
     const auto luaCode = convertImpalaToLua(code, std::vector<std::string>(in.begin(), in.end()));
 
