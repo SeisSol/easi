@@ -27,6 +27,8 @@ public:
 
     YAMLParser(unsigned dimDomain, AsagiReader* externalAsagiReader = nullptr,
                char firstVariable = 'x');
+    YAMLParser(const std::set<std::string>& variables,
+               AsagiReader* externalAsagiReader = nullptr);
     virtual ~YAMLParser();
 
     void registerType(std::string const& tag, std::function<CreateFunction> create);
