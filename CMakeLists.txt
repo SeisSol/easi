@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 project(easi)
 set(EASI_VERSION_MAJOR 1)
-set(EASI_VERSION_MINOR 4)
+set(EASI_VERSION_MINOR 5)
 set(EASI_VERSION_PATCH 0)
 
 add_compile_definitions(
