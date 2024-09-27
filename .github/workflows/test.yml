@@ -1,0 +1,49 @@
+name: build-easi
+on:
+  - push
+
+jobs:
+  easi:
+    name: easi
+    runs-on: ubuntu-24.04
+    container: seissol/gha-cpu:sha-44e8ec6
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - cc: gcc-13
+            cxx: g++-13
+            fc: gfortran-13
+          - cc: clang-19
+            cxx: clang++-19
+            fc: gfortran-13 # TODO?
+    steps:
+      - name: checkout-easi
+        uses: actions/checkout@v4
+
+      - id: build
+        name: build-easi
+        run: |
+          git config --global --add safe.directory '*'
+          git submodule update --init
+          mkdir build && cd build
+
+          # TODO: change to `-Wall -Werror` at some point
+          EXTRA_FLAGS="-Wall"
+
+          export CFLAGS="${EXTRA_FLAGS} ${CFLAGS}"
+          export CXXFLAGS="${EXTRA_FLAGS} ${CXXFLAGS}"
+          export FFLAGS="${EXTRA_FLAGS} ${FFLAGS}"
+
+          export CC=${{matrix.compiler.cc}}
+          export CXX=${{matrix.compiler.cxx}}
+          export FC=${{matrix.compiler.fc}}
+
+          cmake .. -GNinja -DIMPALAJIT=OFF -DTESTING=ON -DASAGI=ON -DLUA=ON -DEASICUBE=OFF
+          ninja
+
+      - name: test-easi
+        if: steps.build.outcome == 'success'
+        run: |
+          cd build
+          ctest --rerun-failed --output-on-failure

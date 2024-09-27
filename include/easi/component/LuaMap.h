@@ -30,7 +30,7 @@ protected:
     Matrix<double> map(Matrix<double>& x) override;
 
 private:
-    double executeLuaFunction(Matrix<double> x, unsigned coordIdx, unsigned funcIdx);
+    void executeLuaFunction(const Matrix<double>& x, Matrix<double>& y);
     std::string function;
     std::vector<std::string> idxToInputName;
     std::vector<std::string> idxToOutputName;

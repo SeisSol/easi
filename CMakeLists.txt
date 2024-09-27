@@ -21,7 +21,7 @@ option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
 
 option(TESTING "Compile tests" OFF)
 option(EASICUBE "Compile easicube" OFF)
-option(IMPALAJIT "Use ImpalaJIT" ON)
+option(IMPALAJIT "Use ImpalaJIT" OFF)
 option(PYTHON_BINDINGS "Compile python bindings" OFF)
 set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
 set(IMPALAJIT_BACKEND_OPTIONS original llvm)
@@ -105,6 +105,7 @@ set(EASI_SOURCES
     src/parser/YAMLComponentParsers.cpp
     src/parser/YAMLHelpers.cpp
     src/util/FunctionWrapper.cpp
+    src/util/ImpalaHandler.cpp
     src/util/RegularGrid.cpp
     src/Query.cpp
     src/YAMLParser.cpp
@@ -180,6 +181,8 @@ if (LUA)
     target_link_libraries(easi PRIVATE ${LUA_LIBRARIES})
     target_compile_definitions(easi PRIVATE EASI_USE_LUA)
 endif()
+
+add_subdirectory(external)
 
 target_include_directories(easi
     PUBLIC
@@ -281,7 +284,7 @@ if (TESTING)
     easi_add_test(3_layered_linear)
     easi_add_test(33_layered_constant)
 
-    if(IMPALA)
+    if(IMPALAJIT OR LUA)
         easi_add_test(2_prem)
         easi_add_test(5_function)
         easi_add_test(26_function)

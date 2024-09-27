@@ -39,7 +39,7 @@ void assertEqual(double z, unsigned index, std::vector<std::vector<double>> cons
     model(z, params);
 
     for (unsigned i = 0; i < 9; ++i) {
-        assert(equal(material[i][index], params[i]));
+        assert(equal(material[i][index], params[i], std::numeric_limits<float>::epsilon()));
     }
 }
 

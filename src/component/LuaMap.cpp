@@ -1,4 +1,5 @@
 #include "easi/component/LuaMap.h"
+#include <string>
 
 #ifdef EASI_USE_LUA
 extern "C" {
@@ -10,6 +11,46 @@ extern "C" {
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
+
+#ifdef EASI_LUA_LMATHX
+extern "C" int luaopen_mathx(lua_State* L);
+
+// Lua changes a lot between the different versions, hence we need quite some ifdefs here
+namespace {
+
+static void loadLmathx(lua_State* L) {
+#if LUA_VERSION_NUM < 502
+    lua_pushcfunction(L, luaopen_mathx);
+    lua_pushliteral(L, "mathx");
+    lua_call(L, 1, 0);
+#else
+    luaL_requiref(L, "mathx", luaopen_mathx, 1);
+    lua_pop(L, 1);
+#endif
+}
+
+static std::string loadCodeLmathX() {
+    // cf. example code for mathx: for Lua 5.3 and upwards, we need to supplement the math table.
+    // (for 5.2 and lower, that's done automatically)
+#if LUA_VERSION_NUM < 503
+    return "";
+#else
+    return "for fname,fval in pairs(mathx) do math[fname] = fval end;\n";
+#endif
+    return "";
+}
+
+}
+#else
+namespace {
+static void loadLmathx(lua_State* L) {
+}
+
+static std::string loadCodeLmathX() {
+    return "";   
+}
+}
+#endif
 
 namespace easi {
 
@@ -29,12 +70,14 @@ double getField(lua_State* L, const std::string& key) {
     return result;
 }
 
-double LuaMap::executeLuaFunction(Matrix<double> x,
-                                  unsigned coordIdx,
-                                  unsigned funcIdx) {
+void LuaMap::executeLuaFunction(const Matrix<double>& x,
+                                  Matrix<double>& y) {
     if (!luaState) {
         luaState = luaL_newstate();
         luaL_openlibs(luaState);
+        
+        loadLmathx(luaState);
+
         const auto status = luaL_dostring(luaState, function.data());
         if (status) {
             std::cerr
@@ -47,39 +90,42 @@ double LuaMap::executeLuaFunction(Matrix<double> x,
     // Save stack size
     const auto top = lua_gettop(luaState);
 
+    for (unsigned row = 0; row < y.rows(); ++row) {
+        // Push function and arguments to stack
+        lua_getglobal(luaState, "f");  // the function
 
-    // Push function and arguments to stack
-    lua_getglobal(luaState, "f");  // the function
+        // Add table as input: x holds coordinates
+        lua_newtable(luaState);
 
-    // Add table as input: x holds coordinates
-    lua_newtable(luaState);
-    for (int i = 0; i < x.cols(); ++i) {
-        // Support x[1] indexing
-        lua_pushnumber(luaState, i+1);
-        lua_pushnumber(luaState, x(coordIdx, i));
-        lua_rawset(luaState, -3);
+        for (int i = 0; i < x.cols(); ++i) {
+            // Support x[1] indexing
+            lua_pushnumber(luaState, i+1);
+            lua_pushnumber(luaState, x(row, i));
+            lua_rawset(luaState, -3);
 
-        // Support x["x"] indexing
-        lua_pushstring(luaState, idxToInputName[i].data());
-        lua_pushnumber(luaState, x(coordIdx, i));
-        lua_rawset(luaState, -3);
+            // Support x["x"] indexing
+            lua_pushstring(luaState, idxToInputName[i].data());
+            lua_pushnumber(luaState, x(row, i));
+            lua_rawset(luaState, -3);
+        }
+
+        if (lua_pcall(luaState, 1, 1, 0) != 0) {
+            std::cerr
+            << "Error running function f "
+            << lua_tostring(luaState, -1)
+            << " :::: f given by: " << function
+            << std::endl;
+            std::abort();
+        }
+
+        for (unsigned col = 0; col < y.cols(); ++col) {
+            y(row, col) = getField(luaState, idxToOutputName[col]);
+        }
+
+        // Reset stack size to value before function call
+        // This should avoid stack overflows
+        lua_settop(luaState, top);
     }
-
-    if (lua_pcall(luaState, 1, 1, 0) != 0) {
-        std::cerr
-        << "Error running function f "
-        << lua_tostring(luaState, -1)
-        << std::endl;
-        std::abort();
-    }
-
-    const auto retVal = getField(luaState, idxToOutputName[funcIdx]);
-
-    // Reset stack size to value before function call
-    // This should avoid stack overflows
-    lua_settop(luaState, top); 
-
-    return retVal;
 }
 
 Matrix<double> LuaMap::map(Matrix<double>& x) {
@@ -87,11 +133,7 @@ Matrix<double> LuaMap::map(Matrix<double>& x) {
     assert(x.cols() == dimDomain());
 
     Matrix<double> y(x.rows(), dimCodomain());
-    for (unsigned i = 0; i < y.rows(); ++i) {
-        for (unsigned j = 0; j < y.cols(); ++j) {
-            y(i,j) = executeLuaFunction(x, i, j);
-        }
-    }
+    executeLuaFunction(x, y);
     return y;
 }
 
@@ -100,7 +142,7 @@ void LuaMap::setMap(const std::set<std::string>& in,
                     const std::string& newFunction) {
     setIn(in);
     setOut(out);
-    function = newFunction;
+    function = loadCodeLmathX() + newFunction;
     for (const auto& i: in) {
         idxToInputName.push_back(i);
     }

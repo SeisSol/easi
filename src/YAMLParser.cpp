@@ -58,6 +58,8 @@ YAMLParser::YAMLParser(const std::set<std::string>& variables, AsagiReader* exte
     registerType("!AffineMap", parse_AffineMap);
 #ifdef EASI_USE_IMPALAJIT
     registerType("!FunctionMap", parse_FunctionMap);
+#elif defined(EASI_USE_LUA)
+    registerType("!FunctionMap", parse_FunctionMapToLua);
 #endif
 #ifdef EASI_USE_LUA
     registerType("!LuaMap", parse_LuaMap);
