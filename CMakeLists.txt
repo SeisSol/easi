@@ -125,6 +125,11 @@ set_target_properties(easi PROPERTIES
     CXX_EXTENSIONS OFF
 )
 
+target_compile_definitions(easi PUBLIC
+    EASI_VERSION_MAJOR=${EASI_VERSION_MAJOR}
+    EASI_VERSION_MINOR=${EASI_VERSION_MINOR}
+    EASI_VERSION_PATCH=${EASI_VERSION_PATCH}
+)
 
 if ("${yaml-cpp_VERSION}" VERSION_GREATER_EQUAL "0.8")
   target_link_libraries(easi PUBLIC yaml-cpp::yaml-cpp)
