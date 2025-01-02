@@ -12,6 +12,10 @@ extern "C" {
 #include <ostream>
 #include <stdexcept>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #ifdef EASI_LUA_LMATHX
 extern "C" int luaopen_mathx(lua_State* L);
 
@@ -72,59 +76,81 @@ double getField(lua_State* L, const std::string& key) {
 
 void LuaMap::executeLuaFunction(const Matrix<double>& x,
                                   Matrix<double>& y) {
-    if (!luaState) {
-        luaState = luaL_newstate();
-        luaL_openlibs(luaState);
-        
-        loadLmathx(luaState);
-
-        const auto status = luaL_dostring(luaState, function.data());
-        if (status) {
-            std::cerr
-                << "Couldn't load script: "
-                << lua_tostring(luaState, -1);
-            std::abort();
-        }
+#ifdef _OPENMP
+    const auto numStates = omp_get_max_threads();
+#else
+    const auto numStates = 1;
+#endif
+    if (luaStates.size() < numStates) {
+        luaStates.resize(numStates);
     }
-    
-    // Save stack size
-    const auto top = lua_gettop(luaState);
 
-    for (unsigned row = 0; row < y.rows(); ++row) {
-        // Push function and arguments to stack
-        lua_getglobal(luaState, "f");  // the function
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+#ifdef _OPENMP
+        auto& luaState = luaStates[omp_get_thread_num()];
+#else
+        auto& luaState = luaStates[0];
+#endif
+        if (luaState == nullptr) {
+            luaState = luaL_newstate();
+            luaL_openlibs(luaState);
+            
+            loadLmathx(luaState);
 
-        // Add table as input: x holds coordinates
-        lua_newtable(luaState);
-
-        for (int i = 0; i < x.cols(); ++i) {
-            // Support x[1] indexing
-            lua_pushnumber(luaState, i+1);
-            lua_pushnumber(luaState, x(row, i));
-            lua_rawset(luaState, -3);
-
-            // Support x["x"] indexing
-            lua_pushstring(luaState, idxToInputName[i].data());
-            lua_pushnumber(luaState, x(row, i));
-            lua_rawset(luaState, -3);
+            const auto status = luaL_dostring(luaState, function.data());
+            if (status != 0) {
+                std::cerr
+                    << "Couldn't load script: "
+                    << lua_tostring(luaState, -1);
+                std::abort();
+            }
         }
+        
+        // Save stack size
+        const auto top = lua_gettop(luaState);
 
-        if (lua_pcall(luaState, 1, 1, 0) != 0) {
-            std::cerr
-            << "Error running function f "
-            << lua_tostring(luaState, -1)
-            << " :::: f given by: " << function
-            << std::endl;
-            std::abort();
+#ifdef _OPENMP
+#pragma omp for
+#endif
+        for (unsigned row = 0; row < y.rows(); ++row) {
+            // Push function and arguments to stack
+            lua_getglobal(luaState, "f");  // the function
+
+            // Add table as input: x holds coordinates
+            lua_newtable(luaState);
+
+            for (int i = 0; i < x.cols(); ++i) {
+                // Support x[1] indexing
+                lua_pushnumber(luaState, i+1);
+                lua_pushnumber(luaState, x(row, i));
+                lua_rawset(luaState, -3);
+
+                // Support x["x"] indexing
+                lua_pushstring(luaState, idxToInputName[i].data());
+                lua_pushnumber(luaState, x(row, i));
+                lua_rawset(luaState, -3);
+            }
+
+            if (lua_pcall(luaState, 1, 1, 0) != 0) {
+                std::cerr
+                << "Error running function f "
+                << lua_tostring(luaState, -1)
+                << " :::: f given by: " << function
+                << std::endl;
+                std::abort();
+            }
+
+            for (unsigned col = 0; col < y.cols(); ++col) {
+                y(row, col) = getField(luaState, idxToOutputName[col]);
+            }
+
+            // Reset stack size to value before function call
+            // This should avoid stack overflows
+            lua_settop(luaState, top);
         }
-
-        for (unsigned col = 0; col < y.cols(); ++col) {
-            y(row, col) = getField(luaState, idxToOutputName[col]);
-        }
-
-        // Reset stack size to value before function call
-        // This should avoid stack overflows
-        lua_settop(luaState, top);
     }
 }
 
@@ -152,12 +178,10 @@ void LuaMap::setMap(const std::set<std::string>& in,
 }
 
 LuaMap::~LuaMap() {
-   if (luaState) {
-       lua_close(luaState);
-   }
+    for (auto* luaState : luaStates) {
+        lua_close(luaState);
+    }
 }
-
-
 
 } // namespace easi
 #endif // EASI_USE_LUA
