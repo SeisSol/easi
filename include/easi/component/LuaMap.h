@@ -34,8 +34,7 @@ private:
     std::string function;
     std::vector<std::string> idxToInputName;
     std::vector<std::string> idxToOutputName;
-    lua_State* luaState{nullptr};
-
+    std::vector<lua_State*> luaStates;
 };
 
 } // namespace easi
