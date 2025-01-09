@@ -82,6 +82,7 @@ if (PYTHON_BINDINGS)
     message(STATUS "Building Python bindings enabled")
     add_subdirectory(python_bindings)
     # position-independent code is required for linking a dynamic lib (e.g. pybind)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 
