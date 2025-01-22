@@ -134,6 +134,8 @@ target_compile_definitions(easi PUBLIC
 
 if ("${yaml-cpp_VERSION}" VERSION_GREATER_EQUAL "0.8")
   target_link_libraries(easi PUBLIC yaml-cpp::yaml-cpp)
+elseif ("${yaml-cpp_VERSION}" VERSION_GREATER_EQUAL "0.7")
+  target_link_libraries(easi PUBLIC yaml-cpp)
 else()
   # fallback code for old versions
   if (DEFINED YAML_CPP_INCLUDE_DIR AND EXISTS "${YAML_CPP_INCLUDE_DIR}")
