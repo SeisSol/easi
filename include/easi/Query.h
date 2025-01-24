@@ -12,7 +12,6 @@ struct Query {
     Vector<unsigned> index;
 
     Query(unsigned numPoints, unsigned dimDomain, bool initIndices = true);
-    ~Query();
 
     inline unsigned numPoints() const { return x.rows(); }
     inline unsigned dimDomain() const { return x.cols(); }
