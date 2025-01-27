@@ -309,6 +309,18 @@ Component* create_LayeredModel(YAML::Node const& node, std::set<std::string> con
     LayeredModelBuilder::Parameters parameters =
         node["parameters"].as<LayeredModelBuilder::Parameters>();
 
+    if (map->componentCount() > 0) {
+        // Add another wrapper around the map---as the components would only stack otherwise
+        // (thus causing bugs)
+
+        auto* mapWrapper = new EvalModel();
+        // NOTE: suppliedParameters yields the actual output variables of a Composite with sub Components
+        // (out only contains the pre-post-component-application parameters)
+        mapWrapper->setModel(map->in(), map->suppliedParameters(), map);
+
+        map = mapWrapper;
+    }
+
     builder.setMap(map);
     builder.setInterpolationType(interpolation);
     builder.setNodes(nodes);

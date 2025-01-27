@@ -36,6 +36,8 @@ public:
 
     virtual std::set<std::string> suppliedParameters();
 
+    std::size_t componentCount() { return m_components.size(); }
+
 protected:
     virtual Matrix<double> map(Matrix<double>& x) = 0;
 
