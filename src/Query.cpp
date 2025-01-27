@@ -11,8 +11,6 @@ Query::Query(unsigned numPoints, unsigned dimDomain, bool initIndices)
     }
 }
 
-Query::~Query() { clear(); }
-
 Query Query::shallowCopy() {
     Query copy = *this;
     return copy;
