@@ -32,7 +32,7 @@ namespace {
                 return fs::canonical(newPath);
             }
             else {
-                return filePath;
+                return entryPath;
             }
         }
         else {
