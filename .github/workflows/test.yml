@@ -6,7 +6,7 @@ jobs:
   easi:
     name: easi
     runs-on: ubuntu-24.04
-    container: seissol/gha-cpu:sha-44e8ec6
+    container: ${{ matrix.compiler.container }}
     strategy:
       fail-fast: false
       matrix:
@@ -14,9 +14,19 @@ jobs:
           - cc: gcc-13
             cxx: g++-13
             fc: gfortran-13
+            container: seissol/gha-cpu:davschneller-gpu-image
           - cc: clang-19
             cxx: clang++-19
             fc: gfortran-13 # TODO?
+            container: seissol/gha-cpu:davschneller-gpu-image
+          - cc: icx
+            cxx: icpx
+            fc: ifx
+            container: seissol/gha-gpu-intel:davschneller-gpu-image
+          - cc: nvc
+            cxx: nvc++
+            fc: nvfortran
+            container: seissol/gha-gpu-nvhpc:davschneller-gpu-image
     steps:
       - name: checkout-easi
         uses: actions/checkout@v4
@@ -46,4 +56,7 @@ jobs:
         if: steps.build.outcome == 'success'
         run: |
           cd build
-          ctest --rerun-failed --output-on-failure
+          # start with MPI for ASAGI, and NVHPC
+          export OMPI_ALLOW_RUN_AS_ROOT=1
+          export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+          mpirun -n 1 ctest --rerun-failed --output-on-failure
