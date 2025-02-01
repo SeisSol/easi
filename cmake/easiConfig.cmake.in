@@ -19,7 +19,6 @@ endif()
 if (EASI_ASAGI)
     find_dependency(PkgConfig)
     pkg_check_modules(ASAGI REQUIRED IMPORTED_TARGET asagi)
-    pkg_check_modules(NETCDF REQUIRED IMPORTED_TARGET netcdf)
 endif()
 
 if (NOT TARGET easi::easi)
