@@ -26,7 +26,7 @@ easi::Query createQuery(std::vector<std::pair<int, std::array<double, DIM>>> con
     return query;
 }
 
-bool equal(double v1, double v2, double eps = std::numeric_limits<double>::epsilon());
+bool equal(double v1, double v2, double eps = std::numeric_limits<double>::epsilon(), double epsrel = std::numeric_limits<double>::epsilon() * 100);
 std::vector<ElasticMaterial> elasticModel(std::string const& fileName, easi::Query& query);
 std::vector<std::vector<double>> genericModel(std::string const& fileName, easi::Query& query,
                                               std::vector<std::string> const& parameters);

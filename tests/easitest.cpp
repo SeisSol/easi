@@ -7,11 +7,11 @@
 #include <iomanip>
 #include <iostream>
 
-bool equal(double value, double ref, double eps) {
-    bool isEqual = fabs(ref - value) <= eps;
+bool equal(double value, double ref, double eps, double epsrel) {
+    bool isEqual = fabs(ref - value) <= eps + epsrel * fabs(ref);
     if (!isEqual) {
         std::cerr << std::setprecision(16) << "Expected: " << ref << "; actual: " << value
-                  << "; error: " << fabs(ref - value) << std::endl;
+                  << "; absolute error: " << fabs(ref - value) << std::endl;
     }
     return isEqual;
 }
