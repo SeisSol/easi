@@ -21,11 +21,7 @@ option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
 
 option(TESTING "Compile tests" OFF)
 option(EASICUBE "Compile easicube" OFF)
-option(IMPALAJIT "Use ImpalaJIT" OFF)
 option(PYTHON_BINDINGS "Compile python bindings" OFF)
-set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
-set(IMPALAJIT_BACKEND_OPTIONS original llvm)
-set_property(CACHE IMPALAJIT_BACKEND PROPERTY STRINGS ${IMPALAJIT_BACKEND_OPTIONS})
 
 option(LUA "Use Lua" ON)
 
@@ -39,7 +35,6 @@ function(check_parameter parameter_name value options)
     endif()
 
 endfunction()
-check_parameter("IMPALAJIT_BACKEND" "${IMPALAJIT_BACKEND}" "${IMPALAJIT_BACKEND_OPTIONS}")
 
 ### external packages ###
 
@@ -47,14 +42,6 @@ find_package(yaml-cpp 0.6 REQUIRED)
 find_package(OpenMP)
 
 find_package(FILESYSTEM REQUIRED)
-
-if(IMPALAJIT)
-    if (IMPALAJIT_BACKEND STREQUAL llvm)
-        find_package(ImpalaJIT-LLVM 1.0 REQUIRED)
-    else()
-        find_package (impalajit REQUIRED)
-    endif()
-endif()
 
 if (LUA)
     find_package(Lua REQUIRED)
@@ -95,7 +82,6 @@ set(EASI_SOURCES
     src/component/ConstantMap.cpp
     src/component/DomainFilter.cpp
     src/component/EvalModel.cpp
-    src/component/FunctionMap.cpp
     src/component/LuaMap.cpp
     src/component/LayeredModelBuilder.cpp
     src/component/OptimalStress.cpp
@@ -105,7 +91,6 @@ set(EASI_SOURCES
     src/component/Switch.cpp
     src/parser/YAMLComponentParsers.cpp
     src/parser/YAMLHelpers.cpp
-    src/util/FunctionWrapper.cpp
     src/util/ImpalaHandler.cpp
     src/util/RegularGrid.cpp
     src/Query.cpp
@@ -173,15 +158,6 @@ if(ASAGI)
             MPI::MPI_CXX
     )
     target_compile_definitions(easi PRIVATE EASI_USE_ASAGI)
-endif()
-
-if (IMPALAJIT)
-    if (IMPALAJIT_BACKEND STREQUAL "llvm")
-        target_link_libraries(easi PRIVATE llvm::impalajit)
-    else()
-        target_link_libraries(easi PRIVATE impalajit::impalajit)
-    endif()
-    target_compile_definitions(easi PRIVATE EASI_USE_IMPALAJIT)
 endif()
 
 if (LUA)
@@ -292,23 +268,20 @@ if (TESTING)
     easi_add_test(3_layered_linear)
     easi_add_test(33_layered_constant)
 
-    if(IMPALAJIT OR LUA)
+    if(LUA)
         easi_add_test(2_prem)
         easi_add_test(5_function)
         easi_add_test(26_function)
         easi_add_test(f_16_scec)
         easi_add_test(f_120_sumatra)
         easi_add_test(supplied_parameters)
+        easi_add_test(4_lua)
+        easi_add_test(6_lua)
     endif()
 
     if(ASAGI)
         easi_add_test(101_asagi)
         easi_add_test(101_asagi_nearest)
     endif ()
-
-    if (LUA)
-        easi_add_test(4_lua)
-        easi_add_test(6_lua)
-    endif()
 
 endif()

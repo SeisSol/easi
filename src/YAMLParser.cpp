@@ -56,12 +56,8 @@ YAMLParser::YAMLParser(const std::set<std::string>& variables, AsagiReader* exte
     registerType("!AxisAlignedCuboidalDomainFilter", parse_AxisAlignedCuboidalDomainFilter);
     registerType("!SphericalDomainFilter", parse_SphericalDomainFilter);
     registerType("!AffineMap", parse_AffineMap);
-#ifdef EASI_USE_IMPALAJIT
-    registerType("!FunctionMap", parse_FunctionMap);
-#elif defined(EASI_USE_LUA)
+#if defined(EASI_USE_LUA)
     registerType("!FunctionMap", parse_FunctionMapToLua);
-#endif
-#ifdef EASI_USE_LUA
     registerType("!LuaMap", parse_LuaMap);
 #endif
     registerType("!SCECFile", parse_SCECFile);
