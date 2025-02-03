@@ -10,7 +10,6 @@
 
 
 #include "easi/component/Map.h"
-#include "easi/util/FunctionWrapper.h"
 #include "easi/util/Matrix.h"
 
 // Forward declaration to avoid including all Lua headers
