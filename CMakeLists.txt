@@ -63,7 +63,7 @@ endif()
 if(ASAGI)
     find_package (PkgConfig REQUIRED)
     find_package (HDF5 REQUIRED COMPONENTS C HL)
-    pkg_check_modules (NETCDF REQUIRED IMPORTED_TARGET netcdf)
+    find_package (NetCDF REQUIRED)
     pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
 endif()
 
@@ -165,7 +165,7 @@ if(ASAGI)
     target_link_libraries(easi
         PUBLIC
             PkgConfig::ASAGI
-            PkgConfig::NETCDF
+            ${NetCDF_LIBRARY}
             ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
     )
     target_link_libraries(easi
