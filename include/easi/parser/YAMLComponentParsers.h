@@ -7,7 +7,6 @@
 #include "easi/component/ConstantMap.h"
 #include "easi/component/DomainFilter.h"
 #include "easi/component/EvalModel.h"
-#include "easi/component/FunctionMap.h"
 #include "easi/component/LuaMap.h"
 #include "easi/component/GroupFilter.h"
 #include "easi/component/LayeredModelBuilder.h"
@@ -54,10 +53,6 @@ void parse_ConstantMap(ConstantMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser);
 void parse_AffineMap(AffineMap* component, YAML::Node const& node, std::set<std::string> const& in,
                      YAMLAbstractParser* parser);
-#ifdef EASI_USE_IMPALAJIT
-void parse_FunctionMap(FunctionMap* component, YAML::Node const& node,
-                       std::set<std::string> const& in, YAMLAbstractParser* parser);
-#endif
 #ifdef EASI_USE_LUA
 void parse_LuaMap(LuaMap* component, YAML::Node const& node,
                        std::set<std::string> const& in, YAMLAbstractParser* parser);
