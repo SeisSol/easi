@@ -48,10 +48,15 @@ if (LUA)
 endif()
 
 if(ASAGI)
-    find_package (PkgConfig REQUIRED)
     find_package (HDF5 REQUIRED COMPONENTS C HL)
     find_package (NetCDF REQUIRED)
-    pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
+
+    find_package (asagi)
+    if (NOT asagi_FOUND)
+        find_package (PkgConfig REQUIRED)
+        pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
+        add_library(asagi::asagi ALIAS PkgConfig::ASAGI)
+    endif()
 endif()
 
 if (PYTHON_BINDINGS)
@@ -149,7 +154,7 @@ if(ASAGI)
     find_package(MPI REQUIRED)
     target_link_libraries(easi
         PUBLIC
-            PkgConfig::ASAGI
+            asagi::asagi
             ${NetCDF_LIBRARY}
             ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
     )
