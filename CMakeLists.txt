@@ -158,6 +158,7 @@ if(ASAGI)
             ${NetCDF_LIBRARY}
             ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
     )
+    target_include_directories(easi PUBLIC ${NetCDF_INCLUDE_DIRS})
     target_link_libraries(easi
             PUBLIC
             MPI::MPI_CXX
