@@ -8,6 +8,7 @@
 #include <cctype>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -50,19 +51,20 @@ Component* LayeredModelBuilder::getResult() {
             throw std::invalid_argument("Infinite nodes are forbidden for interpolation = linear.");
         }
     }
-    Nodes::iterator lower = m_nodes.end();
-    Nodes::iterator upper;
-    for (upper = m_nodes.begin(); upper != m_nodes.end(); ++upper) {
-        m_map->add(createModel(lower, upper, m_map->out()));
-        lower = upper;
+    
+    std::optional<Nodes::iterator::value_type> previous = std::nullopt;
+    for (const auto& node : m_nodes) {
+        m_map->add(createModel(previous, node, m_map->out()));
+        previous.emplace(node);
     }
 
-    m_map->add(createModel(lower, upper, m_map->out()));
+    m_map->add(createModel(previous, std::nullopt, m_map->out()));
 
     return m_map;
 }
 
-Component* LayeredModelBuilder::createModel(Nodes::iterator& lower, Nodes::iterator& upper,
+Component* LayeredModelBuilder::createModel(const std::optional<Nodes::iterator::value_type>& lower,
+                                            const std::optional<Nodes::iterator::value_type>& upper,
                                             std::set<std::string> const& in) {
     if (in.size() != 1) {
         std::ostringstream os;
@@ -73,18 +75,17 @@ Component* LayeredModelBuilder::createModel(Nodes::iterator& lower, Nodes::itera
     }
 
     enum InterpolationType interpolationType;
-    if (lower == m_nodes.end()) {
+    if (!lower.has_value()) {
         interpolationType = Upper;
-    } else if (upper == m_nodes.end()) {
+    } else if (!upper.has_value()) {
         interpolationType = Lower;
     } else {
         interpolationType = m_interpolationType;
     }
-    double lowerLimit =
-        (lower != m_nodes.end()) ? lower->first : -std::numeric_limits<double>::infinity();
-    double upperLimit =
-        (upper != m_nodes.end()) ? upper->first : std::numeric_limits<double>::infinity();
-    auto nParams = (lower != m_nodes.end()) ? lower->second.size() : upper->second.size();
+
+    const double lowerLimit = lower.has_value() ? lower.value().first : -std::numeric_limits<double>::infinity();
+    const double upperLimit = upper.has_value() ? upper.value().first : std::numeric_limits<double>::infinity();
+    auto nParams = lower.has_value() ? lower.value().second.size() : upper.value().second.size();
 
     if (m_parameters.size() != nParams) {
         throw std::invalid_argument("Number of parameters must match number of node entries.");
@@ -101,18 +102,18 @@ Component* LayeredModelBuilder::createModel(Nodes::iterator& lower, Nodes::itera
     if (interpolationType == Linear) {
         for (unsigned i = 0; i < nParams; ++i) {
             coeffs[m_parameters[i]][0] =
-                (lower->second[i] - upper->second[i]) / (lower->first - upper->first);
+                (lower.value().second[i] - upper.value().second[i]) / (lower.value().first - upper.value().first);
             coeffs[m_parameters[i]][1] =
-                (-upper->first * lower->second[i] + lower->first * upper->second[i]) /
-                (lower->first - upper->first);
+                (-upper.value().first * lower.value().second[i] + lower.value().first * upper.value().second[i]) /
+                (lower.value().first - upper.value().first);
         }
     } else if (interpolationType == Upper) {
         for (unsigned i = 0; i < nParams; ++i) {
-            coeffs[m_parameters[i]][0] = upper->second[i];
+            coeffs[m_parameters[i]][0] = upper.value().second[i];
         }
     } else {
         for (unsigned i = 0; i < nParams; ++i) {
-            coeffs[m_parameters[i]][0] = lower->second[i];
+            coeffs[m_parameters[i]][0] = lower.value().second[i];
         }
     }
 
