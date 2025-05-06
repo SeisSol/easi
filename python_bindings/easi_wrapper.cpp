@@ -34,19 +34,15 @@ py::array_t<double> evaluate_model_one_parameter(py::array_t<double> coordinates
         throw std::runtime_error("Input array must be of shape (npoints, 3)");
     }
 
-    // Access data pointers
-    double* coords_data = static_cast<double*>(coords_buf.ptr);
-    int* groups_data = static_cast<int*>(groups_buf.ptr);
-
     int npoints = coords_buf.shape[0];
 
     easi::Query query(npoints, 3);
 
     for (int i = 0; i < npoints; ++i) {
         for (int j = 0; j < 3; ++j) {
-            query.x(i, j) = coords_data[i * 3 + j];
+            query.x(i, j) = coordinates.at(i, j);
         }
-        query.group(i) = groups_data[i];
+        query.group(i) = groups.at(i);
     }
 
     easi::YAMLParser parser(3);
@@ -63,10 +59,9 @@ py::array_t<double> evaluate_model_one_parameter(py::array_t<double> coordinates
     // Create a new NumPy array to store the result
     py::array_t<double> result_array(npoints);
     auto result_buf = result_array.request();
-    double* result_data = static_cast<double*>(result_buf.ptr);
 
     for (size_t i = 0; i < npoints; ++i) {
-        result_data[i] = myOutputStruc[i].parameter;
+        result_array.mutable_at(i) = myOutputStruc[i].parameter;
     }
     return result_array;
 }
