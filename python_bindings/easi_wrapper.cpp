@@ -6,6 +6,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <iostream>
+
 #ifndef EASI_VERSION
 #define EASI_VERSION "0.0.0"
 #endif
@@ -41,9 +43,13 @@ py::array_t<double> evaluate_model_one_parameter(py::array_t<double> coordinates
     for (int i = 0; i < npoints; ++i) {
         for (int j = 0; j < 3; ++j) {
             query.x(i, j) = coordinates.at(i, j);
+            std::cout << i << " " << j << " " << query.x(i,j) << std::endl;
         }
         query.group(i) = groups.at(i);
+        std::cout << i << " " << query.group(i) << std::endl;
     }
+
+    std::cout << "COMPUTE" << std::endl;
 
     easi::YAMLParser parser(3);
     easi::Component* model_stress = parser.parse(yaml_file.c_str());
@@ -62,6 +68,7 @@ py::array_t<double> evaluate_model_one_parameter(py::array_t<double> coordinates
 
     for (size_t i = 0; i < npoints; ++i) {
         result_array.mutable_at(i) = myOutputStruc[i].parameter;
+        std::cout << i << " " << result_array.at(i) << std::endl;
     }
     return result_array;
 }
