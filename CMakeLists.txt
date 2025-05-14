@@ -59,24 +59,45 @@ if(ASAGI)
     endif()
 endif()
 
-if (PYTHON_BINDINGS)
-    set(PYBIND11_VER 2.11.1)
+
+if(PYTHON_BINDINGS)
+    set(PYBIND11_VER 2.13.6)
+    # pybind11 is the first supporting compiling for NumPy 2
+    set(PYBIND11_VER_MIN 2.12.0)
     set(PYBIND11_FINDPYTHON ON)
-    find_package(pybind11 ${PYBIND11_VER} QUIET)
-    if (NOT pybind11_FOUND)
-         include(FetchContent)
-         FetchContent_Declare(pybind11
-                            GIT_REPOSITORY https://github.com/pybind/pybind11.git
-                            GIT_TAG v${PYBIND11_VER})
-         FetchContent_MakeAvailable(pybind11)
-    endif ()
+
+    set(NEED_FETCH FALSE)
+
+    find_package(pybind11 QUIET)
+
+    if(NOT pybind11_FOUND)
+        set(NEED_FETCH TRUE)
+    elseif(pybind11_VERSION VERSION_LESS PYBIND11_VER_MIN)
+        set(NEED_FETCH TRUE)
+        message(STATUS "Found pybind11 ${pybind11_VERSION} (in ${pybind11_DIR}) but need ${PYBIND11_VER_MIN}, will fetch newer version")
+    endif()
+
+    if(NEED_FETCH)
+        include(FetchContent)
+        FetchContent_Declare(pybind11
+            GIT_REPOSITORY https://github.com/pybind/pybind11.git
+            GIT_TAG v${PYBIND11_VER}
+        )
+        FetchContent_Populate(pybind11)
+
+        # Manually add the downloaded pybind11 to search path
+        list(PREPEND CMAKE_PREFIX_PATH "${pybind11_SOURCE_DIR}/cmake")
+    endif()
+
+    # Now, find_package again, cleanly
+    find_package(pybind11 REQUIRED)
 
     message(STATUS "Building Python bindings enabled")
     add_subdirectory(python_bindings)
     # position-independent code is required for linking a dynamic lib (e.g. pybind)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
+
 
 ### easi lib ###
 
