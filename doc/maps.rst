@@ -96,7 +96,12 @@ Assigns a value using a polynomial for every parameter.
 FunctionMap
 -----------
 
-Implements a mapping described by an ImpalaJIT function.
+Implements a mapping described by an ImpalaJIT function;
+that is a function supporting all C math functions, floating point operations, if-else, and return.
+Local variables are also supported.
+
+Only enabled if Lua is compiled in.
+(NOTE: ImpalaJIT as dependency is only required for easi below version 1.5.0)
 
 .. code-block:: YAML
 
@@ -121,11 +126,56 @@ Implements a mapping described by an ImpalaJIT function.
 The <function_body> must an be ImpalaJIT function (without surrounding curly braces).
 The function gets passed all input dimensions automatically.
 
-**Known limitations:**
+**Known limitations (due to the ImpalaJIT syntax):**
 
 - No comments (// or /\* \*/)
 - No exponential notation (use pow(10.,3.) instead of 1e3)
 - No 'else if' (use else { if () {}}).
+
+LuaMap
+------
+
+A Lua function.
+
+The function needs to be called ``f`` and accept a single input parameter.
+This input parameter will contain all input variables in a dictionary.
+The output variables are defined by the extra ``returns`` field.
+
+.. code-block:: YAML
+
+    !LuaMap
+    returns: [outvar1, ..., outvarN]
+    function: |
+      function f(coords)
+        # use like e.g. coords["x"], coords["y"], coords["z"]
+
+        # code
+
+        return {
+          "outvar1": value1,
+          ...
+          "outvarN": valueN,
+        }
+      end function
+
+:Domain:
+  *inherited*
+:Codomain:
+  given in ``returns``
+:Example:
+  Given input dimensions are x,y,z. Same example as for the ``FunctionMap``.
+  .. code-block:: YAML
+
+    !LuaMap
+    returns: [p]
+    function: |
+      function f(x)
+        return {
+          "p": x["x"] * x["y"] * x["z"],
+        }
+      end function
+
+  Will return :math:`p = x \cdot y \cdot z`.
 
 ASAGI
 -----
@@ -219,7 +269,7 @@ ratio R (where :math:`R=1/(1+S)`), the effective confining stress
 :math:`s2ratio = (s_2-s_3)/(s_1-s_3)`, where :math:`s_1>s_2>s_3` are the principal stress
 magnitudes, following the procedure described in Ulrich et al.
 (2019), methods section 'Initial Stress'. To prescribe R, static and dynamic friction
-(mu\_s and mu\_d) as well as cohesion are required. 
+(mu\_s and mu\_d) as well as cohesion are required.
 
 .. code-block:: YAML
 
@@ -253,12 +303,12 @@ Assuming mu_d=0.6, S_v = 1 favours normal faulting on a 60° dipping fault plane
 S_v = 2 favours strike-slip faulting on a vertical fault plane making an angle of 30° with SH_max and
 S_v = 3 favours reverse faulting on a 30° dipping fault plane striking SH_max.
 
-The principal stress magnitudes are prescribed by the relative fault strength S (related to the relative prestress ratio R by :math:`R=1/(1+S)`), 
+The principal stress magnitudes are prescribed by the relative fault strength S (related to the relative prestress ratio R by :math:`R=1/(1+S)`),
 the vertical stress sig_zz and the stress shape ratio
 :math:`s2ratio = (s_2-s_3)/(s_1-s_3)`, where :math:`s_1>s_2>s_3` are the principal stress
 magnitudes, following the procedure described in Ulrich et al.
 (2019), methods section 'Initial Stress'. To prescribe S, static and dynamic friction
-(mu\_s and mu\_d) as well as cohesion are required. 
+(mu\_s and mu\_d) as well as cohesion are required.
 
 
 
@@ -334,7 +384,7 @@ Evaluates application-defined functions.
 :Example:
   We want to create a function which takes three input parameters
   and supplies two output parameters:
-  
+
   .. code-block:: cpp
 
     #include "easi/util/MagicStruct.h"
@@ -358,7 +408,7 @@ Evaluates application-defined functions.
 
     SELF_AWARE_STRUCT(Special::in, i1, i2, i3)
     SELF_AWARE_STRUCT(Special::out, o1, o2)
-  
+
   Register this file with the parser:
 
   .. code-block:: cpp
