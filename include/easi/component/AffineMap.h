@@ -12,21 +12,22 @@
 
 namespace easi {
 class AffineMap : public Map {
-public:
-    typedef std::map<std::string, std::vector<double>> Transformation;
-    typedef std::map<std::string, double> Translation;
+  public:
+  typedef std::map<std::string, std::vector<double>> Transformation;
+  typedef std::map<std::string, double> Translation;
 
-    inline virtual ~AffineMap() {}
+  inline virtual ~AffineMap() {}
 
-    void setMap(std::set<std::string> const& in, Transformation const& matrix,
-                Translation const& translation);
+  void setMap(const std::set<std::string>& in,
+              const Transformation& matrix,
+              const Translation& translation);
 
-protected:
-    virtual Matrix<double> map(Matrix<double>& x);
+  protected:
+  virtual Matrix<double> map(Matrix<double>& x);
 
-private:
-    Matrix<double> m_matrix;
-    Vector<double> m_translation;
+  private:
+  Matrix<double> m_matrix;
+  Vector<double> m_translation;
 };
 
 } // namespace easi

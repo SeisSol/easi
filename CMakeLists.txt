@@ -257,7 +257,7 @@ if(EASICUBE)
         set_target_properties (easicube PROPERTIES
             INSTALL_RPATH_USE_LINK_PATH TRUE
         )
-    
+
         install (TARGETS easicube)
     else()
         message(WARNING "easicube needs easi to be compiled with ASAGI. Since this is not the case, easicube will be skipped.")

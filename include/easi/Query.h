@@ -7,17 +7,17 @@
 namespace easi {
 
 struct Query {
-    Vector<int> group;
-    Matrix<double> x;
-    Vector<unsigned> index;
+  Vector<int> group;
+  Matrix<double> x;
+  Vector<unsigned> index;
 
-    Query(unsigned numPoints, unsigned dimDomain, bool initIndices = true);
+  Query(unsigned numPoints, unsigned dimDomain, bool initIndices = true);
 
-    inline unsigned numPoints() const { return x.rows(); }
-    inline unsigned dimDomain() const { return x.cols(); }
+  inline unsigned numPoints() const { return x.rows(); }
+  inline unsigned dimDomain() const { return x.cols(); }
 
-    Query shallowCopy();
-    void clear();
+  Query shallowCopy();
+  void clear();
 };
 
 } // namespace easi

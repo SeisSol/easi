@@ -12,18 +12,18 @@
 namespace easi {
 
 class PolynomialMap : public Map {
-public:
-    using OutMap = std::map<std::string, std::vector<double>>;
+  public:
+  using OutMap = std::map<std::string, std::vector<double>>;
 
-    inline virtual ~PolynomialMap() {}
+  inline virtual ~PolynomialMap() {}
 
-    void setMap(std::set<std::string> const& in, OutMap const& outMap);
+  void setMap(const std::set<std::string>& in, const OutMap& outMap);
 
-protected:
-    virtual Matrix<double> map(Matrix<double>& x);
+  protected:
+  virtual Matrix<double> map(Matrix<double>& x);
 
-private:
-    Matrix<double> m_coeffs;
+  private:
+  Matrix<double> m_coeffs;
 };
 
 } // namespace easi

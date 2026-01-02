@@ -8,15 +8,15 @@
 namespace easi {
 
 template <typename T>
-void printWithSeparator(T const& vectorLike, std::ostream& os, std::string const& separator = ",") {
-    auto it = vectorLike.cbegin();
-    auto end = vectorLike.cend();
-    if (it != end) {
-        os << *it++;
-    }
-    while (it != end) {
-        os << separator << *it++;
-    }
+void printWithSeparator(const T& vectorLike, std::ostream& os, const std::string& separator = ",") {
+  auto it = vectorLike.cbegin();
+  auto end = vectorLike.cend();
+  if (it != end) {
+    os << *it++;
+  }
+  while (it != end) {
+    os << separator << *it++;
+  }
 }
 
 } // namespace easi

@@ -69,7 +69,7 @@ For example, such a configuration file could look like the following:
           -3000.0:  [2700.0, 2.1168e10, 2.7891e10]
           -6000.0:  [2870.0, 3.1041e10, 3.8591e10]
           -31000.0: [3500.0, 3.9847e10, 4.3525e10]
-          -50000.0: [3200.0, 6.4800e10, 6.5088e10] 
+          -50000.0: [3200.0, 6.4800e10, 6.5088e10]
 
 Here, all points with y-coordinate inbetween -5 km and +5 km would be
 assigned constant model parameters. For all other points, a linear
@@ -85,7 +85,7 @@ Here, we may use the YAMLParser class which creates models from YAML configurati
   :linenos:
 
   easi::YAMLParser parser(3);
-  easi::Component* model = parser.parse("test.yaml");  
+  easi::Component* model = parser.parse("test.yaml");
 
 The argument in YAMLParser's constructor is the dimension of the input vectors.
 Here, we take 3 as we want to query our model in a 3-dimensional space.
@@ -116,7 +116,7 @@ structs, and hence we use an ArrayOfStructsAdapter.
 (Note that additional adapters can be implemented by overriding the class ResultAdapter.)
 
 .. code-block:: cpp
-  
+
   struct ElasticMaterial {
     double lambda, mu, rho;
   };
@@ -158,23 +158,23 @@ The whole sample code is listed in the following:
     query.x(1,1) = 3.0;
     query.x(1,2) = -4.0;
     query.group(1) = 1;
-    
+
     easi::YAMLParser parser(3);
-    easi::Component* model = parser.parse("test.yaml");  
-    
+    easi::Component* model = parser.parse("test.yaml");
+
     ElasticMaterial material[2];
     easi::ArrayOfStructsAdapter<ElasticMaterial> adapter(material);
     adapter.addBindingPoint("lambda", &ElasticMaterial::lambda);
     adapter.addBindingPoint("mu",     &ElasticMaterial::mu);
     adapter.addBindingPoint("rho",    &ElasticMaterial::rho);
-    
+
     model->evaluate(query, adapter);
-    
+
     delete model;
-    
+
     for (unsigned j = 0; j < 2; ++j) {
       std::cout << material[j].lambda << " " << material[j].mu << " " << material[j].rho << std::endl;
-    }  
+    }
 
     return 0;
   }

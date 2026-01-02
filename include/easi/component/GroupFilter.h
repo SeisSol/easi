@@ -9,18 +9,18 @@
 namespace easi {
 
 class GroupFilter : public Filter {
-public:
-    inline virtual ~GroupFilter() {}
+  public:
+  inline virtual ~GroupFilter() {}
 
-    virtual bool accept(int group, Slice<double> const&) const {
-        return m_groups.find(group) != m_groups.end();
-    }
+  virtual bool accept(int group, const Slice<double>&) const {
+    return m_groups.find(group) != m_groups.end();
+  }
 
-    using Filter::setInOut; // Make setInOut public
-    inline void setGroups(std::set<int> const& groups) { m_groups = groups; }
+  using Filter::setInOut; // Make setInOut public
+  inline void setGroups(const std::set<int>& groups) { m_groups = groups; }
 
-private:
-    std::set<int> m_groups;
+  private:
+  std::set<int> m_groups;
 };
 
 } // namespace easi
