@@ -2,6 +2,7 @@
 #define EASI_COMPONENT_LAYEREDMODELBUILDER_H_
 
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -28,7 +29,8 @@ public:
     Component* getResult();
 
 private:
-    Component* createModel(Nodes::iterator& lower, Nodes::iterator& upper,
+    Component* createModel(const std::optional<Nodes::iterator::value_type>& lower,
+                           const std::optional<Nodes::iterator::value_type>& upper,
                            std::set<std::string> const& in);
 
     Map* m_map = nullptr;

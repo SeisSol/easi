@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 
 project(easi)
 set(EASI_VERSION_MAJOR 1)
-set(EASI_VERSION_MINOR 5)
-set(EASI_VERSION_PATCH 0)
+set(EASI_VERSION_MINOR 6)
+set(EASI_VERSION_PATCH 2)
 
 add_compile_definitions(
     EASI_VERSION="${EASI_VERSION_MAJOR}.${EASI_VERSION_MINOR}.${EASI_VERSION_PATCH}"
@@ -21,11 +21,7 @@ option(BUILD_SHARED_LIBS "compile as a shared library" OFF)
 
 option(TESTING "Compile tests" OFF)
 option(EASICUBE "Compile easicube" OFF)
-option(IMPALAJIT "Use ImpalaJIT" OFF)
 option(PYTHON_BINDINGS "Compile python bindings" OFF)
-set(IMPALAJIT_BACKEND original CACHE STRING "Which backend to use")
-set(IMPALAJIT_BACKEND_OPTIONS original llvm)
-set_property(CACHE IMPALAJIT_BACKEND PROPERTY STRINGS ${IMPALAJIT_BACKEND_OPTIONS})
 
 option(LUA "Use Lua" ON)
 
@@ -39,7 +35,6 @@ function(check_parameter parameter_name value options)
     endif()
 
 endfunction()
-check_parameter("IMPALAJIT_BACKEND" "${IMPALAJIT_BACKEND}" "${IMPALAJIT_BACKEND_OPTIONS}")
 
 ### external packages ###
 
@@ -48,43 +43,61 @@ find_package(OpenMP)
 
 find_package(FILESYSTEM REQUIRED)
 
-if(IMPALAJIT)
-    if (IMPALAJIT_BACKEND STREQUAL llvm)
-        find_package(ImpalaJIT-LLVM 1.0 REQUIRED)
-    else()
-        find_package (impalajit REQUIRED)
-    endif()
-endif()
-
 if (LUA)
     find_package(Lua REQUIRED)
 endif()
 
 if(ASAGI)
-    find_package (PkgConfig REQUIRED)
     find_package (HDF5 REQUIRED COMPONENTS C HL)
-    pkg_check_modules (NETCDF REQUIRED IMPORTED_TARGET netcdf)
-    pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
+    find_package (NetCDF REQUIRED)
+
+    find_package (asagi)
+    if (NOT asagi_FOUND)
+        find_package (PkgConfig REQUIRED)
+        pkg_check_modules (ASAGI REQUIRED IMPORTED_TARGET asagi)
+        add_library(asagi::asagi ALIAS PkgConfig::ASAGI)
+    endif()
 endif()
 
-if (PYTHON_BINDINGS)
-    set(PYBIND11_VER 2.11.1)
+
+if(PYTHON_BINDINGS)
+    set(PYBIND11_VER 2.13.6)
+    # pybind11 is the first supporting compiling for NumPy 2
+    set(PYBIND11_VER_MIN 2.12.0)
     set(PYBIND11_FINDPYTHON ON)
-    find_package(pybind11 ${PYBIND11_VER} QUIET)
-    if (NOT pybind11_FOUND)
-         include(FetchContent)
-         FetchContent_Declare(pybind11
-                            GIT_REPOSITORY https://github.com/pybind/pybind11.git
-                            GIT_TAG v${PYBIND11_VER})
-         FetchContent_MakeAvailable(pybind11)
-    endif ()
+
+    set(NEED_FETCH FALSE)
+
+    find_package(pybind11 QUIET)
+
+    if(NOT pybind11_FOUND)
+        set(NEED_FETCH TRUE)
+    elseif(pybind11_VERSION VERSION_LESS PYBIND11_VER_MIN)
+        set(NEED_FETCH TRUE)
+        message(STATUS "Found pybind11 ${pybind11_VERSION} (in ${pybind11_DIR}) but need ${PYBIND11_VER_MIN}, will fetch newer version")
+    endif()
+
+    if(NEED_FETCH)
+        include(FetchContent)
+        FetchContent_Declare(pybind11
+            GIT_REPOSITORY https://github.com/pybind/pybind11.git
+            GIT_TAG v${PYBIND11_VER}
+        )
+        FetchContent_Populate(pybind11)
+
+        # Manually add the downloaded pybind11 to search path
+        list(PREPEND CMAKE_PREFIX_PATH "${pybind11_SOURCE_DIR}/cmake")
+    endif()
+
+    # Now, find_package again, cleanly
+    find_package(pybind11 REQUIRED)
 
     message(STATUS "Building Python bindings enabled")
     add_subdirectory(python_bindings)
     # position-independent code is required for linking a dynamic lib (e.g. pybind)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
+
 
 ### easi lib ###
 
@@ -95,7 +108,6 @@ set(EASI_SOURCES
     src/component/ConstantMap.cpp
     src/component/DomainFilter.cpp
     src/component/EvalModel.cpp
-    src/component/FunctionMap.cpp
     src/component/LuaMap.cpp
     src/component/LayeredModelBuilder.cpp
     src/component/OptimalStress.cpp
@@ -105,7 +117,6 @@ set(EASI_SOURCES
     src/component/Switch.cpp
     src/parser/YAMLComponentParsers.cpp
     src/parser/YAMLHelpers.cpp
-    src/util/FunctionWrapper.cpp
     src/util/ImpalaHandler.cpp
     src/util/RegularGrid.cpp
     src/Query.cpp
@@ -164,24 +175,16 @@ if(ASAGI)
     find_package(MPI REQUIRED)
     target_link_libraries(easi
         PUBLIC
-            PkgConfig::ASAGI
-            PkgConfig::NETCDF
+            asagi::asagi
+            ${NetCDF_LIBRARY}
             ${HDF5_C_HL_LIBRARIES} ${HDF5_C_LIBRARIES}
     )
+    target_include_directories(easi PUBLIC ${NetCDF_INCLUDE_DIRS})
     target_link_libraries(easi
             PUBLIC
             MPI::MPI_CXX
     )
     target_compile_definitions(easi PRIVATE EASI_USE_ASAGI)
-endif()
-
-if (IMPALAJIT)
-    if (IMPALAJIT_BACKEND STREQUAL "llvm")
-        target_link_libraries(easi PRIVATE llvm::impalajit)
-    else()
-        target_link_libraries(easi PRIVATE impalajit::impalajit)
-    endif()
-    target_compile_definitions(easi PRIVATE EASI_USE_IMPALAJIT)
 endif()
 
 if (LUA)
@@ -292,23 +295,20 @@ if (TESTING)
     easi_add_test(3_layered_linear)
     easi_add_test(33_layered_constant)
 
-    if(IMPALAJIT OR LUA)
+    if(LUA)
         easi_add_test(2_prem)
         easi_add_test(5_function)
         easi_add_test(26_function)
         easi_add_test(f_16_scec)
         easi_add_test(f_120_sumatra)
         easi_add_test(supplied_parameters)
+        easi_add_test(4_lua)
+        easi_add_test(6_lua)
     endif()
 
     if(ASAGI)
         easi_add_test(101_asagi)
         easi_add_test(101_asagi_nearest)
     endif ()
-
-    if (LUA)
-        easi_add_test(4_lua)
-        easi_add_test(6_lua)
-    endif()
 
 endif()

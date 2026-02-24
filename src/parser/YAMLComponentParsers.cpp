@@ -168,18 +168,6 @@ void parse_AffineMap(AffineMap* component, YAML::Node const& node, std::set<std:
     parse_Map(component, node, in, parser);
 }
 
-#ifdef EASI_USE_IMPALAJIT
-void parse_FunctionMap(FunctionMap* component, YAML::Node const& node,
-                       std::set<std::string> const& in, YAMLAbstractParser* parser) {
-    checkType(node, "map", {YAML::NodeType::Map});
-
-    FunctionMap::OutMap out = node["map"].as<FunctionMap::OutMap>();
-
-    component->setMap(in, out);
-    parse_Map(component, node, in, parser);
-}
-#endif
-
 #ifdef EASI_USE_LUA
 void parse_LuaMap(LuaMap* component, YAML::Node const& node,
                   std::set<std::string> const& in, YAMLAbstractParser* parser) {
