@@ -10,6 +10,8 @@ Any
 Any mostly serves as a root node and accepts every point and every
 group.
 
+Can be used to construct "first match" structures; where the first filter that matches is taken as value.
+
 .. code-block:: YAML
 
     !Any
@@ -82,6 +84,8 @@ Switch
 ------
 
 Can be used to use select a component based on the requested parameters.
+
+In essence equivalent to combining a tuple of parameters from different sources.
 
 .. code-block:: YAML
 

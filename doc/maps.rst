@@ -100,7 +100,7 @@ Implements a mapping described by an ImpalaJIT function;
 that is a function supporting all C math functions, floating point operations, if-else, and return.
 Local variables are also supported.
 
-Only enabled if Lua is compiled in.
+Only enabled if Lua is compiled in – internally, Impala is transpiled to Lua.
 (NOTE: ImpalaJIT as dependency is only required for easi below version 1.5.0)
 
 .. code-block:: YAML
@@ -135,7 +135,7 @@ The function gets passed all input dimensions automatically.
 LuaMap
 ------
 
-A Lua function.
+A Lua function. Useful for nonlinear computations.
 
 The function needs to be called ``f`` and accept a single input parameter.
 This input parameter will contain all input variables in a dictionary.
@@ -181,6 +181,7 @@ ASAGI
 -----
 
 Looks up values using ASAGI (with trilinear interpolation).
+If the value is out of bounds, the match will fail.
 
 .. code-block:: YAML
 
@@ -233,6 +234,8 @@ EvalModel
 ---------
 
 Provides values by evaluating another easi tree.
+
+Functionally equivalent to defining a temporary variable.
 
 .. code-block:: YAML
 
