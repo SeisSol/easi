@@ -41,7 +41,7 @@ double* RegularGrid::operator()(const unsigned* index) {
   return m_values + m_numValues * idx;
 }
 
-void RegularGrid::getNearestNeighbour(const Slice<double>& x, double* buffer) {
+void RegularGrid::getNearestNeighbor(const Slice<double>& x, double* buffer) {
   assert(x.size() == m_dimensions);
 
   unsigned idx[MaxDimensions];
@@ -62,7 +62,7 @@ void RegularGrid::getNearestNeighbour(const Slice<double>& x, double* buffer) {
   }
 }
 
-void RegularGrid::getNeighbours(const Slice<double>& x, double* weights, double* buffer) {
+void RegularGrid::getNeighbors(const Slice<double>& x, double* weights, double* buffer) {
   assert(x.size() == m_dimensions);
 
   unsigned idxBase[MaxDimensions];

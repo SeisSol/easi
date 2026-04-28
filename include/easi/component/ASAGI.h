@@ -28,8 +28,8 @@ class ASAGI : public Grid<ASAGI> {
                asagi::Grid* grid,
                unsigned numberOfThreads);
 
-  void getNearestNeighbour(const Slice<double>& x, double* buffer);
-  void getNeighbours(const Slice<double>& x, double* weights, double* buffer);
+  void getNearestNeighbor(const Slice<double>& x, double* buffer);
+  void getNeighbors(const Slice<double>& x, double* weights, double* buffer);
   inline unsigned permutation(unsigned index) const { return m_permutation[index]; }
 
   protected:

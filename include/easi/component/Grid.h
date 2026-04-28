@@ -25,12 +25,12 @@ class Grid : public Map {
     m_interpolationType = interpolationType;
   }
 
-  void getNearestNeighbour(const Slice<double>& x, double* buffer) {
-    static_cast<Derived*>(this)->getNearestNeighbour(x, buffer);
+  void getNearestNeighbor(const Slice<double>& x, double* buffer) {
+    static_cast<Derived*>(this)->getNearestNeighbor(x, buffer);
   }
 
-  void getNeighbours(const Slice<double>& x, double* weights, double* buffer) {
-    static_cast<Derived*>(this)->getNeighbours(x, weights, buffer);
+  void getNeighbors(const Slice<double>& x, double* weights, double* buffer) {
+    static_cast<Derived*>(this)->getNeighbors(x, weights, buffer);
   }
   unsigned permutation(unsigned index) const {
     return static_cast<const Derived*>(this)->permutation(index);
@@ -50,36 +50,36 @@ Matrix<double> Grid<GridImpl>::map(Matrix<double>& x) {
 #pragma omp parallel num_threads(numberOfThreads()) shared(x, y)
 #endif
   {
-    double* neighbours = new double[(1 << dimDomain()) * dimCodomain()];
+    double* neighbors = new double[(1 << dimDomain()) * dimCodomain()];
     double* weights = new double[dimDomain()];
 #ifdef _OPENMP
 #pragma omp for
 #endif
     for (unsigned i = 0; i < x.rows(); ++i) {
       if (m_interpolationType == Linear) {
-        getNeighbours(x.rowSlice(i), weights, neighbours);
+        getNeighbors(x.rowSlice(i), weights, neighbors);
 
         // linear interpolation
         for (int d = static_cast<int>(dimDomain()) - 1; d >= 0; --d) {
           for (int p = 0; p < (1 << d); ++p) {
             for (int v = 0; v < static_cast<int>(dimCodomain()); ++v) {
-              neighbours[p * dimCodomain() + v] =
-                  neighbours[p * dimCodomain() + v] * (1.0 - weights[d]) +
-                  neighbours[((1 << d) + p) * dimCodomain() + v] * weights[d];
+              neighbors[p * dimCodomain() + v] =
+                  neighbors[p * dimCodomain() + v] * (1.0 - weights[d]) +
+                  neighbors[((1 << d) + p) * dimCodomain() + v] * weights[d];
             }
           }
         }
       } else {
-        getNearestNeighbour(x.rowSlice(i), neighbours);
+        getNearestNeighbor(x.rowSlice(i), neighbors);
       }
 
       for (int v = 0; v < static_cast<int>(dimCodomain()); ++v) {
-        y(i, permutation(v)) = neighbours[v];
+        y(i, permutation(v)) = neighbors[v];
       }
     }
 
     delete[] weights;
-    delete[] neighbours;
+    delete[] neighbors;
   }
 
   return y;

@@ -66,7 +66,7 @@ void ASAGI::setGrid(const std::set<std::string>& in,
   }
 }
 
-void ASAGI::getNearestNeighbour(const Slice<double>& x, double* buffer) {
+void ASAGI::getNearestNeighbor(const Slice<double>& x, double* buffer) {
   double pos[MaxDimensions]{};
   float bufferSP[MaxDimensions]{};
   for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
@@ -78,7 +78,7 @@ void ASAGI::getNearestNeighbour(const Slice<double>& x, double* buffer) {
   }
 }
 
-void ASAGI::getNeighbours(const Slice<double>& x, double* weights, double* buffer) {
+void ASAGI::getNeighbors(const Slice<double>& x, double* weights, double* buffer) {
   double lowPos[MaxDimensions]{};
   for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
     lowPos[d] = m_min[d] + std::floor((x(d) - m_min[d]) * m_deltaInv[d]) * m_delta[d];

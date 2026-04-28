@@ -16,8 +16,8 @@ class RegularGrid {
   void setVolume(const double* min, const double* max);
   double* operator()(const unsigned* index);
 
-  void getNearestNeighbour(const Slice<double>& x, double* buffer);
-  void getNeighbours(const Slice<double>& x, double* weights, double* buffer);
+  void getNearestNeighbor(const Slice<double>& x, double* buffer);
+  void getNeighbors(const Slice<double>& x, double* weights, double* buffer);
 
   private:
   double* m_values = nullptr;

@@ -20,11 +20,11 @@ class SCECFile : public Grid<SCECFile> {
 
   void setMap(const std::set<std::string>& in, const std::string& fileName);
 
-  inline void getNearestNeighbour(const Slice<double>& x, double* buffer) {
-    m_grid->getNearestNeighbour(x, buffer);
+  inline void getNearestNeighbor(const Slice<double>& x, double* buffer) {
+    m_grid->getNearestNeighbor(x, buffer);
   }
-  inline void getNeighbours(const Slice<double>& x, double* weights, double* buffer) {
-    m_grid->getNeighbours(x, weights, buffer);
+  inline void getNeighbors(const Slice<double>& x, double* weights, double* buffer) {
+    m_grid->getNeighbors(x, weights, buffer);
   }
   inline unsigned permutation(unsigned index) const { return index; }
 

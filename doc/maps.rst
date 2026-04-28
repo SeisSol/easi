@@ -205,7 +205,7 @@ If the value is out of bounds, the match will fail.
 :var:
   The NetCDF variable which holds the data (default: data)
 :interpolation:
-  Choose between nearest neighbour and linear interpolation (default: linear)
+  Choose between nearest neighbor and linear interpolation (default: linear)
 
 SCECFile
 --------
@@ -228,7 +228,7 @@ http://scecdata.usc.edu/cvws/download/tpv16/TPV16\_17\_Description\_v03.pdf).
 :file:
   Path to a SCEC stress file
 :interpolation:
-  Choose between nearest neighbour and linear interpolation (default: linear)
+  Choose between nearest neighbor and linear interpolation (default: linear)
 
 EvalModel
 ---------
