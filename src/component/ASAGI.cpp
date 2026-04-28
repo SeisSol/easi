@@ -10,7 +10,7 @@
 
 namespace easi {
 
-bool ASAGI::accept(int, const Slice<double>& x) const {
+bool ASAGI::accept(int /*unused*/, const Slice<double>& x) const {
   bool acc = true;
   for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
     acc = acc && (x(d) >= m_min[d]) && (x(d) <= m_max[d]);
@@ -61,38 +61,38 @@ void ASAGI::setGrid(const std::set<std::string>& in,
   m_permutation = new unsigned[m_numValues];
   unsigned* perm = m_permutation;
   for (const auto& p : parameters) {
-    auto it = std::find(out.begin(), out.end(), p);
+    auto it = out.find(p);
     *perm++ = std::distance(out.begin(), it);
   }
 }
 
 void ASAGI::getNearestNeighbour(const Slice<double>& x, double* buffer) {
-  double pos[MaxDimensions];
-  float* bufferSP = reinterpret_cast<float*>(buffer);
+  double pos[MaxDimensions]{};
+  float bufferSP[MaxDimensions]{};
   for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
     pos[d] = x(d);
   }
   m_grid->getBuf(bufferSP, pos);
-  for (int j = m_numValues - 1; j >= 0; --j) {
+  for (int j = 0; j < m_numValues; ++j) {
     buffer[j] = static_cast<double>(bufferSP[j]);
   }
 }
 
 void ASAGI::getNeighbours(const Slice<double>& x, double* weights, double* buffer) {
-  double lowPos[MaxDimensions];
+  double lowPos[MaxDimensions]{};
   for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
     lowPos[d] = m_min[d] + std::floor((x(d) - m_min[d]) * m_deltaInv[d]) * m_delta[d];
     weights[d] = (x(d) - lowPos[d]) * m_deltaInv[d];
   }
 
-  double pos[MaxDimensions];
-  for (unsigned i = 0; i < (1u << m_grid->getDimensions()); ++i) {
-    float* bufferSP = reinterpret_cast<float*>(buffer + i * m_numValues);
+  double pos[MaxDimensions]{};
+  float bufferSP[MaxDimensions]{};
+  for (unsigned i = 0; i < (1U << m_grid->getDimensions()); ++i) {
     for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
       pos[d] = std::min(lowPos[d] + ((i & (1 << d)) >> d) * m_delta[d], m_max[d]);
     }
     m_grid->getBuf(bufferSP, pos);
-    for (int j = m_numValues - 1; j >= 0; --j) {
+    for (int j = 0; j < m_numValues; ++j) {
       buffer[i * m_numValues + j] = static_cast<double>(bufferSP[j]);
     }
   }
