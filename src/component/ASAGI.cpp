@@ -73,7 +73,7 @@ void ASAGI::getNearestNeighbor(const Slice<double>& x, double* buffer) {
     pos[d] = x(d);
   }
   m_grid->getBuf(bufferSP, pos);
-  for (int j = 0; j < m_numValues; ++j) {
+  for (unsigned j = 0; j < m_numValues; ++j) {
     buffer[j] = static_cast<double>(bufferSP[j]);
   }
 }
@@ -92,7 +92,7 @@ void ASAGI::getNeighbors(const Slice<double>& x, double* weights, double* buffer
       pos[d] = std::min(lowPos[d] + ((i & (1 << d)) >> d) * m_delta[d], m_max[d]);
     }
     m_grid->getBuf(bufferSP, pos);
-    for (int j = 0; j < m_numValues; ++j) {
+    for (unsigned j = 0; j < m_numValues; ++j) {
       buffer[i * m_numValues + j] = static_cast<double>(bufferSP[j]);
     }
   }
