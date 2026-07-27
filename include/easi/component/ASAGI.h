@@ -14,6 +14,8 @@ namespace easi {
 class ASAGI : public Grid<ASAGI> {
   public:
   static const unsigned MaxDimensions = 6;
+  /** Upper bound on the number of values stored per grid point. */
+  static const unsigned MaxValues = 64;
 
   inline virtual ~ASAGI() {
     delete m_grid;
@@ -28,8 +30,8 @@ class ASAGI : public Grid<ASAGI> {
                asagi::Grid* grid,
                unsigned numberOfThreads);
 
-  void getNearestNeighbor(const Slice<double>& x, double* buffer);
-  void getNeighbors(const Slice<double>& x, double* weights, double* buffer);
+  void gridGeometry(double* min, double* delta, unsigned* num) const;
+  void sample(const int* index, double* values) const;
   inline unsigned permutation(unsigned index) const { return m_permutation[index]; }
 
   protected:
@@ -38,13 +40,20 @@ class ASAGI : public Grid<ASAGI> {
   private:
   asagi::Grid* m_grid = nullptr;
   unsigned* m_permutation = nullptr;
-  unsigned m_numberOfThreads;
-  unsigned m_numValues;
+  unsigned m_numberOfThreads = 1;
+  unsigned m_dimensions = 0;
+  unsigned m_numValues = 0;
 
+  // Bounding box, used to decide whether a query point is covered at all.
   double m_min[MaxDimensions];
   double m_max[MaxDimensions];
+
+  // Grid geometry. m_origin is the coordinate of grid point 0 and coincides
+  // with m_min, except in dimensions that ASAGI reports as unbounded; there
+  // the grid degenerates to a single point and any finite coordinate works.
+  double m_origin[MaxDimensions];
   double m_delta[MaxDimensions];
-  double m_deltaInv[MaxDimensions];
+  unsigned m_num[MaxDimensions];
 };
 
 } // namespace easi

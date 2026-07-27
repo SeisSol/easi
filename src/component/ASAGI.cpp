@@ -2,7 +2,6 @@
 
 #include "easi/util/Print.h"
 
-#include <algorithm>
 #include <cmath>
 #include <iterator>
 #include <sstream>
@@ -12,7 +11,7 @@ namespace easi {
 
 bool ASAGI::accept(int /*unused*/, const Slice<double>& x) const {
   bool acc = true;
-  for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
+  for (unsigned d = 0; d < m_dimensions; ++d) {
     acc = acc && (x(d) >= m_min[d]) && (x(d) <= m_max[d]);
   }
   return acc;
@@ -45,16 +44,34 @@ void ASAGI::setGrid(const std::set<std::string>& in,
     os << ").";
     throw std::invalid_argument(addFileReference(os.str()));
   }
+  if (m_numValues > MaxValues) {
+    std::ostringstream os;
+    os << "ASAGI supplies " << m_numValues << " values per grid point, but at most " << MaxValues
+       << " are supported.";
+    throw std::runtime_error(addFileReference(os.str()));
+  }
 
   delete m_grid;
   m_grid = grid;
   m_numberOfThreads = numberOfThreads;
+  m_dimensions = grid->getDimensions();
 
-  for (unsigned d = 0; d < grid->getDimensions(); ++d) {
+  for (unsigned d = 0; d < m_dimensions; ++d) {
     m_min[d] = grid->getMin(d);
     m_max[d] = grid->getMax(d);
-    m_delta[d] = grid->getDelta(d);
-    m_deltaInv[d] = 1.0 / m_delta[d];
+
+    const double delta = grid->getDelta(d);
+    if (std::isfinite(m_min[d]) && std::isfinite(m_max[d]) && std::isfinite(delta) && delta > 0.0) {
+      m_origin[d] = m_min[d];
+      m_delta[d] = delta;
+      m_num[d] = static_cast<unsigned>(std::lround((m_max[d] - m_min[d]) / delta)) + 1;
+    } else {
+      // ASAGI reports an unbounded dimension; it maps every coordinate to the
+      // same grid index, so treat it as a single grid point.
+      m_origin[d] = 0.0;
+      m_delta[d] = 1.0;
+      m_num[d] = 1;
+    }
   }
 
   delete[] m_permutation;
@@ -66,35 +83,26 @@ void ASAGI::setGrid(const std::set<std::string>& in,
   }
 }
 
-void ASAGI::getNearestNeighbor(const Slice<double>& x, double* buffer) {
-  double pos[MaxDimensions]{};
-  float bufferSP[MaxDimensions]{};
-  for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
-    pos[d] = x(d);
-  }
-  m_grid->getBuf(bufferSP, pos);
-  for (unsigned j = 0; j < m_numValues; ++j) {
-    buffer[j] = static_cast<double>(bufferSP[j]);
+void ASAGI::gridGeometry(double* min, double* delta, unsigned* num) const {
+  for (unsigned d = 0; d < m_dimensions; ++d) {
+    min[d] = m_origin[d];
+    delta[d] = m_delta[d];
+    num[d] = m_num[d];
   }
 }
 
-void ASAGI::getNeighbors(const Slice<double>& x, double* weights, double* buffer) {
-  double lowPos[MaxDimensions]{};
-  for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
-    lowPos[d] = m_min[d] + std::floor((x(d) - m_min[d]) * m_deltaInv[d]) * m_delta[d];
-    weights[d] = (x(d) - lowPos[d]) * m_deltaInv[d];
-  }
+void ASAGI::sample(const int* index, double* values) const {
+  double pos[MaxDimensions] = {};
+  // ASAGI stores single precision floats and writes getVarSize() bytes, i.e.
+  // m_numValues floats, which setGrid() has bounded by MaxValues.
+  float buffer[MaxValues];
 
-  double pos[MaxDimensions]{};
-  float bufferSP[MaxDimensions]{};
-  for (unsigned i = 0; i < (1U << m_grid->getDimensions()); ++i) {
-    for (unsigned d = 0; d < m_grid->getDimensions(); ++d) {
-      pos[d] = std::min(lowPos[d] + ((i & (1 << d)) >> d) * m_delta[d], m_max[d]);
-    }
-    m_grid->getBuf(bufferSP, pos);
-    for (unsigned j = 0; j < m_numValues; ++j) {
-      buffer[i * m_numValues + j] = static_cast<double>(bufferSP[j]);
-    }
+  for (unsigned d = 0; d < m_dimensions; ++d) {
+    pos[d] = m_origin[d] + index[d] * m_delta[d];
+  }
+  m_grid->getBuf(buffer, pos);
+  for (unsigned v = 0; v < m_numValues; ++v) {
+    values[v] = static_cast<double>(buffer[v]);
   }
 }
 

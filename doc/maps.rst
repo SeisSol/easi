@@ -180,7 +180,7 @@ The output variables are defined by the extra ``returns`` field.
 ASAGI
 -----
 
-Looks up values using ASAGI (with trilinear interpolation).
+Looks up values using ASAGI.
 If the value is out of bounds, the match will fail.
 
 .. code-block:: YAML
@@ -189,7 +189,7 @@ If the value is out of bounds, the match will fail.
     file: <string>
     parameters: [<parameter>,<parameter>,...]
     var: <string>
-    interpolation: (nearest|linear)
+    interpolation: (nearest|linear|cubic)
 
 :Domain:
   *inherited*
@@ -205,7 +205,7 @@ If the value is out of bounds, the match will fail.
 :var:
   The NetCDF variable which holds the data (default: data)
 :interpolation:
-  Choose between nearest neighbor and linear interpolation (default: linear)
+  Interpolation scheme, see :ref:`grid-interpolation` (default: linear)
 
 SCECFile
 --------
@@ -217,7 +217,7 @@ http://scecdata.usc.edu/cvws/download/tpv16/TPV16\_17\_Description\_v03.pdf).
 
     !SCECFile
     file: <string>
-    interpolation: (nearest|linear)
+    interpolation: (nearest|linear|cubic)
 
 :Domain:
   *inherited*, must be 2D
@@ -228,7 +228,77 @@ http://scecdata.usc.edu/cvws/download/tpv16/TPV16\_17\_Description\_v03.pdf).
 :file:
   Path to a SCEC stress file
 :interpolation:
-  Choose between nearest neighbor and linear interpolation (default: linear)
+  Interpolation scheme, see :ref:`grid-interpolation` (default: linear)
+
+.. _grid-interpolation:
+
+Grid interpolation
+------------------
+
+Components that read from a uniform Cartesian grid (ASAGI and SCECFile)
+share the same set of interpolation schemes. All of them are separable, that is, the multi-dimensional interpolant is the tensor product of
+one-dimensional interpolants.
+
+.. list-table::
+   :header-rows: 1
+
+   * - ``interpolation``
+     - Stencil per axis
+     - Accuracy
+     - Smoothness
+     - Reproduces exactly
+   * - ``nearest``
+     - 1
+     - :math:`O(h)`
+     - discontinuous
+     - constants
+   * - ``linear``
+     - 2
+     - :math:`O(h^2)`
+     - continuous
+     - polynomials of degree 1
+   * - ``cubic``
+     - 4
+     - :math:`O(h^3)`
+     - continuously differentiable
+     - polynomials of degree 2
+
+``cubic`` is Keys' cubic convolution with :math:`a = -1/2`, also known as the
+Catmull-Rom kernel. Like ``linear`` it is interpolating, i.e. it reproduces the
+sampled values at the grid points exactly, but unlike ``linear`` its first
+derivative is continuous. This matters wherever the interpolated field enters a
+computation that is sensitive to kinks, for example fault friction parameters.
+
+Choosing a scheme
+^^^^^^^^^^^^^^^^^
+
+``nearest`` is the only correct choice for data that is not continuous by
+nature, such as group or region identifiers. Averaging two identifiers is
+meaningless.
+
+``cubic`` is not bound-preserving. Across a sharp material contrast it
+overshoots by roughly 7% of the jump height, so an interpolated value may leave
+the range of the surrounding samples. For quantities that must stay positive,
+such as density or wave speeds, and for models with strong contrasts such as
+sediment basins or the Moho, prefer ``linear``.
+
+``cubic`` reads 4 grid points per axis instead of 2, i.e. 64 instead of 8
+points in three dimensions. Since query points are usually clustered, easi
+caches the most recently fetched stencil per thread, so the cost is paid per
+grid cell rather than per query point.
+
+Boundary layer
+^^^^^^^^^^^^^^
+
+Where the full stencil would reach outside the grid, easi falls back to linear
+interpolation in the affected axis only, keeping the full order along the
+remaining axes. easi never extrapolates and never reads outside the grid.
+Consequently, a grid with fewer than four points along an axis behaves exactly
+like ``linear`` along that axis.
+
+Query points outside the grid are clamped onto the boundary. Note that the
+``!ASAGI`` component rejects such points before interpolation, so this only
+affects components without a bounding box check.
 
 EvalModel
 ---------

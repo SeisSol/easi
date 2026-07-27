@@ -1,10 +1,6 @@
 #include "easi/util/RegularGrid.h"
 
-#include "easi/util/Slice.h"
-
-#include <algorithm>
-#include <cassert>
-#include <cmath>
+#include <sstream>
 #include <stdexcept>
 
 namespace easi {
@@ -17,9 +13,15 @@ void RegularGrid::allocate(const unsigned* numGridPoints, unsigned dimensions, u
   m_numValues = numValues;
   unsigned size = m_numValues;
   for (unsigned d = 0; d < m_dimensions; ++d) {
+    if (numGridPoints[d] == 0) {
+      std::ostringstream os;
+      os << "RegularGrid has no grid points in dimension " << d << ".";
+      throw std::runtime_error(os.str());
+    }
     m_num[d] = numGridPoints[d];
     size *= m_num[d];
   }
+  delete[] m_values;
   m_values = new double[size];
 }
 
@@ -27,7 +29,10 @@ void RegularGrid::setVolume(const double* min, const double* max) {
   for (unsigned d = 0; d < m_dimensions; ++d) {
     m_min[d] = min[d];
     m_max[d] = max[d];
-    m_delta[d] = (max[d] - min[d]) / (m_num[d] - 1);
+    // A single grid point carries no spacing information; use a positive
+    // placeholder so that the interpolation, which then always sees s = 0,
+    // stays well defined.
+    m_delta[d] = (m_num[d] > 1) ? (max[d] - min[d]) / (m_num[d] - 1) : 1.0;
   }
 }
 
@@ -41,54 +46,24 @@ double* RegularGrid::operator()(const unsigned* index) {
   return m_values + m_numValues * idx;
 }
 
-void RegularGrid::getNearestNeighbor(const Slice<double>& x, double* buffer) {
-  assert(x.size() == m_dimensions);
-
-  unsigned idx[MaxDimensions];
+void RegularGrid::gridGeometry(double* min, double* delta, unsigned* num) const {
   for (unsigned d = 0; d < m_dimensions; ++d) {
-    if (x(d) < m_min[d]) {
-      idx[d] = 0;
-    } else if (x(d) >= m_max[d]) {
-      idx[d] = m_num[d] - 1;
-    } else {
-      double xn = (x(d) - m_min[d]) / m_delta[d];
-      idx[d] = std::round(xn);
-    }
-  }
-
-  double* values = operator()(idx);
-  for (unsigned v = 0; v < m_numValues; ++v) {
-    buffer[v] = values[v];
+    min[d] = m_min[d];
+    delta[d] = m_delta[d];
+    num[d] = m_num[d];
   }
 }
 
-void RegularGrid::getNeighbors(const Slice<double>& x, double* weights, double* buffer) {
-  assert(x.size() == m_dimensions);
-
-  unsigned idxBase[MaxDimensions];
+void RegularGrid::sample(const int* index, double* values) const {
+  unsigned stride = 1;
+  unsigned idx = 0;
   for (unsigned d = 0; d < m_dimensions; ++d) {
-    if (x(d) < m_min[d]) {
-      idxBase[d] = 0;
-      weights[d] = 0.0;
-    } else if (x(d) >= m_max[d]) {
-      idxBase[d] = m_num[d] - 1;
-      weights[d] = 1.0;
-    } else {
-      double xn = (x(d) - m_min[d]) / m_delta[d];
-      idxBase[d] = xn;
-      weights[d] = xn - idxBase[d];
-    }
+    idx += static_cast<unsigned>(index[d]) * stride;
+    stride *= m_num[d];
   }
-
-  unsigned idx[MaxDimensions];
-  for (unsigned i = 0; i < (1u << m_dimensions); ++i) {
-    for (unsigned d = 0; d < m_dimensions; ++d) {
-      idx[d] = std::min(idxBase[d] + ((i & (1 << d)) >> d), m_num[d] - 1);
-    }
-    double* values = operator()(idx);
-    for (unsigned v = 0; v < m_numValues; ++v) {
-      buffer[i * m_numValues + v] = values[v];
-    }
+  const double* entry = m_values + m_numValues * idx;
+  for (unsigned v = 0; v < m_numValues; ++v) {
+    values[v] = entry[v];
   }
 }
 

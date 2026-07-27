@@ -118,6 +118,7 @@ set(EASI_SOURCES
     src/parser/YAMLComponentParsers.cpp
     src/parser/YAMLHelpers.cpp
     src/util/ImpalaHandler.cpp
+    src/util/InterpolationKernel.cpp
     src/util/RegularGrid.cpp
     src/Query.cpp
     src/YAMLParser.cpp
@@ -290,6 +291,10 @@ if (TESTING)
         add_test(${NAME_UP}_TEST ${name} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${name}.yaml)
     endfunction(easi_add_test)
 
+    add_executable(interpolation tests/interpolation.cpp)
+    target_link_libraries(interpolation PRIVATE easi)
+    add_test(INTERPOLATION_TEST interpolation)
+
     easi_add_test(0_constant)
     easi_add_test(1_groups)
     easi_add_test(3_layered_linear)
@@ -309,6 +314,7 @@ if (TESTING)
     if(ASAGI)
         easi_add_test(101_asagi)
         easi_add_test(101_asagi_nearest)
+        easi_add_test(101_asagi_cubic)
     endif ()
 
 endif()
