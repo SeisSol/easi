@@ -21,7 +21,7 @@ Alternatively for gcc compilers on SupermucNG:
     export CC=mpigcc
 
 2. Asagi
- 
+
 See https://seissol.readthedocs.io/en/latest/asagi.html.
 
 3. yaml-cpp
@@ -32,7 +32,7 @@ On SupermucNG and with intel compilers:
 
     module load yaml-cpp/0.7.0-intel21
 
-    
+
 Alternatively you can build from source:
 
 .. code-block:: bash
@@ -46,15 +46,15 @@ Alternatively you can build from source:
     make -j 4
     make install
     cd ../..
-    
 
-4. ImpalaJIT 
+
+4. ImpalaJIT
 
 .. code-block:: bash
 
     git clone git@github.com:uphoffc/ImpalaJIT
     # git clone https://github.com/uphoffc/ImpalaJIT.git
-    cd ImpalaJIT 
+    cd ImpalaJIT
     mkdir build && cd build
     cmake ..  -DCMAKE_INSTALL_PREFIX=$HOME
     make -j 4
@@ -73,4 +73,3 @@ Alternatively you can build from source:
     make local
     cp -r install/* ~
     cd ..
-

@@ -11,18 +11,18 @@
 
 namespace easi {
 class ConstantMap : public Map {
-public:
-    typedef std::map<std::string, double> OutMap;
+  public:
+  typedef std::map<std::string, double> OutMap;
 
-    virtual ~ConstantMap() {}
+  virtual ~ConstantMap() {}
 
-    virtual Matrix<double> map(Matrix<double>& x);
+  virtual Matrix<double> map(Matrix<double>& x);
 
-    using Component::setIn; // Make setIn public
-    void setMap(OutMap const& outMap);
+  using Component::setIn; // Make setIn public
+  void setMap(const OutMap& outMap);
 
-private:
-    std::vector<double> m_values;
+  private:
+  std::vector<double> m_values;
 };
 
 } // namespace easi

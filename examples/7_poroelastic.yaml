@@ -2,7 +2,7 @@
 components:
   - !GroupFilter
     groups: [1]
-    components: 
+    components:
       map:
         rho:           2.39e3
         bulk_solid:   22.6e9
@@ -24,7 +24,7 @@ components:
         mu:            0.695e9
         permeability:  2.00e-12
         tortuosity:    1
-        porosity:      0.4 
+        porosity:      0.4
         rho_fluid:     1.03e3
         bulk_fluid:    2.3e9
         viscosity:     6.9e-4

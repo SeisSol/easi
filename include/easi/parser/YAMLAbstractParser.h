@@ -3,20 +3,19 @@
 
 #include "easi/Component.h"
 
-#include <yaml-cpp/yaml.h>
-
 #include <set>
 #include <string>
+#include <yaml-cpp/yaml.h>
 
 namespace easi {
 class AsagiReader;
 class YAMLAbstractParser {
-public:
-    virtual ~YAMLAbstractParser() {}
-    virtual Component* parse(std::string const& fileName) = 0;
-    virtual Component* parse(YAML::Node const& node, std::set<std::string> const& in) = 0;
-    virtual AsagiReader* asagiReader() = 0;
-    virtual std::string currentFileName() = 0;
+  public:
+  virtual ~YAMLAbstractParser() {}
+  virtual Component* parse(const std::string& fileName) = 0;
+  virtual Component* parse(const YAML::Node& node, const std::set<std::string>& in) = 0;
+  virtual AsagiReader* asagiReader() = 0;
+  virtual std::string currentFileName() = 0;
 };
 
 } // namespace easi

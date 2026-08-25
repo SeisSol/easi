@@ -9,23 +9,31 @@
 namespace easi {
 
 struct OptimalStress {
-    struct in {
-        double mu_d, mu_s, strike, dip, rake, effectiveConfiningStress, cohesion, R, s2ratio;
-    };
-    in i;
+  struct in {
+    double mu_d, mu_s, strike, dip, rake, effectiveConfiningStress, cohesion, R, s2ratio;
+  };
+  in i;
 
-    struct out {
-        double b_xx, b_yy, b_zz, b_xy, b_yz, b_xz;
-    };
-    out o;
+  struct out {
+    double b_xx, b_yy, b_zz, b_xy, b_yz, b_xz;
+  };
+  out o;
 
-    void evaluate();
+  void evaluate();
 };
 
 } // namespace easi
 
-SELF_AWARE_STRUCT(easi::OptimalStress::in, mu_d, mu_s, strike, dip, rake, effectiveConfiningStress,
-                  cohesion, R, s2ratio)
+SELF_AWARE_STRUCT(easi::OptimalStress::in,
+                  mu_d,
+                  mu_s,
+                  strike,
+                  dip,
+                  rake,
+                  effectiveConfiningStress,
+                  cohesion,
+                  R,
+                  s2ratio)
 SELF_AWARE_STRUCT(easi::OptimalStress::out, b_xx, b_yy, b_zz, b_xy, b_yz, b_xz)
 
 #endif

@@ -7,9 +7,9 @@
 #include "easi/component/ConstantMap.h"
 #include "easi/component/DomainFilter.h"
 #include "easi/component/EvalModel.h"
-#include "easi/component/LuaMap.h"
 #include "easi/component/GroupFilter.h"
 #include "easi/component/LayeredModelBuilder.h"
+#include "easi/component/LuaMap.h"
 #include "easi/component/OptimalStress.h"
 #include "easi/component/PolynomialMap.h"
 #include "easi/component/SCECFile.h"
@@ -22,76 +22,111 @@
 #include "easi/component/ASAGI.h"
 #endif
 
-#include <yaml-cpp/yaml.h>
-
 #include <map>
 #include <set>
 #include <string>
+#include <yaml-cpp/yaml.h>
 
 namespace easi {
 
-void parse_Component(Component* component, YAML::Node const& node, std::set<std::string> const&,
+void parse_Component(Component* component,
+                     const YAML::Node& node,
+                     const std::set<std::string>&,
                      YAMLAbstractParser* parser);
-void parse_Composite(Composite* component, YAML::Node const& node, std::set<std::string> const& in,
+void parse_Composite(Composite* component,
+                     const YAML::Node& node,
+                     const std::set<std::string>& in,
                      YAMLAbstractParser* parser);
-void parse_Switch(Switch* component, YAML::Node const& node, std::set<std::string> const& in,
+void parse_Switch(Switch* component,
+                  const YAML::Node& node,
+                  const std::set<std::string>& in,
                   YAMLAbstractParser* parser);
-void parse_Filter(Filter* component, YAML::Node const& node, std::set<std::string> const& in,
+void parse_Filter(Filter* component,
+                  const YAML::Node& node,
+                  const std::set<std::string>& in,
                   YAMLAbstractParser* parser);
-void parse_Any(Any* component, YAML::Node const& node, std::set<std::string> const& in,
+void parse_Any(Any* component,
+               const YAML::Node& node,
+               const std::set<std::string>& in,
                YAMLAbstractParser* parser);
-void parse_GroupFilter(GroupFilter* component, YAML::Node const& node,
-                       std::set<std::string> const& in, YAMLAbstractParser* parser);
+void parse_GroupFilter(GroupFilter* component,
+                       const YAML::Node& node,
+                       const std::set<std::string>& in,
+                       YAMLAbstractParser* parser);
 void parse_AxisAlignedCuboidalDomainFilter(AxisAlignedCuboidalDomainFilter* component,
-                                           YAML::Node const& node, std::set<std::string> const& in,
+                                           const YAML::Node& node,
+                                           const std::set<std::string>& in,
                                            YAMLAbstractParser* parser);
-void parse_SphericalDomainFilter(SphericalDomainFilter* component, YAML::Node const& node,
-                                 std::set<std::string> const& in, YAMLAbstractParser* parser);
-void parse_Map(Map* component, YAML::Node const& node, std::set<std::string> const& in,
+void parse_SphericalDomainFilter(SphericalDomainFilter* component,
+                                 const YAML::Node& node,
+                                 const std::set<std::string>& in,
+                                 YAMLAbstractParser* parser);
+void parse_Map(Map* component,
+               const YAML::Node& node,
+               const std::set<std::string>& in,
                YAMLAbstractParser* parser);
-void parse_ConstantMap(ConstantMap* component, YAML::Node const& node,
-                       std::set<std::string> const& in, YAMLAbstractParser* parser);
-void parse_AffineMap(AffineMap* component, YAML::Node const& node, std::set<std::string> const& in,
+void parse_ConstantMap(ConstantMap* component,
+                       const YAML::Node& node,
+                       const std::set<std::string>& in,
+                       YAMLAbstractParser* parser);
+void parse_AffineMap(AffineMap* component,
+                     const YAML::Node& node,
+                     const std::set<std::string>& in,
                      YAMLAbstractParser* parser);
 #ifdef EASI_USE_LUA
-void parse_LuaMap(LuaMap* component, YAML::Node const& node,
-                       std::set<std::string> const& in, YAMLAbstractParser* parser);
-void parse_FunctionMapToLua(LuaMap* component, YAML::Node const& node,
-                       std::set<std::string> const& in, YAMLAbstractParser* parser);
+void parse_LuaMap(LuaMap* component,
+                  YAML::Node const& node,
+                  std::set<std::string> const& in,
+                  YAMLAbstractParser* parser);
+void parse_FunctionMapToLua(LuaMap* component,
+                            const YAML::Node& node,
+                            const std::set<std::string>& in,
+                            YAMLAbstractParser* parser);
 #endif
-void parse_PolynomialMap(PolynomialMap* component, YAML::Node const& node,
-                         std::set<std::string> const& in, YAMLAbstractParser* parser);
-void parse_SCECFile(SCECFile* component, YAML::Node const& node, std::set<std::string> const& in,
+void parse_PolynomialMap(PolynomialMap* component,
+                         YAML::Node const& node,
+                         std::set<std::string> const& in,
+                         YAMLAbstractParser* parser);
+void parse_SCECFile(SCECFile* component,
+                    const YAML::Node& node,
+                    const std::set<std::string>& in,
                     YAMLAbstractParser* parser);
 #ifdef EASI_USE_ASAGI
-void parse_ASAGI(ASAGI* component, YAML::Node const& node, std::set<std::string> const& in,
+void parse_ASAGI(ASAGI* component,
+                 YAML::Node const& node,
+                 std::set<std::string> const& in,
                  YAMLAbstractParser* parser);
 #endif
 
-void parse_EvalModel(EvalModel* component, YAML::Node const& node, std::set<std::string> const& in,
+void parse_EvalModel(EvalModel* component,
+                     YAML::Node const& node,
+                     std::set<std::string> const& in,
                      YAMLAbstractParser* parser);
 
-Component* create_LayeredModel(YAML::Node const& node, std::set<std::string> const& in,
+Component* create_LayeredModel(const YAML::Node& node,
+                               const std::set<std::string>& in,
                                YAMLAbstractParser* parser);
-Component* create_Include(YAML::Node const& node, std::set<std::string> const& in,
+Component* create_Include(const YAML::Node& node,
+                          const std::set<std::string>& in,
                           YAMLAbstractParser* parser);
 
 template <typename Special>
-Component* create_Special(YAML::Node const& node, std::set<std::string> const& in,
+Component* create_Special(const YAML::Node& node,
+                          const std::set<std::string>& in,
                           YAMLAbstractParser* parser) {
-    checkType(node, "constants", {YAML::NodeType::Map}, false);
+  checkType(node, "constants", {YAML::NodeType::Map}, false);
 
-    std::map<std::string, double> constants;
-    if (node["constants"]) {
-        constants = node["constants"].as<std::map<std::string, double>>();
-    }
+  std::map<std::string, double> constants;
+  if (node["constants"]) {
+    constants = node["constants"].as<std::map<std::string, double>>();
+  }
 
-    SpecialMap<Special>* component = new SpecialMap<Special>;
-    component->setMap(constants);
+  SpecialMap<Special>* component = new SpecialMap<Special>;
+  component->setMap(constants);
 
-    parse_Map(component, node, in, parser);
+  parse_Map(component, node, in, parser);
 
-    return component;
+  return component;
 }
 
 } // namespace easi

@@ -96,7 +96,12 @@ Assigns a value using a polynomial for every parameter.
 FunctionMap
 -----------
 
-Implements a mapping described by an ImpalaJIT function.
+Implements a mapping described by an ImpalaJIT function;
+that is a function supporting all C math functions, floating point operations, if-else, and return.
+Local variables are also supported.
+
+Only enabled if Lua is compiled in – internally, Impala is transpiled to Lua.
+(NOTE: ImpalaJIT as dependency is only required for easi below version 1.5.0)
 
 .. code-block:: YAML
 
@@ -121,16 +126,64 @@ Implements a mapping described by an ImpalaJIT function.
 The <function_body> must an be ImpalaJIT function (without surrounding curly braces).
 The function gets passed all input dimensions automatically.
 
-**Known limitations:**
+**Known limitations (due to the ImpalaJIT syntax):**
 
 - No comments (// or /\* \*/)
 - No exponential notation (use pow(10.,3.) instead of 1e3)
 - No 'else if' (use else { if () {}}).
 
+LuaMap
+------
+
+A Lua function. Useful for nonlinear computations.
+
+The function needs to be called ``f`` and accept a single input parameter.
+This input parameter will contain all input variables in a dictionary.
+The output variables are defined by the extra ``returns`` field.
+
+.. code-block:: YAML
+
+    !LuaMap
+    returns: [outvar1, ..., outvarN]
+    function: |
+      function f(coords)
+        # use like e.g. coords["x"], coords["y"], coords["z"]
+
+        # code
+
+        return {
+          "outvar1": value1,
+          ...
+          "outvarN": valueN,
+        }
+      end function
+
+:Domain:
+  *inherited*
+:Codomain:
+  given in ``returns``
+:Example:
+  Given input dimensions are x,y,z. Same example as for the ``FunctionMap``.
+
+  .. code-block:: YAML
+
+    !LuaMap
+    returns: [p]
+    function: |
+      function f(x)
+        -- alternative: "p": x["x"] * x["y"] * x["z"]
+        return {
+          "p": x.x * x.y * x.z,
+        }
+      end function
+
+  Will return :math:`p = x \cdot y \cdot z`.
+
 ASAGI
 -----
 
-Looks up values using ASAGI (with trilinear interpolation).
+Looks up values using ASAGI.
+If the value is out of bounds, the match will fail.
 
 .. code-block:: YAML
 
@@ -138,7 +191,7 @@ Looks up values using ASAGI (with trilinear interpolation).
     file: <string>
     parameters: [<parameter>,<parameter>,...]
     var: <string>
-    interpolation: (nearest|linear)
+    interpolation: (nearest|linear|cubic)
 
 :Domain:
   *inherited*
@@ -154,7 +207,7 @@ Looks up values using ASAGI (with trilinear interpolation).
 :var:
   The NetCDF variable which holds the data (default: data)
 :interpolation:
-  Choose between nearest neighbour and linear interpolation (default: linear)
+  Interpolation scheme, see :ref:`grid-interpolation` (default: linear)
 
 SCECFile
 --------
@@ -166,7 +219,7 @@ http://scecdata.usc.edu/cvws/download/tpv16/TPV16\_17\_Description\_v03.pdf).
 
     !SCECFile
     file: <string>
-    interpolation: (nearest|linear)
+    interpolation: (nearest|linear|cubic)
 
 :Domain:
   *inherited*, must be 2D
@@ -177,12 +230,84 @@ http://scecdata.usc.edu/cvws/download/tpv16/TPV16\_17\_Description\_v03.pdf).
 :file:
   Path to a SCEC stress file
 :interpolation:
-  Choose between nearest neighbour and linear interpolation (default: linear)
+  Interpolation scheme, see :ref:`grid-interpolation` (default: linear)
+
+.. _grid-interpolation:
+
+Grid interpolation
+------------------
+
+Components that read from a uniform Cartesian grid (ASAGI and SCECFile)
+share the same set of interpolation schemes. All of them are separable, that is, the multi-dimensional interpolant is the tensor product of
+one-dimensional interpolants.
+
+.. list-table::
+   :header-rows: 1
+
+   * - ``interpolation``
+     - Stencil per axis
+     - Accuracy
+     - Smoothness
+     - Reproduces exactly
+   * - ``nearest``
+     - 1
+     - :math:`O(h)`
+     - discontinuous
+     - constants
+   * - ``linear``
+     - 2
+     - :math:`O(h^2)`
+     - continuous
+     - polynomials of degree 1
+   * - ``cubic``
+     - 4
+     - :math:`O(h^3)`
+     - continuously differentiable
+     - polynomials of degree 2
+
+``cubic`` is Keys' cubic convolution with :math:`a = -1/2`, also known as the
+Catmull-Rom kernel. Like ``linear`` it is interpolating, i.e. it reproduces the
+sampled values at the grid points exactly, but unlike ``linear`` its first
+derivative is continuous. This matters wherever the interpolated field enters a
+computation that is sensitive to kinks, for example fault friction parameters.
+
+Choosing a scheme
+^^^^^^^^^^^^^^^^^
+
+``nearest`` is the only correct choice for data that is not continuous by
+nature, such as group or region identifiers. Averaging two identifiers is
+meaningless.
+
+``cubic`` is not bound-preserving. Across a sharp material contrast it
+overshoots by roughly 7% of the jump height, so an interpolated value may leave
+the range of the surrounding samples. For quantities that must stay positive,
+such as density or wave speeds, and for models with strong contrasts such as
+sediment basins or the Moho, prefer ``linear``.
+
+``cubic`` reads 4 grid points per axis instead of 2, i.e. 64 instead of 8
+points in three dimensions. Since query points are usually clustered, easi
+caches the most recently fetched stencil per thread, so the cost is paid per
+grid cell rather than per query point.
+
+Boundary layer
+^^^^^^^^^^^^^^
+
+Where the full stencil would reach outside the grid, easi falls back to linear
+interpolation in the affected axis only, keeping the full order along the
+remaining axes. easi never extrapolates and never reads outside the grid.
+Consequently, a grid with fewer than four points along an axis behaves exactly
+like ``linear`` along that axis.
+
+Query points outside the grid are clamped onto the boundary. Note that the
+``!ASAGI`` component rejects such points before interpolation, so this only
+affects components without a bounding box check.
 
 EvalModel
 ---------
 
 Provides values by evaluating another easi tree.
+
+Functionally equivalent to defining a temporary variable.
 
 .. code-block:: YAML
 
@@ -219,7 +344,7 @@ ratio R (where :math:`R=1/(1+S)`), the effective confining stress
 :math:`s2ratio = (s_2-s_3)/(s_1-s_3)`, where :math:`s_1>s_2>s_3` are the principal stress
 magnitudes, following the procedure described in Ulrich et al.
 (2019), methods section 'Initial Stress'. To prescribe R, static and dynamic friction
-(mu\_s and mu\_d) as well as cohesion are required. 
+(mu\_s and mu\_d) as well as cohesion are required.
 
 .. code-block:: YAML
 
@@ -253,12 +378,12 @@ Assuming mu_d=0.6, S_v = 1 favours normal faulting on a 60° dipping fault plane
 S_v = 2 favours strike-slip faulting on a vertical fault plane making an angle of 30° with SH_max and
 S_v = 3 favours reverse faulting on a 30° dipping fault plane striking SH_max.
 
-The principal stress magnitudes are prescribed by the relative fault strength S (related to the relative prestress ratio R by :math:`R=1/(1+S)`), 
+The principal stress magnitudes are prescribed by the relative fault strength S (related to the relative prestress ratio R by :math:`R=1/(1+S)`),
 the vertical stress sig_zz and the stress shape ratio
 :math:`s2ratio = (s_2-s_3)/(s_1-s_3)`, where :math:`s_1>s_2>s_3` are the principal stress
 magnitudes, following the procedure described in Ulrich et al.
 (2019), methods section 'Initial Stress'. To prescribe S, static and dynamic friction
-(mu\_s and mu\_d) as well as cohesion are required. 
+(mu\_s and mu\_d) as well as cohesion are required.
 
 
 
@@ -334,7 +459,7 @@ Evaluates application-defined functions.
 :Example:
   We want to create a function which takes three input parameters
   and supplies two output parameters:
-  
+
   .. code-block:: cpp
 
     #include "easi/util/MagicStruct.h"
@@ -358,7 +483,7 @@ Evaluates application-defined functions.
 
     SELF_AWARE_STRUCT(Special::in, i1, i2, i3)
     SELF_AWARE_STRUCT(Special::out, o1, o2)
-  
+
   Register this file with the parser:
 
   .. code-block:: cpp

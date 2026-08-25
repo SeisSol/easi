@@ -13,7 +13,7 @@ Defines parameters at nodes, which are interpolated inbetween nodes.
 
     !LayeredModel
     map: <map> # Mapping to 1D (root component)
-    interpolation: (lower|upper|linear) 
+    interpolation: (lower|upper|linear)
     parameters: [<dimension>, <dimension>, ...] # order of dimension
     nodes:
       <double>: [<double>, <double>, ...] # key: node position, value: dimension values

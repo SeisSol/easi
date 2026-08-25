@@ -1,3 +1,4 @@
 # A python wrapper for easi
 
-see https://easyinit.readthedocs.io/en/latest/python_bindings.html
+see [the documentation](https://easyinit.readthedocs.io/en/latest/python_bindings.html)
+for more infos.

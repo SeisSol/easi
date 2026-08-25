@@ -6,11 +6,11 @@
 namespace easi {
 
 class Map : public Composite {
-public:
-    virtual ~Map() {}
+  public:
+  virtual ~Map() {}
 
-    inline virtual bool accept(int, Slice<double> const&) const { return true; }
-    inline virtual bool acceptAlways() const { return true; }
+  inline virtual bool accept(int, const Slice<double>&) const { return true; }
+  inline virtual bool acceptAlways() const { return true; }
 };
 
 } // namespace easi

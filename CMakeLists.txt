@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 
 project(easi)
 set(EASI_VERSION_MAJOR 1)
-set(EASI_VERSION_MINOR 6)
-set(EASI_VERSION_PATCH 2)
+set(EASI_VERSION_MINOR 7)
+set(EASI_VERSION_PATCH 0)
 
 add_compile_definitions(
     EASI_VERSION="${EASI_VERSION_MAJOR}.${EASI_VERSION_MINOR}.${EASI_VERSION_PATCH}"
@@ -118,6 +118,7 @@ set(EASI_SOURCES
     src/parser/YAMLComponentParsers.cpp
     src/parser/YAMLHelpers.cpp
     src/util/ImpalaHandler.cpp
+    src/util/InterpolationKernel.cpp
     src/util/RegularGrid.cpp
     src/Query.cpp
     src/YAMLParser.cpp
@@ -257,7 +258,7 @@ if(EASICUBE)
         set_target_properties (easicube PROPERTIES
             INSTALL_RPATH_USE_LINK_PATH TRUE
         )
-    
+
         install (TARGETS easicube)
     else()
         message(WARNING "easicube needs easi to be compiled with ASAGI. Since this is not the case, easicube will be skipped.")
@@ -290,6 +291,10 @@ if (TESTING)
         add_test(${NAME_UP}_TEST ${name} ${CMAKE_CURRENT_SOURCE_DIR}/examples/${name}.yaml)
     endfunction(easi_add_test)
 
+    add_executable(interpolation tests/interpolation.cpp)
+    target_link_libraries(interpolation PRIVATE easi)
+    add_test(INTERPOLATION_TEST interpolation)
+
     easi_add_test(0_constant)
     easi_add_test(1_groups)
     easi_add_test(3_layered_linear)
@@ -309,6 +314,7 @@ if (TESTING)
     if(ASAGI)
         easi_add_test(101_asagi)
         easi_add_test(101_asagi_nearest)
+        easi_add_test(101_asagi_cubic)
     endif ()
 
 endif()

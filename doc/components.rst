@@ -37,3 +37,11 @@ Alternative for composites with a single child:
     components: <Component>
 
 Remark: Composites must of at least one child component.
+
+Comparison to Functional Programming Concepts
+---------------------------------------------
+
+The component structure equals a "first match" (or large if-else statement)
+attached to any function.
+
+Also, a single component equals a "pipe" operation.

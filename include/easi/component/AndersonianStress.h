@@ -9,23 +9,23 @@
 namespace easi {
 
 struct AndersonianStress {
-    struct in {
-        double mu_d, mu_s, SH_max, sig_zz, cohesion, S, s2ratio, S_v;
-    };
-    in i;
+  struct in {
+    double mu_d, mu_s, SH_max, sig_zz, cohesion, S, s2ratio, S_v;
+  };
+  in i;
 
-    struct out {
-        double b_xx, b_yy, b_zz, b_xy, b_yz, b_xz;
-    };
-    out o;
+  struct out {
+    double b_xx, b_yy, b_zz, b_xy, b_yz, b_xz;
+  };
+  out o;
 
-    void evaluate();
+  void evaluate();
 };
 
 } // namespace easi
 
-SELF_AWARE_STRUCT(easi::AndersonianStress::in, mu_d, mu_s, SH_max, sig_zz, cohesion, S, s2ratio,
-                  S_v)
+SELF_AWARE_STRUCT(
+    easi::AndersonianStress::in, mu_d, mu_s, SH_max, sig_zz, cohesion, S, s2ratio, S_v)
 SELF_AWARE_STRUCT(easi::AndersonianStress::out, b_xx, b_yy, b_zz, b_xy, b_yz, b_xz)
 
 #endif

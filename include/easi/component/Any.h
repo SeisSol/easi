@@ -6,11 +6,11 @@
 namespace easi {
 
 class Any : public Filter {
-public:
-    inline virtual ~Any() {}
+  public:
+  inline virtual ~Any() {}
 
-    using Filter::setInOut; // Make setInOut public
-    inline virtual bool accept(int, Slice<double> const&) const { return true; }
+  using Filter::setInOut; // Make setInOut public
+  inline virtual bool accept(int, const Slice<double>&) const { return true; }
 };
 
 } // namespace easi

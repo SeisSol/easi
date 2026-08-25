@@ -12,39 +12,39 @@
 namespace easi {
 
 class Component {
-public:
-    virtual ~Component() {}
+  public:
+  virtual ~Component() {}
 
-    virtual void evaluate(Query& query, ResultAdapter& result) = 0;
-    virtual bool accept(int group, Slice<double> const& x) const = 0;
-    virtual bool acceptAlways() const = 0;
+  virtual void evaluate(Query& query, ResultAdapter& result) = 0;
+  virtual bool accept(int group, const Slice<double>& x) const = 0;
+  virtual bool acceptAlways() const = 0;
 
-    inline std::set<std::string> const& in() const { return m_in; }
-    inline std::set<std::string> const& out() const { return m_out; }
-    inline unsigned dimDomain() const { return m_in.size(); }
-    inline unsigned dimCodomain() const { return m_out.size(); }
+  inline const std::set<std::string>& in() const { return m_in; }
+  inline const std::set<std::string>& out() const { return m_out; }
+  inline unsigned dimDomain() const { return m_in.size(); }
+  inline unsigned dimCodomain() const { return m_out.size(); }
 
-    inline void setFileReference(std::string const& fileReference) {
-        m_fileReference = fileReference;
-    }
+  inline void setFileReference(const std::string& fileReference) {
+    m_fileReference = fileReference;
+  }
 
-    inline std::string addFileReference(std::string const& what_arg) {
-        std::stringstream s;
-        s << m_fileReference << ": " << what_arg;
-        return s.str();
-    }
+  inline std::string addFileReference(const std::string& what_arg) {
+    std::stringstream s;
+    s << m_fileReference << ": " << what_arg;
+    return s.str();
+  }
 
-    inline virtual std::set<std::string> suppliedParameters() { return out(); }
+  inline virtual std::set<std::string> suppliedParameters() { return out(); }
 
-protected:
-    inline void setIn(std::set<std::string> const& parameters) { m_in = parameters; }
-    inline void setOut(std::set<std::string> const& parameters) { m_out = parameters; }
+  protected:
+  inline void setIn(const std::set<std::string>& parameters) { m_in = parameters; }
+  inline void setOut(const std::set<std::string>& parameters) { m_out = parameters; }
 
-    std::string m_fileReference;
+  std::string m_fileReference;
 
-private:
-    std::set<std::string> m_in;
-    std::set<std::string> m_out;
+  private:
+  std::set<std::string> m_in;
+  std::set<std::string> m_out;
 };
 
 } // namespace easi

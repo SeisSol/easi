@@ -5,7 +5,6 @@
 #include "easi/util/Slice.h"
 
 #include <asagi.h>
-
 #include <set>
 #include <string>
 #include <vector>
@@ -13,37 +12,48 @@
 namespace easi {
 
 class ASAGI : public Grid<ASAGI> {
-public:
-    static unsigned const MaxDimensions = 6;
+  public:
+  static const unsigned MaxDimensions = 6;
+  /** Upper bound on the number of values stored per grid point. */
+  static const unsigned MaxValues = 64;
 
-    inline virtual ~ASAGI() {
-        delete m_grid;
-        delete[] m_permutation;
-    }
+  inline virtual ~ASAGI() {
+    delete m_grid;
+    delete[] m_permutation;
+  }
 
-    virtual bool accept(int, Slice<double> const& x) const;
-    inline virtual bool acceptAlways() const { return false; }
+  virtual bool accept(int, const Slice<double>& x) const;
+  inline virtual bool acceptAlways() const { return false; }
 
-    void setGrid(std::set<std::string> const& in, std::vector<std::string> const& parameters,
-                 asagi::Grid* grid, unsigned numberOfThreads);
+  void setGrid(const std::set<std::string>& in,
+               const std::vector<std::string>& parameters,
+               asagi::Grid* grid,
+               unsigned numberOfThreads);
 
-    void getNearestNeighbour(Slice<double> const& x, double* buffer);
-    void getNeighbours(Slice<double> const& x, double* weights, double* buffer);
-    inline unsigned permutation(unsigned index) const { return m_permutation[index]; }
+  void gridGeometry(double* min, double* delta, unsigned* num) const;
+  void sample(const int* index, double* values) const;
+  inline unsigned permutation(unsigned index) const { return m_permutation[index]; }
 
-protected:
-    inline virtual unsigned numberOfThreads() const { return m_numberOfThreads; }
+  protected:
+  inline virtual unsigned numberOfThreads() const { return m_numberOfThreads; }
 
-private:
-    asagi::Grid* m_grid = nullptr;
-    unsigned* m_permutation = nullptr;
-    unsigned m_numberOfThreads;
-    unsigned m_numValues;
+  private:
+  asagi::Grid* m_grid = nullptr;
+  unsigned* m_permutation = nullptr;
+  unsigned m_numberOfThreads = 1;
+  unsigned m_dimensions = 0;
+  unsigned m_numValues = 0;
 
-    double m_min[MaxDimensions];
-    double m_max[MaxDimensions];
-    double m_delta[MaxDimensions];
-    double m_deltaInv[MaxDimensions];
+  // Bounding box, used to decide whether a query point is covered at all.
+  double m_min[MaxDimensions];
+  double m_max[MaxDimensions];
+
+  // Grid geometry. m_origin is the coordinate of grid point 0 and coincides
+  // with m_min, except in dimensions that ASAGI reports as unbounded; there
+  // the grid degenerates to a single point and any finite coordinate works.
+  double m_origin[MaxDimensions];
+  double m_delta[MaxDimensions];
+  unsigned m_num[MaxDimensions];
 };
 
 } // namespace easi

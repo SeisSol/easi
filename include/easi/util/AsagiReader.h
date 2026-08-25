@@ -6,10 +6,10 @@
 namespace easi {
 
 class AsagiReader {
-public:
-    inline virtual ~AsagiReader() {}
-    virtual asagi::Grid* open(char const* file, char const* varname);
-    inline virtual unsigned numberOfThreads() const { return 1; }
+  public:
+  inline virtual ~AsagiReader() {}
+  virtual asagi::Grid* open(const char* file, const char* varname);
+  inline virtual unsigned numberOfThreads() const { return 1; }
 };
 
 } // namespace easi

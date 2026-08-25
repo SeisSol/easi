@@ -7,7 +7,8 @@
 
 namespace easi {
 
-std::string convertImpalaToLua(const std::unordered_map<std::string, std::string>& code, const std::vector<std::string>& in);
+std::string convertImpalaToLua(const std::unordered_map<std::string, std::string>& code,
+                               const std::vector<std::string>& in);
 
 } // namespace easi
 

@@ -128,4 +128,3 @@ components:
         vp:   1.450
         vs:   0.000
       components: *PREM2SeisSol
-      

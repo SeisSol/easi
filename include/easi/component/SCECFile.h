@@ -10,30 +10,29 @@
 
 namespace easi {
 
-template <typename T> class Slice;
+template <typename T>
+class Slice;
 
 class SCECFile : public Grid<SCECFile> {
-public:
-    SCECFile();
-    inline virtual ~SCECFile() { delete m_grid; }
+  public:
+  SCECFile();
+  inline virtual ~SCECFile() { delete m_grid; }
 
-    void setMap(std::set<std::string> const& in, std::string const& fileName);
+  void setMap(const std::set<std::string>& in, const std::string& fileName);
 
-    inline void getNearestNeighbour(Slice<double> const& x, double* buffer) {
-        m_grid->getNearestNeighbour(x, buffer);
-    }
-    inline void getNeighbours(Slice<double> const& x, double* weights, double* buffer) {
-        m_grid->getNeighbours(x, weights, buffer);
-    }
-    inline unsigned permutation(unsigned index) const { return index; }
+  inline void gridGeometry(double* min, double* delta, unsigned* num) const {
+    m_grid->gridGeometry(min, delta, num);
+  }
+  inline void sample(const int* index, double* values) const { m_grid->sample(index, values); }
+  inline unsigned permutation(unsigned index) const { return index; }
 
-protected:
-    inline virtual unsigned numberOfThreads() const { return 1; }
+  protected:
+  inline virtual unsigned numberOfThreads() const { return 1; }
 
-private:
-    void readSCECFile(std::string const& fileName);
+  private:
+  void readSCECFile(const std::string& fileName);
 
-    RegularGrid* m_grid = nullptr;
+  RegularGrid* m_grid = nullptr;
 };
 
 } // namespace easi

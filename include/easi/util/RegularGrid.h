@@ -3,29 +3,36 @@
 
 namespace easi {
 
-template <typename T> class Slice;
-
+/**
+ * An in-memory uniform Cartesian grid of double values.
+ *
+ * Acts as a grid backend for Grid<Derived>; see there for the meaning of
+ * gridGeometry() and sample().
+ */
 class RegularGrid {
-public:
-    static unsigned const MaxDimensions = 6;
+  public:
+  static const unsigned MaxDimensions = 6;
 
-    inline ~RegularGrid() { delete[] m_values; }
+  inline ~RegularGrid() { delete[] m_values; }
 
-    void allocate(unsigned const* numGridPoints, unsigned dimensions, unsigned numValues);
-    void setVolume(double const* min, double const* max);
-    double* operator()(unsigned const* index);
+  void allocate(const unsigned* numGridPoints, unsigned dimensions, unsigned numValues);
+  void setVolume(const double* min, const double* max);
+  double* operator()(const unsigned* index);
 
-    void getNearestNeighbour(Slice<double> const& x, double* buffer);
-    void getNeighbours(Slice<double> const& x, double* weights, double* buffer);
+  inline unsigned dimensions() const { return m_dimensions; }
+  inline unsigned numValues() const { return m_numValues; }
 
-private:
-    double* m_values = nullptr;
-    unsigned m_dimensions = 0;
-    unsigned m_numValues = 0;
-    double m_min[MaxDimensions];
-    double m_max[MaxDimensions];
-    unsigned m_num[MaxDimensions];
-    double m_delta[MaxDimensions];
+  void gridGeometry(double* min, double* delta, unsigned* num) const;
+  void sample(const int* index, double* values) const;
+
+  private:
+  double* m_values = nullptr;
+  unsigned m_dimensions = 0;
+  unsigned m_numValues = 0;
+  double m_min[MaxDimensions];
+  double m_max[MaxDimensions];
+  unsigned m_num[MaxDimensions];
+  double m_delta[MaxDimensions];
 };
 
 } // namespace easi
