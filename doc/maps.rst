@@ -164,14 +164,16 @@ The output variables are defined by the extra ``returns`` field.
   given in ``returns``
 :Example:
   Given input dimensions are x,y,z. Same example as for the ``FunctionMap``.
+
   .. code-block:: YAML
 
     !LuaMap
     returns: [p]
     function: |
       function f(x)
+        -- alternative: "p": x["x"] * x["y"] * x["z"]
         return {
-          "p": x["x"] * x["y"] * x["z"],
+          "p": x.x * x.y * x.z,
         }
       end function
 
