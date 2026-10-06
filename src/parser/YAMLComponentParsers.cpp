@@ -29,12 +29,12 @@ static std::string getFileName(const std::string& entry, easi::YAMLAbstractParse
     const auto filePath = fs::path(parser->currentFileName());
     const auto newPath = filePath.parent_path() / entryPath;
     if (fs::exists(newPath)) {
-      return fs::canonical(newPath);
+      return fs::canonical(newPath).string();
     } else {
-      return entryPath;
+      return entryPath.string();
     }
   } else {
-    return entryPath;
+    return entryPath.string();
   }
 }
 } // namespace
