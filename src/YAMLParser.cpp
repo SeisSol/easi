@@ -105,11 +105,11 @@ Component* YAMLParser::parse(const std::string& fileName) {
       }
     }();
     if (fs::exists(loadFileName)) {
-      m_currentFileName = fs::canonical(loadFileName);
+      m_currentFileName = fs::canonical(loadFileName).string();
     } else if (fs::exists(nextPath)) {
-      m_currentFileName = fs::canonical(nextPath);
+      m_currentFileName = fs::canonical(nextPath).string();
     } else {
-      m_currentFileName = nextPath;
+      m_currentFileName = nextPath.string();
     }
     m_fileNames.insert(m_currentFileName);
     YAML::Node config = YAML::LoadFile(m_currentFileName);
