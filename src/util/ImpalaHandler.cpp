@@ -1,14 +1,33 @@
 #include "easi/util/ImpalaHandler.h"
 
-#include <exception>
-#include <iostream>
-#include <regex>
-#include <sstream>
+#include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
+
+// Translates the function language of ImpalaJIT, which easi used for !FunctionMap up to version
+// 1.4, to Lua. The translation keeps the grammar and the semantics of ImpalaJIT (cf.
+// compiler/frontend/scanner.ll, compiler/frontend/parser.yy and compiler/semantic_analysis in
+// https://github.com/uphoffc/ImpalaJIT):
+// * numbers are [0-9]+(.[0-9]*)?, names are [A-Za-z][A-Za-z0-9_]*; if, else and return are
+//   keywords only as whole words (e.g. "ifactor" is a name),
+// * all arithmetic is done in double precision,
+// * + - and * / are left-associative, i.e. a - b - c is (a - b) - c and a / b * c is (a / b) * c;
+//   a unary + or - applies to an atom,
+// * a condition is a comparison of two expressions or a bracketed condition, combined with && and
+//   || (where && binds stronger),
+// * the input variables are the parameters of the function: assigning to one changes it for the
+//   rest of the function; all other variables are local to the function and need to be assigned
+//   (in the order of the code) before they are read,
+// * the functions are those of the C math library: cos, sin, tan, acos, asin, atan, atan2, cosh,
+//   sinh, tanh, exp, log, log10, pow, sqrt, min (fmin), max (fmax), abs (fabs), floor, ceil, round,
+//   erf, erfc.
+// The translation accepts a few things that ImpalaJIT does not (e.g. a condition without
+// surrounding brackets, or further functions of the Lua math table), as the earlier versions of
+// this translator did.
 
 namespace {
 
@@ -44,17 +63,17 @@ struct Token {
   std::string value;
 };
 
+bool isLetter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
+
+bool isDigit(char c) { return c >= '0' && c <= '9'; }
+
+bool isSpace(char c) {
+  return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == '\v';
+}
+
 std::vector<Token> tokenizeImpala(const std::string& code) {
-  std::size_t pos = 0;
-  const static std::regex constantRegex("^[0-9]+(?:\\.[0-9]*)?");
-  const static std::regex variableRegex("^([A-Za-z][A-Za-z0-9_]*)");
-  const static std::regex whitespaceRegex("^\\s+");
-  std::vector<Token> tokens;
-  // sort by length (descending)
-  const static std::vector<std::pair<std::string, TokenType>> standardTokens = {
-      {"return", TokenType::Return},
-      {"else", TokenType::Else},
-      {"if", TokenType::If},
+  // two-character symbols come first
+  const static std::vector<std::pair<std::string, TokenType>> Symbols = {
       {"==", TokenType::OperatorCompareEq},
       {"!=", TokenType::OperatorCompareNe},
       {"<=", TokenType::OperatorCompareLe},
@@ -75,33 +94,48 @@ std::vector<Token> tokenizeImpala(const std::string& code) {
       {"{", TokenType::SectionOpen},
       {"}", TokenType::SectionClose},
   };
+  const static std::unordered_map<std::string, TokenType> Keywords = {
+      {"if", TokenType::If}, {"else", TokenType::Else}, {"return", TokenType::Return}};
+
+  std::vector<Token> tokens;
+  std::size_t pos = 0;
   while (pos < code.size()) {
-    bool found = false;
-    for (const auto& [token, type] : standardTokens) {
-      if (pos + token.size() <= code.size()) {
-        const auto parsed = code.substr(pos, token.size());
-        if (parsed == token) {
-          tokens.emplace_back(Token{type, token});
-          pos += token.size();
+    if (isSpace(code[pos])) {
+      ++pos;
+    } else if (isLetter(code[pos])) {
+      std::size_t end = pos + 1;
+      while (end < code.size() && (isLetter(code[end]) || isDigit(code[end]) || code[end] == '_')) {
+        ++end;
+      }
+      const auto word = code.substr(pos, end - pos);
+      const auto keyword = Keywords.find(word);
+      tokens.emplace_back(
+          Token{keyword != Keywords.end() ? keyword->second : TokenType::Variable, word});
+      pos = end;
+    } else if (isDigit(code[pos])) {
+      std::size_t end = pos + 1;
+      while (end < code.size() && isDigit(code[end])) {
+        ++end;
+      }
+      if (end < code.size() && code[end] == '.') {
+        ++end;
+        while (end < code.size() && isDigit(code[end])) {
+          ++end;
+        }
+      }
+      tokens.emplace_back(Token{TokenType::Constant, code.substr(pos, end - pos)});
+      pos = end;
+    } else {
+      bool found = false;
+      for (const auto& [symbol, type] : Symbols) {
+        if (code.compare(pos, symbol.size(), symbol) == 0) {
+          tokens.emplace_back(Token{type, symbol});
+          pos += symbol.size();
           found = true;
           break;
         }
       }
-    }
-    if (!found) {
-      std::smatch match;
-      if (std::regex_search(code.begin() + pos, code.end(), match, constantRegex)) {
-        const auto token = match[0].str();
-        tokens.emplace_back(Token{TokenType::Constant, token});
-        pos += token.size();
-      } else if (std::regex_search(code.begin() + pos, code.end(), match, variableRegex)) {
-        const auto token = match[0].str();
-        tokens.emplace_back(Token{TokenType::Variable, token});
-        pos += token.size();
-      } else if (std::regex_search(code.begin() + pos, code.end(), match, whitespaceRegex)) {
-        const auto token = match[0].str();
-        pos += token.size();
-      } else {
+      if (!found) {
         throw std::runtime_error("Tokenization error: " + code.substr(pos));
       }
     }
@@ -109,69 +143,64 @@ std::vector<Token> tokenizeImpala(const std::string& code) {
   return tokens;
 }
 
+// the Lua name of a variable; the prefix keeps the names apart from Lua keywords and from the
+// names the translation uses itself
+std::string luaVariable(const std::string& name) { return "v_" + name; }
+
+// a constant as a Lua float: Lua (from 5.3 on) keeps integer literals as 64-bit integers, which
+// overflow, while ImpalaJIT computes everything in double precision
+std::string luaConstant(const std::string& constant) {
+  if (constant.find('.') == std::string::npos) {
+    return constant + ".0";
+  }
+  if (constant.back() == '.') {
+    return constant + "0";
+  }
+  return constant;
+}
+
 struct ParserState {
-  std::ostringstream output;
   std::vector<Token> tokens;
-  std::size_t tokenPosition;
-  std::unordered_set<std::string> variables;
-  std::unordered_set<std::string> localVariables;
+  std::size_t tokenPosition{0};
+  std::string output;
+  std::unordered_set<std::string> inputs;
+  std::unordered_set<std::string> locals;
+  std::vector<std::string> localsInOrder;
 
-  ParserState(const std::vector<Token>& tokens) : tokens(tokens), tokenPosition(0) {}
+  ParserState(const std::vector<Token>& tokens, const std::vector<std::string>& in)
+      : tokens(tokens), inputs(in.begin(), in.end()) {}
 
-  bool probeMulti(const std::vector<TokenType>& type) {
-    if (type.empty()) {
-      return true;
+  bool probeMulti(const std::vector<TokenType>& types) const {
+    if (tokenPosition + types.size() > tokens.size()) {
+      return false;
     }
-
-    if (tokens.size() <= tokenPosition + type.size() - 1) {
-      throw std::runtime_error("Out of tokens");
-    }
-
-    bool tokensMatch = true;
-    for (std::size_t i = 0; i < type.size(); ++i) {
-      tokensMatch &= tokens[tokenPosition + i].type == type[i];
-    }
-    return tokensMatch;
-  }
-
-  bool probeConsumeMulti(const std::vector<TokenType>& type) {
-    const auto probeResult = probeMulti(type);
-    if (probeResult) {
-      tokenPosition += type.size();
-    }
-    return probeResult;
-  }
-
-  std::vector<std::string> expectMulti(const std::vector<TokenType>& type) {
-    if (type.empty()) {
-      return {};
-    }
-
-    if (tokens.size() <= tokenPosition + type.size() - 1) {
-      throw std::runtime_error("Out of tokens");
-    }
-
-    for (std::size_t i = 0; i < type.size(); ++i) {
-      if (tokens[tokenPosition + i].type != type[i]) {
-        throw std::runtime_error("Unexpected token: " + tokens[tokenPosition + i].value + " " +
-                                 std::to_string(static_cast<int>(tokens[tokenPosition + i].type)) +
-                                 "; wanted:" + std::to_string(static_cast<int>(type[i])));
+    for (std::size_t i = 0; i < types.size(); ++i) {
+      if (tokens[tokenPosition + i].type != types[i]) {
+        return false;
       }
     }
-
-    std::vector<std::string> strings(type.size());
-    for (std::size_t i = 0; i < type.size(); ++i) {
-      strings[i] = tokens[tokenPosition + i].value;
-    }
-    tokenPosition += type.size();
-    return strings;
+    return true;
   }
 
-  bool probe(TokenType type) { return probeMulti({type}); }
+  bool probe(TokenType type) const { return probeMulti({type}); }
 
-  bool probeConsume(TokenType type) { return probeConsumeMulti({type}); }
+  bool probeConsume(TokenType type) {
+    const bool found = probe(type);
+    if (found) {
+      ++tokenPosition;
+    }
+    return found;
+  }
 
-  std::string expect(TokenType type) { return expectMulti({type})[0]; }
+  std::string expect(TokenType type) {
+    if (tokenPosition >= tokens.size()) {
+      throw std::runtime_error("Unexpected end of the function");
+    }
+    if (tokens[tokenPosition].type != type) {
+      throw std::runtime_error("Unexpected token: " + tokens[tokenPosition].value);
+    }
+    return tokens[tokenPosition++].value;
+  }
 
   template <typename F>
   void parseList(F&& elementParse) {
@@ -196,187 +225,239 @@ struct ParserState {
       } else if (probe(TokenType::Return)) {
         parseReturn();
         expect(TokenType::Semicolon);
-        output << ";";
       } else if (probeMulti({TokenType::Variable, TokenType::Assign})) {
-        parseStatement();
+        parseAssignment();
         expect(TokenType::Semicolon);
-        output << ";";
       } else {
+        // ImpalaJIT evaluates an expression statement and drops the result
+        output += "local _ = ";
         parseExpression();
+        output += "\n";
         expect(TokenType::Semicolon);
-        output << ";";
       }
     }
   }
 
   void parseIf() {
     expect(TokenType::If);
-    output << "if (";
+    output += "if ";
     parseBoolean();
-    output << ") then ";
+    output += " then\n";
     parseBody();
     if (probeConsume(TokenType::Else)) {
-      output << " else ";
+      output += "else\n";
       parseBody();
     }
-    output << " end ";
+    output += "end\n";
   }
 
   void parseReturn() {
     expect(TokenType::Return);
-    output << " do return ";
+    // "do ... end" allows a return in the middle of a block
+    output += "do return ";
     parseExpression();
-    output << " end ";
+    output += " end\n";
   }
 
-  void parseStatement() {
+  void parseAssignment() {
     const auto variable = expect(TokenType::Variable);
-    // TODO: remove once out of scope?
-    localVariables.insert(variable);
     expect(TokenType::Assign);
-    output << variable << " = ";
+    output += luaVariable(variable) + " = ";
     parseExpression();
+    output += "\n";
+    // as in ImpalaJIT, a new variable is known after its assignment (not on its right-hand side);
+    // an input variable stays one: the assignment changes its local copy
+    if (inputs.find(variable) == inputs.end() && locals.find(variable) == locals.end()) {
+      locals.insert(variable);
+      localsInOrder.push_back(variable);
+    }
   }
 
   void parseFunctionCall() {
     const std::string functionName = expect(TokenType::Variable);
-    output << "math." << functionName << "(";
+    output += "__impala[\"" + functionName + "\"](";
     parseList([this](std::size_t index) {
       if (index > 0) {
-        output << ", ";
+        output += ", ";
       }
       parseExpression();
     });
-    output << ")";
+    output += ")";
   }
 
   void parseAtomExpression() {
-    output << "(";
     if (probeConsume(TokenType::BracketOpen)) {
+      output += "(";
       parseExpression();
       expect(TokenType::BracketClose);
+      output += ")";
     } else if (probeMulti({TokenType::Variable, TokenType::BracketOpen})) {
       parseFunctionCall();
     } else if (probe(TokenType::Variable)) {
       const auto variable = expect(TokenType::Variable);
-      if (variables.find(variable) != variables.end()) {
-        output << "__in[\"" << variable << "\"]";
-      } else if (localVariables.find(variable) != localVariables.end()) {
-        output << variable;
-      } else {
+      if (inputs.find(variable) == inputs.end() && locals.find(variable) == locals.end()) {
         throw std::runtime_error("Unknown variable: " + variable);
       }
+      output += luaVariable(variable);
     } else if (probe(TokenType::Constant)) {
-      output << expect(TokenType::Constant);
-    } else {
+      output += luaConstant(expect(TokenType::Constant));
+    } else if (tokenPosition < tokens.size()) {
       throw std::runtime_error("Unexpected token when parsing expression: " +
                                tokens[tokenPosition].value);
+    } else {
+      throw std::runtime_error("Unexpected end of the function");
     }
-    output << ")";
   }
 
   void parseUnaryExpression() {
-    output << "(";
-    if (probeConsume(TokenType::OperatorAdd)) {
-      output << "+";
-    }
+    probeConsume(TokenType::OperatorAdd);
     if (probeConsume(TokenType::OperatorSub)) {
-      output << "-";
+      output += "(-";
+      parseAtomExpression();
+      output += ")";
+    } else {
+      parseAtomExpression();
     }
-    parseAtomExpression();
-    output << ")";
   }
 
+  // left-associative, as mulexpr in ImpalaJIT: a / b * c is (a / b) * c
   void parseMulExpression() {
-    output << "(";
+    output += "(";
     parseUnaryExpression();
-    if (probeConsume(TokenType::OperatorMul)) {
-      output << " * ";
-      parseMulExpression();
+    while (true) {
+      if (probeConsume(TokenType::OperatorMul)) {
+        output += " * ";
+      } else if (probeConsume(TokenType::OperatorDiv)) {
+        output += " / ";
+      } else {
+        break;
+      }
+      parseUnaryExpression();
     }
-    if (probeConsume(TokenType::OperatorDiv)) {
-      output << " / ";
-      parseMulExpression();
-    }
-    output << ")";
+    output += ")";
   }
 
+  // left-associative, as addexpr in ImpalaJIT: a - b - c is (a - b) - c
   void parseAddExpression() {
-    output << "(";
+    output += "(";
     parseMulExpression();
-    if (probeConsume(TokenType::OperatorAdd)) {
-      output << " + ";
-      parseAddExpression();
+    while (true) {
+      if (probeConsume(TokenType::OperatorAdd)) {
+        output += " + ";
+      } else if (probeConsume(TokenType::OperatorSub)) {
+        output += " - ";
+      } else {
+        break;
+      }
+      parseMulExpression();
     }
-    if (probeConsume(TokenType::OperatorSub)) {
-      output << " - ";
-      parseAddExpression();
-    }
-    output << ")";
+    output += ")";
   }
 
   void parseExpression() { parseAddExpression(); }
 
-  void parseAtomBoolean() {
-    output << "(";
-    if (probeConsume(TokenType::BracketOpen)) {
-      parseBoolean();
-      expect(TokenType::BracketClose);
+  void parseComparison() {
+    output += "(";
+    parseExpression();
+    if (probeConsume(TokenType::OperatorCompareEq)) {
+      output += " == ";
+    } else if (probeConsume(TokenType::OperatorCompareNe)) {
+      output += " ~= ";
+    } else if (probeConsume(TokenType::OperatorCompareLe)) {
+      output += " <= ";
+    } else if (probeConsume(TokenType::OperatorCompareLt)) {
+      output += " < ";
+    } else if (probeConsume(TokenType::OperatorCompareGe)) {
+      output += " >= ";
+    } else if (probeConsume(TokenType::OperatorCompareGt)) {
+      output += " > ";
     } else {
-      parseExpression();
-      if (probeConsume(TokenType::OperatorCompareEq)) {
-        output << " == ";
-      } else if (probeConsume(TokenType::OperatorCompareNe)) {
-        output << " ~= ";
-      } else if (probeConsume(TokenType::OperatorCompareLe)) {
-        output << " <= ";
-      } else if (probeConsume(TokenType::OperatorCompareLt)) {
-        output << " < ";
-      } else if (probeConsume(TokenType::OperatorCompareGe)) {
-        output << " >= ";
-      } else if (probeConsume(TokenType::OperatorCompareGt)) {
-        output << " > ";
-      } else {
-        throw std::runtime_error("No comparison operator given");
-      }
-      parseExpression();
+      throw std::runtime_error("No comparison operator given");
     }
-    output << ")";
+    parseExpression();
+    output += ")";
+  }
+
+  void parseAtomBoolean() {
+    // a bracket opens either a bracketed condition, as in (a < b) && c < d, or an expression, as
+    // in (x + 1) * 2 < y: try the condition first, then the comparison
+    if (probe(TokenType::BracketOpen)) {
+      const auto savedPosition = tokenPosition;
+      const auto savedLength = output.size();
+      try {
+        expect(TokenType::BracketOpen);
+        output += "(";
+        parseBoolean();
+        expect(TokenType::BracketClose);
+        output += ")";
+        return;
+      } catch (const std::runtime_error&) {
+        tokenPosition = savedPosition;
+        output.resize(savedLength);
+      }
+    }
+    parseComparison();
   }
 
   void parseAndBoolean() {
-    output << "(";
+    output += "(";
     parseAtomBoolean();
-    if (probeConsume(TokenType::OperatorAnd)) {
-      output << " and ";
-      parseAndBoolean();
+    while (probeConsume(TokenType::OperatorAnd)) {
+      output += " and ";
+      parseAtomBoolean();
     }
-    output << ")";
+    output += ")";
   }
 
   void parseOrBoolean() {
-    output << "(";
+    output += "(";
     parseAndBoolean();
-    if (probeConsume(TokenType::OperatorOr)) {
-      output << " or ";
-      parseOrBoolean();
+    while (probeConsume(TokenType::OperatorOr)) {
+      output += " or ";
+      parseAndBoolean();
     }
-    output << ")";
+    output += ")";
   }
 
   void parseBoolean() { parseOrBoolean(); }
 };
 
-std::string getLuaCode(const std::string& functionName,
-                       const std::vector<Token>& tokens,
-                       const std::vector<std::string>& in) {
-  ParserState state(tokens);
-  state.variables = std::unordered_set<std::string>(in.begin(), in.end());
-  state.output << " function " << functionName << "(__in) ";
+std::string getLuaFunction(const std::string& functionName,
+                           const std::vector<Token>& tokens,
+                           const std::vector<std::string>& in) {
+  ParserState state(tokens, in);
   state.parseBody();
-  state.output << " end ";
-  return state.output.str();
+  if (state.tokenPosition != tokens.size()) {
+    throw std::runtime_error("Unexpected code after the end of the function");
+  }
+
+  std::string code = "local function " + functionName + "(__in)\n";
+  // the inputs are local copies, so that assignments to them stay within the function
+  for (const auto& input : in) {
+    code += "local " + luaVariable(input) + " = __in[\"" + input + "\"]\n";
+  }
+  // all other variables are local to the function (and nil until assigned)
+  for (const auto& local : state.localsInOrder) {
+    code += "local " + luaVariable(local) + "\n";
+  }
+  code += state.output;
+  code += "end\n";
+  return code;
 }
+
+// The functions of ImpalaJIT that the Lua math table lacks or computes differently. With lmathx
+// (LUA_LMATHX, the default), math has the C functions; the fallbacks cover Lua without it.
+const char* LuaPrelude = R"(local __impala = setmetatable({
+  min = math.fmin or math.min,
+  max = math.fmax or math.max,
+  abs = math.fabs or math.abs,
+  pow = math.pow or function(a, b) return a ^ b end,
+  atan2 = math.atan2 or function(y, x) return math.atan(y, x) end,
+  log10 = math.log10 or function(x) return math.log(x, 10) end,
+  floor = function(x) return math.floor(x) + 0.0 end,
+  ceil = function(x) return math.ceil(x) + 0.0 end,
+}, { __index = math })
+)";
 
 } // namespace
 
@@ -384,19 +465,23 @@ namespace easi {
 
 std::string convertImpalaToLua(const std::unordered_map<std::string, std::string>& code,
                                const std::vector<std::string>& in) {
-  std::ostringstream outstream;
-  outstream << "function f(__in__main) ";
+  std::string output = LuaPrelude;
+  std::vector<std::pair<std::string, std::string>> functions;
   for (const auto& [variable, function] : code) {
-    auto tokens = tokenizeImpala("{" + function + "}");
-    const auto luaFunction = getLuaCode("__compute__" + variable, tokens, in);
-    outstream << luaFunction;
+    const auto functionName = "__compute" + std::to_string(functions.size());
+    try {
+      output += getLuaFunction(functionName, tokenizeImpala("{" + function + "}"), in);
+    } catch (const std::runtime_error& error) {
+      throw std::runtime_error("Error in the function for " + variable + ": " + error.what());
+    }
+    functions.emplace_back(variable, functionName);
   }
-  outstream << " return { ";
-  for (const auto& [variable, function] : code) {
-    outstream << variable << " = __compute__" << variable << "(__in__main),";
+  output += "function f(__in)\nreturn {\n";
+  for (const auto& [variable, functionName] : functions) {
+    output += "[\"" + variable + "\"] = " + functionName + "(__in),\n";
   }
-  outstream << "} end";
-  return outstream.str();
+  output += "}\nend\n";
+  return output;
 }
 
 } // namespace easi

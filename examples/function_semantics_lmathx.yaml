@@ -1,0 +1,4 @@
+!FunctionMap
+map:
+  hyperbolic: return tanh(x) - cosh(y) / sinh(z) - tanh(z);
+  special: return erf(x) - erfc(y) - round(2.5) - round(-z);

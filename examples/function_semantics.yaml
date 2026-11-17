@@ -1,0 +1,52 @@
+!FunctionMap
+map:
+  sub_chain: return x - y - z;
+  add_sub: return x - y + z;
+  div_chain: return x / y / z;
+  div_mul: return x / y * z;
+  mixed: return 2 * x - y * 3 - z / 4 + 1;
+  unary: return -x * -y - -z + +x;
+  input_assign: |
+    x = x - 10;
+    return x;
+  locals: |
+    a = x - y;
+    b = a - z;
+    return b - a - 1;
+  branch: |
+    if ((x + 1) * 2 > y) {
+      r = x - y - z;
+    } else {
+      r = z - y - x;
+    }
+    return r;
+  nested: |
+    if (x > 0) {
+      if (y > 0) {
+        return 1;
+      } else {
+        return 2;
+      }
+    } else {
+      return 3;
+    }
+  and_or: |
+    if (x > 0 && y > 0 || z < 0) {
+      return 1;
+    }
+    return 0;
+  bracketed: |
+    if ((x > 0 || y > 0) && (z - 1) * 2 < 4) {
+      return 1;
+    }
+    return 0;
+  keywords: |
+    ifactor = 2;
+    returnValue = x;
+    elsewhere = 3;
+    return ifactor * returnValue - elsewhere;
+  statement: |
+    x + 1;
+    return x;
+  large: return 3037000500 * 3037000500 * 2;
+  functions: return pow(x, 2) - max(y, z) - min(y, z) - abs(-x) - atan2(y, x) - log10(100) - floor(-0.5) - ceil(0.5) - sqrt(16) - exp(1) - log(2);
